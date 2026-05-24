@@ -1,0 +1,264 @@
+@model Etmen_BLL.DTOs.Nearby.NearbySearchDto
+@{
+    ViewData["Title"] = "مقدمو الخدمات القريبون — إطمن";
+    Layout = null;
+    var providers = ViewBag.Providers as List<Etmen_BLL.DTOs.Nearby.ProviderDto>
+                    ?? new List<Etmen_BLL.DTOs.Nearby.ProviderDto>();
+}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>@ViewData["Title"]</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.rtl.min.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+:root{--primary:#1A6FBF;--primary-dark:#0D4C8A;--accent:#00C9A7;--success:#27AE60;--danger:#E74C3C;--warning:#F39C12;--dark:#0F1923;--text:#2C3E50;--text-muted:#7F8C8D;--border:#DDE3EC;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Tajawal',sans-serif;background:#F0F4F9;min-height:100vh;display:flex;}
+.sidebar{width:260px;min-height:100vh;background:var(--dark);display:flex;flex-direction:column;position:fixed;right:0;top:0;z-index:100;}
+.sidebar-logo{padding:28px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.sidebar-logo .logo-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;}
+.sidebar-logo .logo-text{color:#fff;font-weight:800;font-size:1.2rem;}.sidebar-logo .logo-text span{color:var(--accent);}
+.nav-section{padding:20px 16px 8px;color:rgba(255,255,255,.35);font-size:.72rem;font-weight:700;letter-spacing:.08em;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px 20px;color:rgba(255,255,255,.65);text-decoration:none;border-radius:10px;margin:2px 10px;transition:.2s;font-size:.95rem;}
+.nav-item:hover,.nav-item.active{background:rgba(26,111,191,.25);color:#fff;}.nav-item.active{border-right:3px solid var(--primary);}
+.nav-item i{width:20px;text-align:center;}
+.sidebar-footer{margin-top:auto;padding:20px;border-top:1px solid rgba(255,255,255,.08);}
+.logout-btn{display:flex;align-items:center;gap:10px;color:rgba(255,255,255,.5);text-decoration:none;font-size:.9rem;padding:10px 12px;border-radius:8px;transition:.2s;background:none;border:none;width:100%;cursor:pointer;}
+.logout-btn:hover{background:rgba(231,76,60,.15);color:#E74C3C;}
+.main{margin-right:260px;flex:1;min-height:100vh;display:grid;grid-template-columns:360px 1fr;grid-template-rows:auto 1fr;}
+/* Search Panel */
+.search-panel{grid-column:1;grid-row:1/3;background:#fff;border-left:1px solid var(--border);display:flex;flex-direction:column;height:100vh;position:sticky;top:0;overflow-y:auto;}
+.search-panel-header{padding:28px 24px;border-bottom:1px solid var(--border);}
+.search-panel-header h2{font-size:1.1rem;font-weight:800;color:var(--dark);}
+.search-panel-header p{font-size:.85rem;color:var(--text-muted);margin-top:4px;}
+.search-form{padding:20px 24px;border-bottom:1px solid var(--border);}
+.form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+.form-group label{font-size:.83rem;font-weight:600;color:var(--text);}
+.form-control{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Tajawal',sans-serif;font-size:.9rem;color:var(--text);background:#fff;outline:none;transition:.2s;}
+.form-control:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(26,111,191,.1);}
+select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%237F8C8D' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 12px center;}
+.location-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.btn-locate{width:100%;background:rgba(26,111,191,.06);border:1.5px solid rgba(26,111,191,.2);color:var(--primary);padding:10px;border-radius:10px;font-family:'Tajawal',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:14px;transition:.2s;}
+.btn-locate:hover{background:rgba(26,111,191,.12);}
+.btn-search{width:100%;padding:13px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;border:none;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:.2s;}
+.btn-search:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(26,111,191,.35);}
+/* Results */
+.results-panel{grid-column:2;grid-row:1/3;padding:28px;overflow-y:auto;}
+.results-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.results-header h2{font-size:1.3rem;font-weight:800;color:var(--dark);}
+.results-count{font-size:.85rem;color:var(--text-muted);background:#fff;border:1px solid var(--border);padding:6px 14px;border-radius:20px;}
+.providers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;}
+.provider-card{background:#fff;border-radius:16px;border:1px solid var(--border);overflow:hidden;transition:.2s;}
+.provider-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.08);}
+.provider-card-top{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:14px;}
+.provider-icon{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+.type-hospital{background:rgba(26,111,191,.1);color:var(--primary);}
+.type-clinic{background:rgba(0,201,167,.1);color:var(--accent);}
+.type-pharmacy{background:rgba(39,174,96,.1);color:var(--success);}
+.type-lab{background:rgba(243,156,18,.1);color:var(--warning);}
+.provider-name{font-weight:700;font-size:.95rem;color:var(--dark);margin-bottom:2px;}
+.provider-type{font-size:.78rem;color:var(--text-muted);}
+.emergency-tag{display:inline-flex;align-items:center;gap:4px;font-size:.72rem;font-weight:700;color:var(--danger);background:rgba(231,76,60,.08);padding:3px 8px;border-radius:20px;margin-top:4px;}
+.provider-card-body{padding:14px 20px;}
+.provider-detail{display:flex;align-items:center;gap:8px;font-size:.83rem;color:var(--text-muted);margin-bottom:8px;}
+.provider-detail i{width:14px;text-align:center;}
+.provider-detail span{color:var(--text);}
+.distance-badge{background:rgba(26,111,191,.08);color:var(--primary);font-weight:700;padding:4px 10px;border-radius:20px;font-size:.8rem;}
+.provider-card-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px;}
+.btn-book{flex:1;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;border:none;padding:10px;border-radius:10px;font-family:'Tajawal',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:.2s;text-decoration:none;}
+.btn-book:hover{box-shadow:0 4px 14px rgba(26,111,191,.3);color:#fff;}
+.btn-call{padding:10px 16px;border:1.5px solid var(--border);border-radius:10px;background:#fff;color:var(--text-muted);font-family:'Tajawal',sans-serif;font-size:.85rem;cursor:pointer;display:flex;align-items:center;gap:6px;text-decoration:none;transition:.2s;}
+.btn-call:hover{border-color:var(--success);color:var(--success);}
+.empty-state{grid-column:1/-1;background:#fff;border-radius:16px;border:1px solid var(--border);padding:60px;text-align:center;color:var(--text-muted);}
+.empty-state i{font-size:3rem;margin-bottom:16px;opacity:.3;display:block;}
+.alert-error{background:#FDECEA;border:1px solid #F5B7B1;border-radius:12px;padding:12px 20px;display:flex;align-items:center;gap:10px;color:var(--danger);font-weight:600;margin-bottom:16px;font-size:.9rem;grid-column:1/-1;}
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon"><i class="fas fa-heartbeat"></i></div>
+    <div class="logo-text">إط<span>من</span></div>
+  </div>
+  <span class="nav-section">القائمة الرئيسية</span>
+  <a href="/Patient/Dashboard"      class="nav-item"><i class="fas fa-th-large"></i>لوحة التحكم</a>
+  <a href="/Patient/Profile"        class="nav-item"><i class="fas fa-user-circle"></i>الملف الشخصي</a>
+  <a href="/Patient/RiskAssessment" class="nav-item"><i class="fas fa-shield-virus"></i>تقييم المخاطر</a>
+  <span class="nav-section">الرعاية الصحية</span>
+  <a href="/Patient/Appointments"   class="nav-item"><i class="fas fa-calendar-alt"></i>المواعيد</a>
+  <a href="/Patient/MedicalRecords" class="nav-item"><i class="fas fa-notes-medical"></i>السجلات الطبية</a>
+  <a href="/Patient/LabResults"     class="nav-item"><i class="fas fa-flask"></i>نتائج التحاليل</a>
+  <span class="nav-section">أخرى</span>
+  <a href="/Patient/Alerts"  class="nav-item"><i class="fas fa-bell"></i>التنبيهات</a>
+  <a href="/Patient/Nearby"  class="nav-item active"><i class="fas fa-map-marker-alt"></i>مقدمو خدمات</a>
+  <div class="sidebar-footer">
+    <form method="post" action="/Account/Logout">
+      @Html.AntiForgeryToken()
+      <button type="submit" class="logout-btn"><i class="fas fa-sign-out-alt"></i>تسجيل الخروج</button>
+    </form>
+  </div>
+</aside>
+
+<div class="main">
+  <!-- Search Panel -->
+  <div class="search-panel">
+    <div class="search-panel-header">
+      <h2><i class="fas fa-map-marker-alt" style="color:var(--primary);"></i> البحث القريب</h2>
+      <p>ابحث عن أقرب مستشفى أو عيادة أو صيدلية</p>
+    </div>
+
+    <form method="post" asp-action="Nearby" asp-controller="Patient" class="search-form">
+      @Html.AntiForgeryToken()
+
+      <div class="form-group">
+        <label>نوع مقدم الخدمة</label>
+        <select asp-for="Type" class="form-control">
+          <option value="">الكل</option>
+          <option value="Hospital">مستشفى</option>
+          <option value="Clinic">عيادة</option>
+          <option value="Pharmacy">صيدلية</option>
+          <option value="Lab">معمل تحاليل</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>نطاق البحث (كم)</label>
+        <select asp-for="RadiusInKm" class="form-control">
+          <option value="1">1 كم</option>
+          <option value="3" selected>3 كم</option>
+          <option value="5">5 كم</option>
+          <option value="10">10 كم</option>
+          <option value="20">20 كم</option>
+        </select>
+      </div>
+
+      <button type="button" class="btn-locate" onclick="locateMe()">
+        <i class="fas fa-crosshairs"></i>تحديد موقعي تلقائياً
+      </button>
+
+      <div class="location-row">
+        <div class="form-group">
+          <label>خط العرض</label>
+          <input asp-for="Latitude" type="number" step="any" id="lat" class="form-control" placeholder="30.0444"/>
+        </div>
+        <div class="form-group">
+          <label>خط الطول</label>
+          <input asp-for="Longitude" type="number" step="any" id="lng" class="form-control" placeholder="31.2357"/>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-search">
+        <i class="fas fa-search"></i>ابحث الآن
+      </button>
+    </form>
+  </div>
+
+  <!-- Results Panel -->
+  <div class="results-panel">
+    <div class="results-header">
+      <h2>@(providers.Any() ? "نتائج البحث" : "ابحث عن مقدم خدمة")</h2>
+      @if(providers.Any())
+      {<span class="results-count">@providers.Count نتيجة</span>}
+    </div>
+
+    @if(TempData["Error"] is string e)
+    {<div class="alert-error"><i class="fas fa-exclamation-circle"></i>@e</div>}
+
+    @if(!providers.Any())
+    {
+      <div class="empty-state">
+        <i class="fas fa-map-marked-alt"></i>
+        <h3 style="font-size:1.05rem;font-weight:700;color:var(--text);margin-bottom:8px;">
+          حدّد موقعك وابحث
+        </h3>
+        <p style="font-size:.88rem;">ستظهر هنا أقرب المستشفيات والعيادات وغيرها</p>
+      </div>
+    }
+    else
+    {
+      <div class="providers-grid">
+      @foreach(var p in providers)
+      {
+        var typeClass = p.Type?.ToLower() switch {
+          "hospital" or "مستشفى" => "type-hospital",
+          "clinic"   or "عيادة"  => "type-clinic",
+          "pharmacy" or "صيدلية" => "type-pharmacy",
+          _ => "type-lab"
+        };
+        var typeIcon = p.Type?.ToLower() switch {
+          "hospital" or "مستشفى" => "fa-hospital-alt",
+          "clinic"   or "عيادة"  => "fa-user-md",
+          "pharmacy" or "صيدلية" => "fa-pills",
+          _ => "fa-vials"
+        };
+
+        <div class="provider-card">
+          <div class="provider-card-top">
+            <div class="provider-icon @typeClass"><i class="fas @typeIcon"></i></div>
+            <div style="flex:1;">
+              <div class="provider-name">@p.Name</div>
+              <div class="provider-type">@p.Type</div>
+              @if(p.IsEmergencyCenter)
+              {
+                <span class="emergency-tag"><i class="fas fa-ambulance"></i>مركز طوارئ</span>
+              }
+            </div>
+            <span class="distance-badge">@p.DistanceKm.ToString("F1") كم</span>
+          </div>
+          <div class="provider-card-body">
+            @if(!string.IsNullOrEmpty(p.Address))
+            {
+              <div class="provider-detail">
+                <i class="fas fa-map-marker-alt" style="color:var(--danger);"></i>
+                <span>@p.Address</span>
+              </div>
+            }
+            @if(!string.IsNullOrEmpty(p.Phone))
+            {
+              <div class="provider-detail">
+                <i class="fas fa-phone" style="color:var(--success);"></i>
+                <span>@p.Phone</span>
+              </div>
+            }
+            @if(p.AvailableBeds.HasValue)
+            {
+              <div class="provider-detail">
+                <i class="fas fa-bed" style="color:var(--primary);"></i>
+                <span>أسرّة متاحة: <b>@p.AvailableBeds</b></span>
+              </div>
+            }
+          </div>
+          <div class="provider-card-footer">
+            <a href="/Patient/Appointments" class="btn-book">
+              <i class="fas fa-calendar-plus"></i>حجز موعد
+            </a>
+            @if(!string.IsNullOrEmpty(p.Phone))
+            {
+              <a href="tel:@p.Phone" class="btn-call">
+                <i class="fas fa-phone"></i>اتصال
+              </a>
+            }
+          </div>
+        </div>
+      }
+      </div>
+    }
+  </div>
+</div>
+
+<script>
+function locateMe(){
+  if(!navigator.geolocation){ alert('المتصفح لا يدعم تحديد الموقع'); return; }
+  navigator.geolocation.getCurrentPosition(pos => {
+    document.getElementById('lat').value = pos.coords.latitude.toFixed(6);
+    document.getElementById('lng').value = pos.coords.longitude.toFixed(6);
+  }, () => alert('تعذّر تحديد الموقع، يرجى المحاولة يدوياً'));
+}
+</script>
+</body>
+</html>

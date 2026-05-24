@@ -1,0 +1,222 @@
+@model List<Etmen_BLL.DTOs.Lab.LabResultDto>
+@{
+    ViewData["Title"] = "نتائج التحاليل — إطمن";
+    Layout = null;
+    var labs = Model ?? new List<Etmen_BLL.DTOs.Lab.LabResultDto>();
+}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>@ViewData["Title"]</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.rtl.min.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+:root{--primary:#1A6FBF;--primary-dark:#0D4C8A;--accent:#00C9A7;--success:#27AE60;--danger:#E74C3C;--warning:#F39C12;--dark:#0F1923;--text:#2C3E50;--text-muted:#7F8C8D;--border:#DDE3EC;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Tajawal',sans-serif;background:#F0F4F9;min-height:100vh;display:flex;}
+.sidebar{width:260px;min-height:100vh;background:var(--dark);display:flex;flex-direction:column;position:fixed;right:0;top:0;z-index:100;}
+.sidebar-logo{padding:28px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.sidebar-logo .logo-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;}
+.sidebar-logo .logo-text{color:#fff;font-weight:800;font-size:1.2rem;}.sidebar-logo .logo-text span{color:var(--accent);}
+.nav-section{padding:20px 16px 8px;color:rgba(255,255,255,.35);font-size:.72rem;font-weight:700;letter-spacing:.08em;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px 20px;color:rgba(255,255,255,.65);text-decoration:none;border-radius:10px;margin:2px 10px;transition:.2s;font-size:.95rem;}
+.nav-item:hover,.nav-item.active{background:rgba(26,111,191,.25);color:#fff;}.nav-item.active{border-right:3px solid var(--primary);}
+.nav-item i{width:20px;text-align:center;}
+.sidebar-footer{margin-top:auto;padding:20px;border-top:1px solid rgba(255,255,255,.08);}
+.logout-btn{display:flex;align-items:center;gap:10px;color:rgba(255,255,255,.5);text-decoration:none;font-size:.9rem;padding:10px 12px;border-radius:8px;transition:.2s;background:none;border:none;width:100%;cursor:pointer;}
+.logout-btn:hover{background:rgba(231,76,60,.15);color:#E74C3C;}
+.main{margin-right:260px;flex:1;padding:32px;min-height:100vh;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
+.page-header h1{font-size:1.6rem;font-weight:800;color:var(--dark);}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;border:none;padding:11px 24px;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:8px;text-decoration:none;transition:.2s;}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(26,111,191,.35);color:#fff;}
+.card{background:#fff;border-radius:16px;border:1px solid var(--border);overflow:hidden;margin-bottom:24px;}
+.card-header{padding:20px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.card-header h3{font-size:1rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;}
+/* Upload form */
+.upload-form{padding:24px 28px;background:#F8FAFB;border-bottom:1px solid var(--border);}
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.form-group{display:flex;flex-direction:column;gap:6px;}
+.form-group label{font-size:.83rem;font-weight:600;color:var(--text);}
+.form-control{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:9px;font-family:'Tajawal',sans-serif;font-size:.9rem;color:var(--text);background:#fff;outline:none;transition:.2s;}
+.form-control:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(26,111,191,.1);}
+.file-drop{border:2px dashed var(--border);border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:.2s;background:#fff;}
+.file-drop:hover{border-color:var(--primary);background:rgba(26,111,191,.03);}
+.file-drop i{font-size:2rem;color:var(--text-muted);margin-bottom:8px;}
+.file-drop p{font-size:.88rem;color:var(--text-muted);margin:0;}
+.file-drop span{font-size:.8rem;color:var(--primary);font-weight:600;}
+/* Lab grid */
+.labs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;padding:24px;}
+.lab-card{border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:.2s;background:#fff;}
+.lab-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.08);}
+.lab-card-top{padding:18px 20px;background:linear-gradient(135deg,rgba(26,111,191,.06),rgba(0,201,167,.04));border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;}
+.lab-icon{width:44px;height:44px;border-radius:12px;background:rgba(26,111,191,.1);display:flex;align-items:center;justify-content:center;color:var(--primary);font-size:1.2rem;flex-shrink:0;}
+.lab-name{font-weight:700;font-size:.95rem;color:var(--dark);}
+.lab-date{font-size:.78rem;color:var(--text-muted);margin-top:2px;}
+.lab-card-body{padding:16px 20px;}
+.lab-result-text{font-size:.88rem;color:var(--text);background:#F8FAFB;border-radius:8px;padding:10px 14px;margin-bottom:12px;line-height:1.6;}
+.lab-card-footer{display:flex;gap:10px;}
+.btn-view{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border-radius:8px;font-family:'Tajawal',sans-serif;font-size:.83rem;font-weight:600;text-decoration:none;transition:.2s;border:1px solid var(--border);color:var(--text);background:#fff;}
+.btn-view:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
+.empty-state{padding:60px;text-align:center;color:var(--text-muted);}
+.empty-state i{font-size:3rem;margin-bottom:12px;opacity:.3;display:block;}
+.empty-state h3{font-size:1.05rem;font-weight:700;color:var(--text);margin-bottom:8px;}
+.alert-box{background:#E8F8F0;border:1px solid #A8D5B5;border-radius:12px;padding:14px 20px;display:flex;align-items:center;gap:10px;color:var(--success);font-weight:600;margin-bottom:20px;}
+.alert-error{background:#FDECEA;border:1px solid #F5B7B1;color:var(--danger);}
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon"><i class="fas fa-heartbeat"></i></div>
+    <div class="logo-text">إط<span>من</span></div>
+  </div>
+  <span class="nav-section">القائمة الرئيسية</span>
+  <a href="/Patient/Dashboard"      class="nav-item"><i class="fas fa-th-large"></i>لوحة التحكم</a>
+  <a href="/Patient/Profile"        class="nav-item"><i class="fas fa-user-circle"></i>الملف الشخصي</a>
+  <a href="/Patient/RiskAssessment" class="nav-item"><i class="fas fa-shield-virus"></i>تقييم المخاطر</a>
+  <span class="nav-section">الرعاية الصحية</span>
+  <a href="/Patient/Appointments"   class="nav-item"><i class="fas fa-calendar-alt"></i>المواعيد</a>
+  <a href="/Patient/MedicalRecords" class="nav-item"><i class="fas fa-notes-medical"></i>السجلات الطبية</a>
+  <a href="/Patient/LabResults"     class="nav-item active"><i class="fas fa-flask"></i>نتائج التحاليل</a>
+  <span class="nav-section">أخرى</span>
+  <a href="/Patient/Alerts"  class="nav-item"><i class="fas fa-bell"></i>التنبيهات</a>
+  <a href="/Patient/Nearby"  class="nav-item"><i class="fas fa-map-marker-alt"></i>مقدمو خدمات</a>
+  <div class="sidebar-footer">
+    <form method="post" action="/Account/Logout">
+      @Html.AntiForgeryToken()
+      <button type="submit" class="logout-btn"><i class="fas fa-sign-out-alt"></i>تسجيل الخروج</button>
+    </form>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="page-header">
+    <div>
+      <h1>نتائج التحاليل</h1>
+      <p style="color:var(--text-muted);font-size:.95rem;margin-top:4px;">ارفع نتائج تحاليلك وتابعها بسهولة</p>
+    </div>
+    <button class="btn-primary" onclick="toggleUpload()">
+      <i class="fas fa-upload"></i>رفع نتيجة
+    </button>
+  </div>
+
+  @if(TempData["Success"] is string s){<div class="alert-box"><i class="fas fa-check-circle"></i>@s</div>}
+  @if(TempData["Error"]   is string e){<div class="alert-box alert-error"><i class="fas fa-exclamation-circle"></i>@e</div>}
+
+  <!-- Upload Form -->
+  <div class="card" id="uploadCard" style="display:none;">
+    <div class="card-header">
+      <h3><i class="fas fa-upload" style="color:var(--primary);"></i>رفع نتيجة تحليل جديدة</h3>
+    </div>
+    <form method="post" action="/Patient/UploadLab" enctype="multipart/form-data">
+      @Html.AntiForgeryToken()
+      <div class="upload-form">
+        <div class="form-row-2" style="margin-bottom:16px;">
+          <div class="form-group">
+            <label>اسم التحليل</label>
+            <input name="TestName" type="text" class="form-control" placeholder="مثال: تحليل دم كامل CBC" required/>
+          </div>
+          <div class="form-group">
+            <label>تاريخ التحليل</label>
+            <input name="TestDate" type="date" class="form-control" required/>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:16px;">
+          <label>ملف النتيجة (PDF أو صورة)</label>
+          <label class="file-drop" for="labFile">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <p>اسحب الملف هنا أو</p>
+            <span>اضغط للاختيار</span>
+          </label>
+          <input id="labFile" name="File" type="file" accept=".pdf,.jpg,.jpeg,.png" style="display:none;"
+                 onchange="updateFileName(this)"/>
+          <p id="fileNameDisplay" style="font-size:.82rem;color:var(--primary);margin-top:6px;"></p>
+        </div>
+        <div class="form-group" style="margin-bottom:16px;">
+          <label>النتائج (اختياري — نص)</label>
+          <textarea name="Results" class="form-control" rows="2"
+                    placeholder="أدخل ملاحظات أو ملخص النتيجة..."></textarea>
+        </div>
+        <div style="display:flex;gap:12px;">
+          <button type="submit" class="btn-primary"><i class="fas fa-save"></i>حفظ</button>
+          <button type="button" class="btn-primary"
+                  style="background:#F0F4F9;color:var(--text);box-shadow:none;"
+                  onclick="toggleUpload()">إلغاء</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Lab Cards -->
+  <div class="card">
+    <div class="card-header">
+      <h3><i class="fas fa-flask" style="color:var(--primary);"></i>نتائجك</h3>
+      <span style="font-size:.85rem;color:var(--text-muted);">@labs.Count نتيجة</span>
+    </div>
+    @if(!labs.Any())
+    {
+      <div class="empty-state">
+        <i class="fas fa-flask"></i>
+        <h3>لا توجد نتائج بعد</h3>
+        <p>ارفع أول نتيجة تحليل لك</p>
+      </div>
+    }
+    else
+    {
+      <div class="labs-grid">
+      @foreach(var lab in labs.OrderByDescending(l => l.TestDate))
+      {
+        <div class="lab-card">
+          <div class="lab-card-top">
+            <div class="lab-icon"><i class="fas fa-vials"></i></div>
+            <div>
+              <div class="lab-name">@lab.TestName</div>
+              <div class="lab-date"><i class="fas fa-calendar"></i> @lab.TestDate.ToString("dd/MM/yyyy")</div>
+            </div>
+          </div>
+          <div class="lab-card-body">
+            @if(!string.IsNullOrEmpty(lab.Results))
+            {
+              <div class="lab-result-text">@lab.Results</div>
+            }
+            @if(!string.IsNullOrEmpty(lab.OcrExtractedData))
+            {
+              <p style="font-size:.8rem;color:var(--text-muted);margin-bottom:8px;">
+                <i class="fas fa-robot"></i> بيانات مستخرجة تلقائياً
+              </p>
+              <div class="lab-result-text" style="font-size:.82rem;">@lab.OcrExtractedData</div>
+            }
+            <div class="lab-card-footer">
+              @if(!string.IsNullOrEmpty(lab.FileUrl))
+              {
+                <a href="@lab.FileUrl" target="_blank" class="btn-view">
+                  <i class="fas fa-eye"></i>عرض الملف
+                </a>
+              }
+            </div>
+          </div>
+        </div>
+      }
+      </div>
+    }
+  </div>
+</div>
+
+<script>
+function toggleUpload(){
+  const c = document.getElementById('uploadCard');
+  c.style.display = c.style.display === 'none' ? '' : 'none';
+  if(c.style.display !== 'none') c.scrollIntoView({behavior:'smooth'});
+}
+function updateFileName(input){
+  const p = document.getElementById('fileNameDisplay');
+  p.textContent = input.files[0] ? '✓ ' + input.files[0].name : '';
+}
+</script>
+</body>
+</html>

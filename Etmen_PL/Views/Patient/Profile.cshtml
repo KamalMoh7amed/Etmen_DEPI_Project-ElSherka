@@ -1,0 +1,234 @@
+@model Etmen_BLL.DTOs.Patient.ProfileDto
+@using Etmen_Domain.Enums
+@{
+    ViewData["Title"] = "الملف الشخصي — إطمن";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>@ViewData["Title"]</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.rtl.min.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+:root{--primary:#1A6FBF;--primary-dark:#0D4C8A;--accent:#00C9A7;--success:#27AE60;--danger:#E74C3C;--dark:#0F1923;--text:#2C3E50;--text-muted:#7F8C8D;--border:#DDE3EC;--white:#FFFFFF;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Tajawal',sans-serif;background:#F0F4F9;min-height:100vh;display:flex;}
+.sidebar{width:260px;min-height:100vh;background:var(--dark);display:flex;flex-direction:column;position:fixed;right:0;top:0;z-index:100;}
+.sidebar-logo{padding:28px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.sidebar-logo .logo-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;}
+.sidebar-logo .logo-text{color:#fff;font-weight:800;font-size:1.2rem;}
+.sidebar-logo .logo-text span{color:var(--accent);}
+.nav-section{padding:20px 16px 8px;color:rgba(255,255,255,.35);font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px 20px;color:rgba(255,255,255,.65);text-decoration:none;border-radius:10px;margin:2px 10px;transition:.2s;font-size:.95rem;}
+.nav-item:hover,.nav-item.active{background:rgba(26,111,191,.25);color:#fff;}
+.nav-item.active{border-right:3px solid var(--primary);}
+.nav-item i{width:20px;text-align:center;}
+.sidebar-footer{margin-top:auto;padding:20px;border-top:1px solid rgba(255,255,255,.08);}
+.logout-btn{display:flex;align-items:center;gap:10px;color:rgba(255,255,255,.5);text-decoration:none;font-size:.9rem;padding:10px 12px;border-radius:8px;transition:.2s;}
+.logout-btn:hover{background:rgba(231,76,60,.15);color:#E74C3C;}
+.main{margin-right:260px;flex:1;padding:32px;min-height:100vh;}
+.page-header{margin-bottom:28px;}
+.page-header h1{font-size:1.6rem;font-weight:800;color:var(--dark);margin-bottom:4px;}
+.page-header p{color:var(--text-muted);font-size:.95rem;}
+.form-card{background:#fff;border-radius:16px;border:1px solid var(--border);overflow:hidden;margin-bottom:24px;}
+.form-card-header{padding:20px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.form-card-header h3{font-size:1rem;font-weight:700;color:var(--text);}
+.form-card-header .icon{width:36px;height:36px;border-radius:10px;background:rgba(26,111,191,.1);display:flex;align-items:center;justify-content:center;color:var(--primary);}
+.form-body{padding:28px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:20px;}
+.form-group{display:flex;flex-direction:column;gap:6px;}
+.form-group label{font-size:.85rem;font-weight:600;color:var(--text);}
+.form-group .input-wrap{position:relative;}
+.form-group .input-wrap i{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:.9rem;}
+.form-control{width:100%;padding:11px 40px 11px 16px;border:1.5px solid var(--border);border-radius:10px;font-family:'Tajawal',sans-serif;font-size:.95rem;color:var(--text);background:#fff;transition:.2s;outline:none;}
+.form-control:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(26,111,191,.12);}
+select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%237F8C8D' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 12px center;}
+.form-check-wrap{display:flex;align-items:center;gap:10px;padding:14px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;}
+.form-check-wrap input[type=checkbox]{width:18px;height:18px;accent-color:var(--primary);}
+.form-check-wrap label{font-size:.9rem;color:var(--text);cursor:pointer;margin:0;}
+.validation-msg{color:var(--danger);font-size:.8rem;margin-top:4px;}
+.btn-save{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;border:none;padding:13px 32px;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;transition:.2s;}
+.btn-save:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(26,111,191,.35);}
+.alert-success-box{background:#E8F8F0;border:1px solid #A8D5B5;border-radius:12px;padding:14px 20px;display:flex;align-items:center;gap:10px;color:var(--success);font-weight:600;margin-bottom:20px;}
+.alert-error-box{background:#FDECEA;border:1px solid #F5B7B1;border-radius:12px;padding:14px 20px;color:var(--danger);font-weight:600;margin-bottom:20px;}
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon"><i class="fas fa-heartbeat"></i></div>
+    <div class="logo-text">إط<span>من</span></div>
+  </div>
+  <span class="nav-section">القائمة الرئيسية</span>
+  <a href="/Patient/Dashboard" class="nav-item"><i class="fas fa-th-large"></i>لوحة التحكم</a>
+  <a href="/Patient/Profile"   class="nav-item active"><i class="fas fa-user-circle"></i>الملف الشخصي</a>
+  <a href="/Patient/RiskAssessment" class="nav-item"><i class="fas fa-shield-virus"></i>تقييم المخاطر</a>
+  <span class="nav-section">الرعاية الصحية</span>
+  <a href="/Patient/Appointments"   class="nav-item"><i class="fas fa-calendar-alt"></i>المواعيد</a>
+  <a href="/Patient/MedicalRecords" class="nav-item"><i class="fas fa-notes-medical"></i>السجلات الطبية</a>
+  <a href="/Patient/LabResults"     class="nav-item"><i class="fas fa-flask"></i>نتائج التحاليل</a>
+  <span class="nav-section">أخرى</span>
+  <a href="/Patient/Alerts"  class="nav-item"><i class="fas fa-bell"></i>التنبيهات</a>
+  <a href="/Patient/Nearby"  class="nav-item"><i class="fas fa-map-marker-alt"></i>مقدمو خدمات</a>
+  <div class="sidebar-footer">
+    <form method="post" action="/Account/Logout">
+      @Html.AntiForgeryToken()
+      <button type="submit" class="logout-btn" style="background:none;border:none;width:100%;cursor:pointer;">
+        <i class="fas fa-sign-out-alt"></i>تسجيل الخروج
+      </button>
+    </form>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="page-header">
+    <h1>الملف الشخصي</h1>
+    <p>بياناتك الصحية والشخصية</p>
+  </div>
+
+  @if(TempData["Success"] is string s)
+  {<div class="alert-success-box"><i class="fas fa-check-circle"></i>@s</div>}
+  @if(TempData["Error"] is string e)
+  {<div class="alert-error-box"><i class="fas fa-exclamation-circle"></i>@e</div>}
+
+  <form method="post" asp-action="Profile" asp-controller="Patient">
+    @Html.AntiForgeryToken()
+
+    <!-- Personal Info -->
+    <div class="form-card">
+      <div class="form-card-header">
+        <div class="icon"><i class="fas fa-user"></i></div>
+        <h3>البيانات الشخصية</h3>
+      </div>
+      <div class="form-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label asp-for="FullName">الاسم الكامل</label>
+            <div class="input-wrap">
+              <i class="fas fa-user"></i>
+              <input asp-for="FullName" class="form-control" placeholder="أدخل اسمك الكامل"/>
+            </div>
+            <span asp-validation-for="FullName" class="validation-msg"></span>
+          </div>
+          <div class="form-group">
+            <label asp-for="DateOfBirth">تاريخ الميلاد</label>
+            <div class="input-wrap">
+              <i class="fas fa-calendar"></i>
+              <input asp-for="DateOfBirth" type="date" class="form-control"/>
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label asp-for="Gender">الجنس</label>
+            <div class="input-wrap">
+              <i class="fas fa-venus-mars"></i>
+              <select asp-for="Gender" class="form-control">
+                <option value="">— اختر —</option>
+                <option value="Male">ذكر</option>
+                <option value="Female">أنثى</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label asp-for="BloodType">فصيلة الدم</label>
+            <div class="input-wrap">
+              <i class="fas fa-tint"></i>
+              <select asp-for="BloodType" class="form-control">
+                <option value="">— اختر —</option>
+                @foreach(var bt in new[]{"A+","A-","B+","B-","AB+","AB-","O+","O-"})
+                {<option value="@bt">@bt</option>}
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Health Metrics -->
+    <div class="form-card">
+      <div class="form-card-header">
+        <div class="icon"><i class="fas fa-weight"></i></div>
+        <h3>المقاييس الصحية</h3>
+      </div>
+      <div class="form-body">
+        <div class="form-row-3">
+          <div class="form-group">
+            <label asp-for="Height">الطول (سم)</label>
+            <div class="input-wrap">
+              <i class="fas fa-ruler-vertical"></i>
+              <input asp-for="Height" type="number" step="0.1" class="form-control" placeholder="170"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label asp-for="Weight">الوزن (كجم)</label>
+            <div class="input-wrap">
+              <i class="fas fa-weight"></i>
+              <input asp-for="Weight" type="number" step="0.1" class="form-control" placeholder="70"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label asp-for="ActivityLevel">مستوى النشاط البدني</label>
+            <div class="input-wrap">
+              <i class="fas fa-running"></i>
+              <select asp-for="ActivityLevel" class="form-control"
+                      asp-items="Html.GetEnumSelectList<PhysicalActivityLevel>()">
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Medical History -->
+    <div class="form-card">
+      <div class="form-card-header">
+        <div class="icon"><i class="fas fa-notes-medical"></i></div>
+        <h3>التاريخ الطبي</h3>
+      </div>
+      <div class="form-body">
+        <div class="form-row" style="margin-bottom:20px;">
+          <label class="form-check-wrap">
+            <input asp-for="HasChronicDiseases" type="checkbox"/>
+            <label asp-for="HasChronicDiseases">أعاني من أمراض مزمنة</label>
+          </label>
+        </div>
+        <div class="form-group" style="margin-bottom:20px;">
+          <label asp-for="ChronicDiseasesNotes">تفاصيل الأمراض المزمنة</label>
+          <textarea asp-for="ChronicDiseasesNotes" class="form-control" rows="3"
+                    placeholder="مثال: سكري النوع الثاني، ضغط الدم..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label asp-for="Allergies">الحساسيات</label>
+            <textarea asp-for="Allergies" class="form-control" rows="3"
+                      placeholder="مثال: حساسية من البنسلين، المكسرات..."></textarea>
+          </div>
+          <div class="form-group">
+            <label asp-for="CurrentMedications">الأدوية الحالية</label>
+            <textarea asp-for="CurrentMedications" class="form-control" rows="3"
+                      placeholder="مثال: ميتفورمين 500mg مرتين يومياً..."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;">
+      <button type="submit" class="btn-save">
+        <i class="fas fa-save"></i>حفظ التغييرات
+      </button>
+    </div>
+  </form>
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+</body>
+</html>

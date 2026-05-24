@@ -1,0 +1,777 @@
+@model Etmen_BLL.DTOs.Auth.RegisterDto
+@{
+    ViewData["Title"] = "إنشاء حساب — إطمن";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.rtl.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+    <style>
+        :root {
+            --primary:       #1A6FBF;
+            --primary-dark:  #0D4C8A;
+            --primary-light: #E8F4FD;
+            --accent:        #00C9A7;
+            --success:       #27AE60;
+            --danger:        #E74C3C;
+            --warning:       #F39C12;
+            --dark:          #0F1923;
+            --text:          #2C3E50;
+            --text-muted:    #7F8C8D;
+            --border:        #DDE3EC;
+            --border-focus:  rgba(26,111,191,0.35);
+            --white:         #FFFFFF;
+            --glass:         rgba(255,255,255,0.06);
+            --glass-border:  rgba(255,255,255,0.12);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { height: 100%; }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            min-height: 100vh;
+            background: var(--dark);
+            display: flex;
+        }
+
+        /* ══ LEFT PANEL ════════════════════════════════════════ */
+        .brand-panel {
+            flex: 0 0 42%;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            background: linear-gradient(155deg, #0a1e30 0%, var(--dark) 50%, #060f18 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 50px 55px;
+            overflow: hidden;
+        }
+
+        .brand-panel::before {
+            content: '';
+            position: absolute; inset: 0;
+            background-image:
+                linear-gradient(rgba(26,111,191,0.06) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(26,111,191,0.06) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridDrift 25s linear infinite;
+        }
+        @@keyframes gridDrift { to { background-position: 50px 50px; } }
+
+        .orb { position: absolute; border-radius: 50%; filter: blur(80px); }
+        .orb-1 { width:400px; height:400px; background:var(--primary); opacity:0.12; top:-80px; left:-80px; }
+        .orb-2 { width:250px; height:250px; background:var(--accent);  opacity:0.1;  bottom:50px; right:-30px; }
+
+        .brand-top { position: relative; z-index: 2; }
+        .brand-bottom { position: relative; z-index: 2; }
+
+        .brand-logo {
+            display: flex; align-items: center; gap: 12px;
+            text-decoration: none; margin-bottom: 3rem;
+        }
+        .brand-logo-icon {
+            width: 48px; height: 48px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 13px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem; color: white;
+            box-shadow: 0 0 28px rgba(26,111,191,0.38);
+        }
+        .brand-logo-text { font-size: 1.7rem; font-weight: 900; color: white; }
+        .brand-logo-text span { color: var(--accent); }
+
+        .brand-title {
+            font-size: clamp(1.7rem, 2.8vw, 2.6rem);
+            font-weight: 900; color: white; line-height: 1.2;
+            margin-bottom: 1rem; letter-spacing: -0.4px;
+        }
+        .brand-title .hl {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+
+        .brand-desc {
+            font-size: 0.95rem; color: rgba(255,255,255,0.5);
+            line-height: 1.8; margin-bottom: 2.5rem;
+        }
+
+        /* Steps indicator */
+        .steps-visual { display: flex; flex-direction: column; gap: 20px; }
+        .step-item {
+            display: flex; align-items: flex-start; gap: 16px;
+            padding: 16px 18px;
+            background: var(--glass); border: 1px solid var(--glass-border);
+            border-radius: 14px; backdrop-filter: blur(8px);
+            transition: all 0.3s;
+        }
+        .step-item:hover {
+            background: rgba(255,255,255,0.09);
+            transform: translateX(-4px);
+        }
+        .step-dot {
+            width: 36px; height: 36px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; flex-shrink: 0;
+        }
+        .step-item-title { font-size: 0.88rem; font-weight: 700; color: white; margin-bottom: 2px; }
+        .step-item-sub   { font-size: 0.76rem; color: rgba(255,255,255,0.4); }
+
+        /* Stats at bottom */
+        .brand-stats {
+            display: flex; gap: 2rem;
+            padding-top: 2rem; border-top: 1px solid var(--glass-border);
+        }
+        .brand-stat-num {
+            font-size: 1.6rem; font-weight: 900; color: white;
+            line-height: 1;
+        }
+        .brand-stat-num span { color: var(--accent); }
+        .brand-stat-label { font-size: 0.75rem; color: rgba(255,255,255,0.4); margin-top: 3px; }
+
+        /* ECG animation at bottom */
+        .ecg-wrap {
+            position: absolute; bottom: 0; left: 0; right: 0; height: 50px; opacity: 0.15;
+        }
+        .ecg-path {
+            stroke: var(--accent); stroke-width: 1.5; fill: none;
+            stroke-dasharray: 600; stroke-dashoffset: 600;
+            animation: draw 3s ease-in-out infinite;
+        }
+        @@keyframes draw {
+            0%   { stroke-dashoffset: 600; }
+            60%  { stroke-dashoffset: 0; }
+            100% { stroke-dashoffset: -600; }
+        }
+
+        /* ══ RIGHT PANEL (form) ════════════════════════════════ */
+        .form-panel {
+            flex: 1;
+            background: white;
+            overflow-y: auto;
+            padding: 50px 52px 60px;
+            position: relative;
+        }
+        .form-panel::before {
+            content: '';
+            position: absolute; top: 0; right: 0; left: 0; height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+        }
+
+        .form-back-link {
+            display: inline-flex; align-items: center; gap: 6px;
+            color: var(--text-muted); text-decoration: none;
+            font-size: 0.85rem; font-weight: 500; margin-bottom: 2rem;
+            transition: color 0.2s;
+        }
+        .form-back-link:hover { color: var(--primary); }
+
+        .form-header { margin-bottom: 2rem; }
+        .form-eyebrow {
+            font-size: 0.78rem; font-weight: 700;
+            color: var(--primary); letter-spacing: 1px;
+            text-transform: uppercase; margin-bottom: 0.3rem;
+        }
+        .form-title {
+            font-size: 1.9rem; font-weight: 900;
+            color: var(--text); margin-bottom: 0.3rem; letter-spacing: -0.4px;
+        }
+        .form-subtitle { font-size: 0.9rem; color: var(--text-muted); }
+
+        /* ── Two column grid ── */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0 20px;
+        }
+        .form-grid .full { grid-column: 1 / -1; }
+
+        /* ── Fields ── */
+        .field-group { margin-bottom: 1.2rem; }
+
+        .field-label {
+            display: block; font-size: 0.84rem; font-weight: 700;
+            color: var(--text); margin-bottom: 5px;
+        }
+        .field-label .req { color: var(--danger); margin-right: 2px; }
+
+        .field-wrapper { position: relative; }
+
+        .field-icon {
+            position: absolute; top: 50%; right: 15px;
+            transform: translateY(-50%);
+            color: var(--text-muted); font-size: 0.9rem;
+            pointer-events: none; transition: color 0.2s; z-index: 2;
+        }
+        .field-input {
+            width: 100%; height: 50px;
+            padding: 0 46px 0 14px;
+            background: #F8FAFC;
+            border: 1.5px solid var(--border);
+            border-radius: 11px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 0.93rem; color: var(--text);
+            transition: all 0.25s; outline: none; direction: rtl;
+        }
+        .field-input::placeholder { color: rgba(127,140,141,0.55); }
+        .field-input:focus {
+            background: white;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--border-focus);
+        }
+        .field-input:focus ~ .field-icon { color: var(--primary); }
+        .field-input.is-invalid {
+            border-color: var(--danger); background: #fff8f8;
+        }
+        .field-input.is-valid {
+            border-color: var(--success); background: #f8fff9;
+        }
+        /* LTR inputs (email, phone) */
+        .field-input[dir="ltr"] { direction: ltr; text-align: right; }
+
+        .toggle-pass {
+            position: absolute; top: 50%; left: 12px;
+            transform: translateY(-50%);
+            background: none; border: none;
+            color: var(--text-muted); cursor: pointer;
+            padding: 4px; font-size: 0.88rem;
+            transition: color 0.2s; z-index: 3;
+        }
+        .toggle-pass:hover { color: var(--primary); }
+        .field-input.has-toggle { padding-left: 42px; }
+
+        .field-error {
+            display: flex; align-items: center; gap: 5px;
+            color: var(--danger); font-size: 0.78rem;
+            margin-top: 4px; font-weight: 500;
+        }
+
+        /* ── Password strength ── */
+        .strength-bar {
+            display: flex; gap: 4px; margin-top: 8px;
+        }
+        .strength-seg {
+            flex: 1; height: 4px; border-radius: 2px;
+            background: var(--border);
+            transition: background 0.3s;
+        }
+        .strength-label {
+            font-size: 0.75rem; margin-top: 5px;
+            font-weight: 600; min-height: 18px;
+            transition: color 0.3s;
+        }
+
+        /* Strength levels */
+        .str-0 .strength-seg { background: var(--border); }
+        .str-1 .strength-seg:nth-child(1) { background: var(--danger); }
+        .str-2 .strength-seg:nth-child(-n+2) { background: var(--warning); }
+        .str-3 .strength-seg:nth-child(-n+3) { background: var(--primary); }
+        .str-4 .strength-seg { background: var(--success); }
+
+        /* ── Terms checkbox ── */
+        .terms-row {
+            display: flex; align-items: flex-start; gap: 10px;
+            margin-bottom: 1.5rem; padding: 14px 16px;
+            background: var(--primary-light);
+            border: 1px solid rgba(26,111,191,0.15);
+            border-radius: 12px;
+        }
+        .terms-row input[type=checkbox] { display: none; }
+        .terms-check-box {
+            width: 22px; height: 22px; flex-shrink: 0;
+            border: 2px solid var(--border); border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s; margin-top: 1px;
+            background: white;
+        }
+        input#termsCheck:checked + label .terms-check-box {
+            background: var(--primary); border-color: var(--primary);
+        }
+        input#termsCheck:checked + label .terms-check-box::after {
+            content: '✓'; color: white; font-size: 0.75rem; font-weight: 900;
+        }
+        .terms-text { font-size: 0.85rem; color: var(--text); cursor: pointer; line-height: 1.5; }
+        .terms-text a { color: var(--primary); font-weight: 700; text-decoration: none; }
+        .terms-text a:hover { text-decoration: underline; }
+
+        /* ── Submit ── */
+        .btn-submit {
+            width: 100%; height: 52px;
+            background: linear-gradient(135deg, var(--primary), #1a8fbf);
+            color: white; border: none; border-radius: 12px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 1rem; font-weight: 800; cursor: pointer;
+            transition: all 0.3s;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            box-shadow: 0 6px 22px rgba(26,111,191,0.35);
+            position: relative; overflow: hidden;
+        }
+        .btn-submit:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(26,111,191,0.45);
+        }
+        .btn-submit:disabled { opacity: 0.7; cursor: not-allowed; }
+
+        .spinner {
+            display: none; width: 20px; height: 20px;
+            border: 2.5px solid rgba(255,255,255,0.3);
+            border-top-color: white; border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        @@keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Login link ── */
+        .login-link-row {
+            text-align: center; margin-top: 1.3rem;
+            font-size: 0.9rem; color: var(--text-muted);
+        }
+        .login-link-row a { color: var(--primary); font-weight: 700; text-decoration: none; }
+        .login-link-row a:hover { text-decoration: underline; }
+
+        /* ── Error alert ── */
+        .alert-error {
+            display: flex; align-items: flex-start; gap: 12px;
+            background: #FEF2F2; border: 1px solid #FECACA;
+            border-right: 4px solid var(--danger); border-radius: 12px;
+            padding: 13px 16px; margin-bottom: 1.5rem;
+            font-size: 0.86rem; color: #991B1B;
+            animation: alertIn 0.3s ease;
+        }
+        @@keyframes alertIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:none; } }
+        .alert-error i { color: var(--danger); flex-shrink: 0; margin-top: 1px; }
+
+        /* ── Section divider ── */
+        .field-section-title {
+            font-size: 0.78rem; font-weight: 800;
+            color: var(--text-muted); letter-spacing: 1px;
+            text-transform: uppercase;
+            margin: 1.5rem 0 1rem;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .field-section-title::after {
+            content: ''; flex: 1; height: 1px; background: var(--border);
+        }
+
+        /* ── Responsive ── */
+        @@media (max-width: 991px) {
+            .brand-panel { display: none; }
+            .form-panel { padding: 36px 24px 50px; }
+            .form-grid { grid-template-columns: 1fr; }
+        }
+        @@media (max-width: 480px) {
+            .form-panel { padding: 28px 16px 48px; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ═══ BRAND PANEL ══════════════════════════════════════ -->
+    <div class="brand-panel">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+
+        <div class="brand-top">
+            <a href="/" class="brand-logo">
+                <div class="brand-logo-icon"><i class="fas fa-heartbeat"></i></div>
+                <span class="brand-logo-text">إطمن<span>من</span></span>n>
+            </a>
+
+            <h1 class="brand-title">
+                ابدأ رحلتك الصحية<br />
+                مع <span class="hl">إطمن</span> اليوم
+            </h1>
+
+            <p class="brand-desc">
+                إنشاء حسابك مجاناً يستغرق دقيقة واحدة فقط.
+                ستحصل على وصول فوري لكامل خدمات المنصة الصحية.
+            </p>
+
+            <div class="steps-visual">
+                <div class="step-item">
+                    <div class="step-dot" style="background:rgba(26,111,191,0.2); color:#60AEFF;">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <div>
+                        <div class="step-item-title">أنشئ حسابك</div>
+                        <div class="step-item-sub">بياناتك الأساسية في دقيقة</div>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-dot" style="background:rgba(0,201,167,0.2); color:#00C9A7;">
+                        <i class="fas fa-envelope-circle-check"></i>
+                    </div>
+                    <div>
+                        <div class="step-item-title">تحقق من بريدك</div>
+                        <div class="step-item-sub">رابط التفعيل يصلك فوراً</div>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-dot" style="background:rgba(39,174,96,0.2); color:#27AE60;">
+                        <i class="fas fa-shield-heart"></i>
+                    </div>
+                    <div>
+                        <div class="step-item-title">استمتع بكامل الخدمات</div>
+                        <div class="step-item-sub">مواعيد، تحاليل، تقييم صحي وأكثر</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="brand-bottom">
+            <div class="brand-stats">
+                <div>
+                    <div class="brand-stat-num">50K<span>+</span></div>
+                    <div class="brand-stat-label">مريض مسجّل</div>
+                </div>
+                <div>
+                    <div class="brand-stat-num">1.2K<span>+</span></div>
+                    <div class="brand-stat-label">طبيب معتمد</div>
+                </div>
+                <div>
+                    <div class="brand-stat-num">98<span>%</span></div>
+                    <div class="brand-stat-label">رضا المستخدمين</div>
+                </div>
+            </div>
+        </div>
+
+        <svg class="ecg-wrap" viewBox="0 0 700 50" preserveAspectRatio="none">
+            <path class="ecg-path"
+                  d="M0,25 L60,25 L80,8 L95,42 L110,3 L125,47 L140,25 L220,25
+                     L240,8 L255,42 L270,3 L285,47 L300,25 L380,25
+                     L400,8 L415,42 L430,3 L445,47 L460,25 L540,25
+                     L560,8 L575,42 L590,3 L605,47 L620,25 L700,25" />
+        </svg>
+    </div>
+
+    <!-- ═══ FORM PANEL ════════════════════════════════════════ -->
+    <div class="form-panel">
+        <a href="/Account/Login" class="form-back-link">
+            <i class="fas fa-arrow-right"></i>
+            لديك حساب بالفعل؟ تسجيل الدخول
+        </a>
+
+        <div class="form-header">
+            <div class="form-eyebrow">انضم إلى إطمن</div>
+            <h2 class="form-title">إنشاء حساب جديد</h2>
+            <p class="form-subtitle">جميع الحقول المعلمة بـ <span style="color:var(--danger);">*</span> إلزامية</p>
+        </div>
+
+        @if (!ViewData.ModelState.IsValid && ViewData.ModelState[string.Empty]?.Errors.Count > 0)
+        {
+            <div class="alert-error" role="alert">
+                <i class="fas fa-exclamation-circle"></i>
+                <div>
+                    @foreach (var err in ViewData.ModelState[string.Empty]!.Errors)
+                    {
+                        <div>@err.ErrorMessage</div>
+                    }
+                </div>
+            </div>
+        }
+
+        <form method="post"
+              asp-area="Auth"
+              asp-controller="Account"
+              asp-action="Register"
+              id="registerForm"
+              novalidate>
+
+            @Html.AntiForgeryToken()
+
+            <!-- ── Personal Info ── -->
+            <div class="field-section-title">المعلومات الشخصية</div>
+
+            <div class="form-grid">
+                <!-- First Name -->
+                <div class="field-group">
+                    <label class="field-label" for="FirstName">
+                        الاسم الأول <span class="req">*</span>
+                    </label>
+                    <div class="field-wrapper">
+                        <input asp-for="FirstName" type="text" id="FirstName"
+                               class="field-input @(ViewData.ModelState["FirstName"]?.Errors.Count > 0 ? "is-invalid" : "")"
+                               placeholder="محمد" autocomplete="given-name" />
+                        <i class="fas fa-user field-icon"></i>
+                    </div>
+                    @if (ViewData.ModelState["FirstName"]?.Errors.Count > 0)
+                    {
+                        <div class="field-error">
+                            <i class="fas fa-circle-exclamation"></i>
+                            <span asp-validation-for="FirstName"></span>
+                        </div>
+                    }
+                </div>
+
+                <!-- Last Name -->
+                <div class="field-group">
+                    <label class="field-label" for="LastName">
+                        اسم العائلة <span class="req">*</span>
+                    </label>
+                    <div class="field-wrapper">
+                        <input asp-for="LastName" type="text" id="LastName"
+                               class="field-input @(ViewData.ModelState["LastName"]?.Errors.Count > 0 ? "is-invalid" : "")"
+                               placeholder="أحمد" autocomplete="family-name" />
+                        <i class="fas fa-user field-icon"></i>
+                    </div>
+                    @if (ViewData.ModelState["LastName"]?.Errors.Count > 0)
+                    {
+                        <div class="field-error">
+                            <i class="fas fa-circle-exclamation"></i>
+                            <span asp-validation-for="LastName"></span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- ── Account Info ── -->
+            <div class="field-section-title">بيانات الحساب</div>
+
+            <div class="form-grid">
+                <!-- Email -->
+                <div class="field-group full">
+                    <label class="field-label" for="Email">
+                        البريد الإلكتروني <span class="req">*</span>
+                    </label>
+                    <div class="field-wrapper">
+                        <input asp-for="Email" type="email" id="Email"
+                               class="field-input @(ViewData.ModelState["Email"]?.Errors.Count > 0 ? "is-invalid" : "")"
+                               placeholder="example@email.com"
+                               autocomplete="email" inputmode="email" dir="ltr" />
+                        <i class="fas fa-envelope field-icon"></i>
+                    </div>
+                    @if (ViewData.ModelState["Email"]?.Errors.Count > 0)
+                    {
+                        <div class="field-error">
+                            <i class="fas fa-circle-exclamation"></i>
+                            <span asp-validation-for="Email"></span>
+                        </div>
+                    }
+                </div>
+
+                <!-- Phone -->
+                <div class="field-group full">
+                    <label class="field-label" for="PhoneNumber">
+                        رقم الهاتف
+                        <span style="color:var(--text-muted); font-weight:400; font-size:0.75rem;">(اختياري)</span>
+                    </label>
+                    <div class="field-wrapper">
+                        <input asp-for="PhoneNumber" type="tel" id="PhoneNumber"
+                               class="field-input @(ViewData.ModelState["PhoneNumber"]?.Errors.Count > 0 ? "is-invalid" : "")"
+                               placeholder="01xxxxxxxxx"
+                               autocomplete="tel" inputmode="tel" dir="ltr" />
+                        <i class="fas fa-phone field-icon"></i>
+                    </div>
+                    @if (ViewData.ModelState["PhoneNumber"]?.Errors.Count > 0)
+                    {
+                        <div class="field-error">
+                            <i class="fas fa-circle-exclamation"></i>
+                            <span asp-validation-for="PhoneNumber"></span>
+                        </div>
+                    }
+                </div>
+
+                <!-- Password -->
+                <div class="field-group">
+                    <label class="field-label" for="Password">
+                        كلمة المرور <span class="req">*</span>
+                    </label>
+                    <div class="field-wrapper">
+                        <input asp-for="Password" type="password" id="Password"
+                               class="field-input has-toggle @(ViewData.ModelState["Password"]?.Errors.Count > 0 ? "is-invalid" : "")"
+                               placeholder="6 أحرف على الأقل"
+                               autocomplete="new-password"
+                               oninput="checkStrength(this.value)" />
+                        <i class="fas fa-lock field-icon"></i>
+                        <button type="button" class="toggle-pass" onclick="toggleVis('Password','iconPass')">
+                            <i class="fas fa-eye" id="iconPass"></i>
+                        </button>
+                    </div>
+                    <!-- Strength bar -->
+                    <div class="strength-bar str-0" id="strengthBar">
+                        <div class="strength-seg"></div>
+                        <div class="strength-seg"></div>
+                        <div class="strength-seg"></div>
+                        <div class="strength-seg"></div>
+                    </div>
+                    <div class="strength-label" id="strengthLabel" style="color:var(--text-muted);"></div>
+                    @if (ViewData.ModelState["Password"]?.Errors.Count > 0)
+                    {
+                        <div class="field-error">
+                            <i class="fas fa-circle-exclamation"></i>
+                            <span asp-validation-for="Password"></span>
+                        </div>
+                    }
+                </div>
+
+                <!-- Confirm Password -->
+                <div class="field-group">
+                    <label class="field-label" for="ConfirmPassword">
+                        تأكيد كلمة المرور <span class="req">*</span>
+                    </label>
+                    <div class="field-wrapper">
+                        <input asp-for="ConfirmPassword" type="password" id="ConfirmPassword"
+                               class="field-input has-toggle @(ViewData.ModelState["ConfirmPassword"]?.Errors.Count > 0 ? "is-invalid" : "")"
+                               placeholder="أعد كتابة كلمة المرور"
+                               autocomplete="new-password"
+                               oninput="checkMatch()" />
+                        <i class="fas fa-lock field-icon"></i>
+                        <button type="button" class="toggle-pass" onclick="toggleVis('ConfirmPassword','iconConf')">
+                            <i class="fas fa-eye" id="iconConf"></i>
+                        </button>
+                    </div>
+                    <div class="field-error" id="matchErr" style="display:none;">
+                        <i class="fas fa-circle-exclamation"></i>
+                        <span>كلمتا المرور غير متطابقتين</span>
+                    </div>
+                    @if (ViewData.ModelState["ConfirmPassword"]?.Errors.Count > 0)
+                    {
+                        <div class="field-error">
+                            <i class="fas fa-circle-exclamation"></i>
+                            <span asp-validation-for="ConfirmPassword"></span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Terms -->
+            <input type="checkbox" id="termsCheck" name="terms" style="display:none;" />
+            <div class="terms-row">
+                <input type="checkbox" id="termsCheckReal" />
+                <label for="termsCheckReal" style="display:flex; align-items:flex-start; gap:10px; cursor:pointer;">
+                    <div class="terms-check-box" id="termsBox"></div>
+                    <span class="terms-text">
+                        أوافق على
+                        <a href="/Home/Privacy" target="_blank">سياسة الخصوصية</a>
+                        و
+                        <a href="#" target="_blank">الشروط والأحكام</a>
+                        الخاصة بمنصة إطمن
+                    </span>
+                </label>
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" class="btn-submit" id="submitBtn">
+                <span id="btnText"><i class="fas fa-user-plus"></i> إنشاء الحساب</span>
+                <span class="spinner" id="btnSpinner"></span>
+            </button>
+        </form>
+
+        <div class="login-link-row">
+            لديك حساب بالفعل؟
+            <a href="/Account/Login">
+                <i class="fas fa-right-to-bracket"></i> تسجيل الدخول
+            </a>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
+
+    <script>
+        // ── Password visibility ──────────────────────────────
+        function toggleVis(inputId, iconId) {
+            const inp  = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            const show = inp.type === 'password';
+            inp.type = show ? 'text' : 'password';
+            icon.className = show ? 'fas fa-eye-slash' : 'fas fa-eye';
+        }
+
+        // ── Password strength ────────────────────────────────
+        const strengthData = [
+            { label: '',         color: 'var(--text-muted)' },
+            { label: 'ضعيفة',   color: 'var(--danger)'  },
+            { label: 'مقبولة',  color: 'var(--warning)' },
+            { label: 'جيدة',    color: 'var(--primary)' },
+            { label: 'قوية ✓',  color: 'var(--success)' },
+        ];
+
+        function checkStrength(val) {
+            let score = 0;
+            if (val.length >= 6)  score++;
+            if (val.length >= 10) score++;
+            if (/[A-Z]/.test(val) || /[!@@#$%^&*]/.test(val)) score++;
+            if (/[0-9]/.test(val) && val.length >= 8) score++;
+
+            const bar   = document.getElementById('strengthBar');
+            const label = document.getElementById('strengthLabel');
+            bar.className = 'strength-bar str-' + score;
+            const d = strengthData[score] || strengthData[0];
+            label.textContent = val.length ? d.label : '';
+            label.style.color = d.color;
+        }
+
+        // ── Confirm password match ───────────────────────────
+        function checkMatch() {
+            const pw   = document.getElementById('Password').value;
+            const conf = document.getElementById('ConfirmPassword').value;
+            const err  = document.getElementById('matchErr');
+            const inp  = document.getElementById('ConfirmPassword');
+            if (conf.length === 0) { err.style.display = 'none'; return; }
+            const match = pw === conf;
+            err.style.display = match ? 'none' : 'flex';
+            inp.classList.toggle('is-invalid', !match);
+            inp.classList.toggle('is-valid',    match);
+        }
+
+        // ── Terms checkbox sync ──────────────────────────────
+        document.getElementById('termsCheckReal').addEventListener('change', function() {
+            const box = document.getElementById('termsBox');
+            if (this.checked) {
+                box.style.background = 'var(--primary)';
+                box.style.borderColor = 'var(--primary)';
+                box.textContent = '✓';
+                box.style.color = 'white';
+                box.style.fontSize = '0.75rem';
+                box.style.fontWeight = '900';
+                box.style.display = 'flex';
+                box.style.alignItems = 'center';
+                box.style.justifyContent = 'center';
+            } else {
+                box.style.background = 'white';
+                box.style.borderColor = 'var(--border)';
+                box.textContent = '';
+            }
+        });
+
+        // ── Submit loading state ─────────────────────────────
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            const terms = document.getElementById('termsCheckReal');
+            if (!terms.checked) {
+                e.preventDefault();
+                terms.closest('.terms-row').style.borderColor = 'var(--danger)';
+                terms.closest('.terms-row').style.background = '#fff8f8';
+                return;
+            }
+            const btn  = document.getElementById('submitBtn');
+            const text = document.getElementById('btnText');
+            const spin = document.getElementById('btnSpinner');
+            if (!this.checkValidity()) return;
+            btn.disabled = true;
+            text.style.display = 'none';
+            spin.style.display = 'block';
+        });
+
+        // ── Live validation feedback ─────────────────────────
+        document.querySelectorAll('.field-input').forEach(input => {
+            input.addEventListener('blur', function() {
+                if (!this.value.trim()) return;
+                const valid = this.checkValidity();
+                this.classList.toggle('is-valid',   valid);
+                this.classList.toggle('is-invalid', !valid);
+            });
+        });
+    </script>
+</body>
+</html>

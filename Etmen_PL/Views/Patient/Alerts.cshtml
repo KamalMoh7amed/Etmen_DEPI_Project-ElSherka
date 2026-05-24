@@ -1,0 +1,220 @@
+@model List<Etmen_BLL.DTOs.Alert.AlertDto>
+@{
+    ViewData["Title"] = "التنبيهات — إطمن";
+    Layout = null;
+    var alerts  = Model ?? new List<Etmen_BLL.DTOs.Alert.AlertDto>();
+    var unread  = alerts.Where(a => a.ReadAt == null).ToList();
+    var read    = alerts.Where(a => a.ReadAt != null).ToList();
+}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>@ViewData["Title"]</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.rtl.min.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+:root{--primary:#1A6FBF;--primary-dark:#0D4C8A;--accent:#00C9A7;--success:#27AE60;--danger:#E74C3C;--warning:#F39C12;--dark:#0F1923;--text:#2C3E50;--text-muted:#7F8C8D;--border:#DDE3EC;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Tajawal',sans-serif;background:#F0F4F9;min-height:100vh;display:flex;}
+.sidebar{width:260px;min-height:100vh;background:var(--dark);display:flex;flex-direction:column;position:fixed;right:0;top:0;z-index:100;}
+.sidebar-logo{padding:28px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.sidebar-logo .logo-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;}
+.sidebar-logo .logo-text{color:#fff;font-weight:800;font-size:1.2rem;}.sidebar-logo .logo-text span{color:var(--accent);}
+.nav-section{padding:20px 16px 8px;color:rgba(255,255,255,.35);font-size:.72rem;font-weight:700;letter-spacing:.08em;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px 20px;color:rgba(255,255,255,.65);text-decoration:none;border-radius:10px;margin:2px 10px;transition:.2s;font-size:.95rem;}
+.nav-item:hover,.nav-item.active{background:rgba(26,111,191,.25);color:#fff;}.nav-item.active{border-right:3px solid var(--primary);}
+.nav-item i{width:20px;text-align:center;}
+.sidebar-footer{margin-top:auto;padding:20px;border-top:1px solid rgba(255,255,255,.08);}
+.logout-btn{display:flex;align-items:center;gap:10px;color:rgba(255,255,255,.5);text-decoration:none;font-size:.9rem;padding:10px 12px;border-radius:8px;transition:.2s;background:none;border:none;width:100%;cursor:pointer;}
+.logout-btn:hover{background:rgba(231,76,60,.15);color:#E74C3C;}
+.main{margin-right:260px;flex:1;padding:32px;min-height:100vh;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
+.page-header h1{font-size:1.6rem;font-weight:800;color:var(--dark);}
+.btn-mark-all{background:#fff;border:1.5px solid var(--border);color:var(--text);padding:10px 20px;border-radius:10px;font-family:'Tajawal',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;transition:.2s;}
+.btn-mark-all:hover{border-color:var(--primary);color:var(--primary);}
+/* Stats bar */
+.stats-bar{display:flex;gap:16px;margin-bottom:24px;}
+.stat-chip{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 20px;display:flex;align-items:center;gap:12px;}
+.stat-chip .icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.95rem;}
+.stat-chip .val{font-size:1.3rem;font-weight:800;color:var(--dark);}
+.stat-chip .lbl{font-size:.78rem;color:var(--text-muted);}
+/* Cards */
+.section-label{font-size:.85rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.alert-card{background:#fff;border-radius:14px;border:1px solid var(--border);padding:18px 22px;margin-bottom:12px;display:flex;align-items:flex-start;gap:16px;transition:.2s;position:relative;}
+.alert-card:hover{transform:translateX(-2px);box-shadow:0 4px 16px rgba(0,0,0,.07);}
+.alert-card.unread{border-right:4px solid var(--warning);background:#FFFDF5;}
+.alert-card.unread .alert-card-title{font-weight:800;}
+.alert-type-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+.type-risk{background:rgba(231,76,60,.1);color:var(--danger);}
+.type-appointment{background:rgba(26,111,191,.1);color:var(--primary);}
+.type-lab{background:rgba(0,201,167,.1);color:var(--accent);}
+.type-system{background:rgba(127,140,141,.1);color:var(--text-muted);}
+.type-general{background:rgba(243,156,18,.1);color:var(--warning);}
+.alert-card-body{flex:1;}
+.alert-card-title{font-size:.92rem;color:var(--dark);margin-bottom:4px;}
+.alert-card-msg{font-size:.85rem;color:var(--text-muted);line-height:1.5;margin-bottom:8px;}
+.alert-card-meta{display:flex;align-items:center;gap:12px;}
+.alert-card-time{font-size:.75rem;color:var(--text-muted);display:flex;align-items:center;gap:4px;}
+.alert-type-badge{font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:20px;background:rgba(26,111,191,.08);color:var(--primary);}
+.alert-card-actions{display:flex;align-items:center;gap:8px;margin-right:auto;}
+.btn-read{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:.82rem;font-family:'Tajawal',sans-serif;padding:6px 10px;border-radius:6px;transition:.2s;display:flex;align-items:center;gap:4px;}
+.btn-read:hover{background:rgba(26,111,191,.06);color:var(--primary);}
+.unread-dot{width:8px;height:8px;border-radius:50%;background:var(--warning);position:absolute;top:18px;left:18px;}
+.empty-state{background:#fff;border-radius:16px;border:1px solid var(--border);padding:48px;text-align:center;color:var(--text-muted);}
+.empty-state i{font-size:2.5rem;margin-bottom:12px;opacity:.3;display:block;}
+.alert-success-box{background:#E8F8F0;border:1px solid #A8D5B5;border-radius:12px;padding:12px 20px;display:flex;align-items:center;gap:10px;color:var(--success);font-weight:600;margin-bottom:20px;font-size:.9rem;}
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon"><i class="fas fa-heartbeat"></i></div>
+    <div class="logo-text">إط<span>من</span></div>
+  </div>
+  <span class="nav-section">القائمة الرئيسية</span>
+  <a href="/Patient/Dashboard"      class="nav-item"><i class="fas fa-th-large"></i>لوحة التحكم</a>
+  <a href="/Patient/Profile"        class="nav-item"><i class="fas fa-user-circle"></i>الملف الشخصي</a>
+  <a href="/Patient/RiskAssessment" class="nav-item"><i class="fas fa-shield-virus"></i>تقييم المخاطر</a>
+  <span class="nav-section">الرعاية الصحية</span>
+  <a href="/Patient/Appointments"   class="nav-item"><i class="fas fa-calendar-alt"></i>المواعيد</a>
+  <a href="/Patient/MedicalRecords" class="nav-item"><i class="fas fa-notes-medical"></i>السجلات الطبية</a>
+  <a href="/Patient/LabResults"     class="nav-item"><i class="fas fa-flask"></i>نتائج التحاليل</a>
+  <span class="nav-section">أخرى</span>
+  <a href="/Patient/Alerts"  class="nav-item active"><i class="fas fa-bell"></i>التنبيهات</a>
+  <a href="/Patient/Nearby"  class="nav-item"><i class="fas fa-map-marker-alt"></i>مقدمو خدمات</a>
+  <div class="sidebar-footer">
+    <form method="post" action="/Account/Logout">
+      @Html.AntiForgeryToken()
+      <button type="submit" class="logout-btn"><i class="fas fa-sign-out-alt"></i>تسجيل الخروج</button>
+    </form>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="page-header">
+    <div>
+      <h1>التنبيهات</h1>
+      <p style="color:var(--text-muted);font-size:.95rem;margin-top:4px;">متابعة جميع إشعاراتك الصحية</p>
+    </div>
+    @if(unread.Any())
+    {
+      <form method="post" action="/Patient/MarkAllAlertsRead">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn-mark-all">
+          <i class="fas fa-check-double"></i>تحديد الكل كمقروء
+        </button>
+      </form>
+    }
+  </div>
+
+  @if(TempData["Success"] is string s){<div class="alert-success-box"><i class="fas fa-check-circle"></i>@s</div>}
+
+  <!-- Stats Bar -->
+  <div class="stats-bar">
+    <div class="stat-chip">
+      <div class="icon" style="background:rgba(243,156,18,.1);color:var(--warning);"><i class="fas fa-bell"></i></div>
+      <div><div class="val">@unread.Count</div><div class="lbl">غير مقروء</div></div>
+    </div>
+    <div class="stat-chip">
+      <div class="icon" style="background:rgba(39,174,96,.1);color:var(--success);"><i class="fas fa-check"></i></div>
+      <div><div class="val">@read.Count</div><div class="lbl">مقروء</div></div>
+    </div>
+    <div class="stat-chip">
+      <div class="icon" style="background:rgba(26,111,191,.1);color:var(--primary);"><i class="fas fa-list"></i></div>
+      <div><div class="val">@alerts.Count</div><div class="lbl">المجموع</div></div>
+    </div>
+  </div>
+
+  @if(!alerts.Any())
+  {
+    <div class="empty-state">
+      <i class="fas fa-bell-slash"></i>
+      <p style="font-size:.95rem;">لا توجد تنبيهات حتى الآن</p>
+    </div>
+  }
+  else
+  {
+    @if(unread.Any())
+    {
+      <div class="section-label"><i class="fas fa-circle" style="color:var(--warning);font-size:.6rem;"></i>غير مقروء (@unread.Count)</div>
+      @foreach(var alert in unread.OrderByDescending(a => a.CreatedAt))
+      {
+        var iconClass = alert.AlertType?.ToLower() switch {
+          "risk" or "خطر"  => "type-risk",
+          "appointment" or "موعد" => "type-appointment",
+          "lab" or "تحليل" => "type-lab",
+          "system" or "نظام" => "type-system",
+          _ => "type-general"
+        };
+        var iconFa = alert.AlertType?.ToLower() switch {
+          "risk" or "خطر"  => "fa-shield-virus",
+          "appointment" or "موعد" => "fa-calendar-alt",
+          "lab" or "تحليل" => "fa-flask",
+          "system" or "نظام" => "fa-cog",
+          _ => "fa-bell"
+        };
+        <div class="alert-card unread">
+          <div class="unread-dot"></div>
+          <div class="alert-type-icon @iconClass"><i class="fas @iconFa"></i></div>
+          <div class="alert-card-body">
+            <div class="alert-card-title">@alert.Title</div>
+            <div class="alert-card-msg">@alert.Message</div>
+            <div class="alert-card-meta">
+              <span class="alert-card-time"><i class="fas fa-clock"></i>@alert.CreatedAt.ToString("dd/MM/yyyy hh:mm tt")</span>
+              @if(!string.IsNullOrEmpty(alert.AlertType))
+              {<span class="alert-type-badge">@alert.AlertType</span>}
+            </div>
+          </div>
+          <div class="alert-card-actions">
+            <form method="post" action="/Patient/MarkAlertRead">
+              @Html.AntiForgeryToken()
+              <input type="hidden" name="id" value="@alert.Id"/>
+              <button type="submit" class="btn-read"><i class="fas fa-check"></i>تحديد كمقروء</button>
+            </form>
+          </div>
+        </div>
+      }
+    }
+
+    @if(read.Any())
+    {
+      <div class="section-label" style="margin-top:24px;"><i class="fas fa-check" style="color:var(--success);"></i>مقروء (@read.Count)</div>
+      @foreach(var alert in read.OrderByDescending(a => a.CreatedAt))
+      {
+        var iconClass = alert.AlertType?.ToLower() switch {
+          "risk" or "خطر"  => "type-risk",
+          "appointment" or "موعد" => "type-appointment",
+          "lab" or "تحليل" => "type-lab",
+          "system" or "نظام" => "type-system",
+          _ => "type-general"
+        };
+        var iconFa = alert.AlertType?.ToLower() switch {
+          "risk" or "خطر"  => "fa-shield-virus",
+          "appointment" or "موعد" => "fa-calendar-alt",
+          "lab" or "تحليل" => "fa-flask",
+          "system" or "نظام" => "fa-cog",
+          _ => "fa-bell"
+        };
+        <div class="alert-card" style="opacity:.7;">
+          <div class="alert-type-icon @iconClass"><i class="fas @iconFa"></i></div>
+          <div class="alert-card-body">
+            <div class="alert-card-title">@alert.Title</div>
+            <div class="alert-card-msg">@alert.Message</div>
+            <div class="alert-card-meta">
+              <span class="alert-card-time"><i class="fas fa-clock"></i>@alert.CreatedAt.ToString("dd/MM/yyyy hh:mm tt")</span>
+              @if(!string.IsNullOrEmpty(alert.AlertType))
+              {<span class="alert-type-badge">@alert.AlertType</span>}
+            </div>
+          </div>
+        </div>
+      }
+    }
+  }
+</div>
+</body>
+</html>

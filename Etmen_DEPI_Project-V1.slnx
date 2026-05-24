@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Etmen_BLL/Etmen_BLL.csproj" />
+  <Project Path="Etmen_DAL/Etmen_DAL.csproj" />
+  <Project Path="Etmen_Domain/Etmen_Domain.csproj" />
+  <Project Path="Etmen_PL/Etmen_PL.csproj" />
+</Solution>

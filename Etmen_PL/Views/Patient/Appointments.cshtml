@@ -1,0 +1,188 @@
+@model IEnumerable<Etmen_BLL.DTOs.Nearby.AppointmentDto>
+@{
+    ViewData["Title"] = "المواعيد — إطمن";
+    Layout = null;
+    var appointments = Model?.ToList() ?? new List<Etmen_BLL.DTOs.Nearby.AppointmentDto>();
+}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>@ViewData["Title"]</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.rtl.min.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+:root{--primary:#1A6FBF;--primary-dark:#0D4C8A;--accent:#00C9A7;--success:#27AE60;--danger:#E74C3C;--warning:#F39C12;--dark:#0F1923;--text:#2C3E50;--text-muted:#7F8C8D;--border:#DDE3EC;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Tajawal',sans-serif;background:#F0F4F9;min-height:100vh;display:flex;}
+.sidebar{width:260px;min-height:100vh;background:var(--dark);display:flex;flex-direction:column;position:fixed;right:0;top:0;z-index:100;}
+.sidebar-logo{padding:28px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.sidebar-logo .logo-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;}
+.sidebar-logo .logo-text{color:#fff;font-weight:800;font-size:1.2rem;}.sidebar-logo .logo-text span{color:var(--accent);}
+.nav-section{padding:20px 16px 8px;color:rgba(255,255,255,.35);font-size:.72rem;font-weight:700;letter-spacing:.08em;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px 20px;color:rgba(255,255,255,.65);text-decoration:none;border-radius:10px;margin:2px 10px;transition:.2s;font-size:.95rem;}
+.nav-item:hover,.nav-item.active{background:rgba(26,111,191,.25);color:#fff;}.nav-item.active{border-right:3px solid var(--primary);}
+.nav-item i{width:20px;text-align:center;}
+.sidebar-footer{margin-top:auto;padding:20px;border-top:1px solid rgba(255,255,255,.08);}
+.logout-btn{display:flex;align-items:center;gap:10px;color:rgba(255,255,255,.5);text-decoration:none;font-size:.9rem;padding:10px 12px;border-radius:8px;transition:.2s;}
+.logout-btn:hover{background:rgba(231,76,60,.15);color:#E74C3C;}
+.main{margin-right:260px;flex:1;padding:32px;min-height:100vh;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
+.page-header h1{font-size:1.6rem;font-weight:800;color:var(--dark);}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;border:none;padding:11px 24px;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;text-decoration:none;transition:.2s;}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(26,111,191,.35);}
+/* Tabs */
+.tabs{display:flex;gap:8px;margin-bottom:24px;background:#fff;border-radius:12px;padding:6px;border:1px solid var(--border);}
+.tab-btn{flex:1;padding:10px;border:none;background:transparent;border-radius:8px;font-family:'Tajawal',sans-serif;font-size:.9rem;font-weight:600;color:var(--text-muted);cursor:pointer;transition:.2s;}
+.tab-btn.active{background:var(--primary);color:#fff;}
+/* Cards grid */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;}
+.apt-card{background:#fff;border-radius:16px;border:1px solid var(--border);padding:24px;position:relative;transition:.2s;}
+.apt-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.08);}
+.apt-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.doctor-info{display:flex;align-items:center;gap:12px;}
+.doctor-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:1rem;}
+.doctor-name{font-weight:700;font-size:.95rem;color:var(--dark);}
+.doctor-spec{font-size:.8rem;color:var(--text-muted);}
+.badge{padding:5px 12px;border-radius:20px;font-size:.78rem;font-weight:700;}
+.badge-upcoming{background:#E8F4FD;color:var(--primary);}
+.badge-done{background:#E8F8F0;color:var(--success);}
+.badge-cancelled{background:#FDECEA;color:var(--danger);}
+.badge-pending{background:#FEF9E7;color:var(--warning);}
+.apt-details{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
+.apt-detail-row{display:flex;align-items:center;gap:10px;font-size:.88rem;color:var(--text);}
+.apt-detail-row i{color:var(--text-muted);width:16px;text-align:center;}
+.apt-actions{display:flex;gap:10px;}
+.btn-cancel{background:#FDECEA;color:var(--danger);border:1px solid #F5B7B1;padding:8px 16px;border-radius:8px;font-family:'Tajawal',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;transition:.2s;}
+.btn-cancel:hover{background:var(--danger);color:#fff;}
+.empty-state{background:#fff;border-radius:16px;border:1px solid var(--border);padding:60px;text-align:center;color:var(--text-muted);}
+.empty-state i{font-size:3rem;margin-bottom:16px;opacity:.3;}
+.empty-state h3{font-size:1.1rem;font-weight:700;margin-bottom:8px;color:var(--text);}
+.alert-box{background:#E8F8F0;border:1px solid #A8D5B5;border-radius:12px;padding:14px 20px;display:flex;align-items:center;gap:10px;color:var(--success);font-weight:600;margin-bottom:20px;}
+.alert-error{background:#FDECEA;border:1px solid #F5B7B1;color:var(--danger);}
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon"><i class="fas fa-heartbeat"></i></div>
+    <div class="logo-text">إط<span>من</span></div>
+  </div>
+  <span class="nav-section">القائمة الرئيسية</span>
+  <a href="/Patient/Dashboard" class="nav-item"><i class="fas fa-th-large"></i>لوحة التحكم</a>
+  <a href="/Patient/Profile"   class="nav-item"><i class="fas fa-user-circle"></i>الملف الشخصي</a>
+  <a href="/Patient/RiskAssessment" class="nav-item"><i class="fas fa-shield-virus"></i>تقييم المخاطر</a>
+  <span class="nav-section">الرعاية الصحية</span>
+  <a href="/Patient/Appointments"   class="nav-item active"><i class="fas fa-calendar-alt"></i>المواعيد</a>
+  <a href="/Patient/MedicalRecords" class="nav-item"><i class="fas fa-notes-medical"></i>السجلات الطبية</a>
+  <a href="/Patient/LabResults"     class="nav-item"><i class="fas fa-flask"></i>نتائج التحاليل</a>
+  <span class="nav-section">أخرى</span>
+  <a href="/Patient/Alerts"  class="nav-item"><i class="fas fa-bell"></i>التنبيهات</a>
+  <a href="/Patient/Nearby"  class="nav-item"><i class="fas fa-map-marker-alt"></i>مقدمو خدمات</a>
+  <div class="sidebar-footer">
+    <form method="post" action="/Account/Logout">
+      @Html.AntiForgeryToken()
+      <button type="submit" class="logout-btn" style="background:none;border:none;width:100%;cursor:pointer;">
+        <i class="fas fa-sign-out-alt"></i>تسجيل الخروج
+      </button>
+    </form>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="page-header">
+    <div>
+      <h1>المواعيد</h1>
+      <p style="color:var(--text-muted);font-size:.95rem;margin-top:4px;">إدارة مواعيدك الطبية</p>
+    </div>
+    <a href="/Patient/Nearby" class="btn-primary"><i class="fas fa-plus"></i>حجز موعد جديد</a>
+  </div>
+
+  @if(TempData["Success"] is string s){<div class="alert-box"><i class="fas fa-check-circle"></i>@s</div>}
+  @if(TempData["Error"]   is string e){<div class="alert-box alert-error"><i class="fas fa-exclamation-circle"></i>@e</div>}
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="filterAppts('all',this)">الكل (@appointments.Count)</button>
+    <button class="tab-btn" onclick="filterAppts('upcoming',this)">القادمة</button>
+    <button class="tab-btn" onclick="filterAppts('done',this)">المنتهية</button>
+    <button class="tab-btn" onclick="filterAppts('cancelled',this)">الملغاة</button>
+  </div>
+
+  @if(!appointments.Any())
+  {
+    <div class="empty-state">
+      <i class="fas fa-calendar-times"></i>
+      <h3>لا توجد مواعيد</h3>
+      <p>ابحث عن طبيب قريب منك واحجز أول موعد</p>
+      <a href="/Patient/Nearby" class="btn-primary" style="display:inline-flex;margin-top:16px;">
+        <i class="fas fa-search"></i>البحث عن طبيب
+      </a>
+    </div>
+  }
+  else
+  {
+    <div class="cards-grid" id="aptGrid">
+    @foreach(var apt in appointments)
+    {
+      var statusClass = apt.Status switch {
+        "Confirmed" or "مؤكد" => "badge-upcoming",
+        "Completed" or "منتهي" => "badge-done",
+        "Cancelled" or "ملغي"  => "badge-cancelled",
+        _                       => "badge-pending"
+      };
+      var filterTag = apt.Status switch {
+        "Confirmed" or "مؤكد" or "Pending" or "قيد الانتظار" => "upcoming",
+        "Completed" or "منتهي" => "done",
+        "Cancelled" or "ملغي"  => "cancelled",
+        _ => "upcoming"
+      };
+      <div class="apt-card" data-status="@filterTag">
+        <div class="apt-card-header">
+          <div class="doctor-info">
+            <div class="doctor-avatar">د</div>
+            <div>
+              <div class="doctor-name">طبيب #@apt.DoctorId</div>
+              <div class="doctor-spec">موعد طبي</div>
+            </div>
+          </div>
+          <span class="badge @statusClass">@apt.Status</span>
+        </div>
+        <div class="apt-details">
+          <div class="apt-detail-row"><i class="fas fa-calendar"></i>@apt.Date.ToString("dd/MM/yyyy")</div>
+          <div class="apt-detail-row"><i class="fas fa-clock"></i>@apt.StartTime.ToString(@"hh\:mm")</div>
+          @if(!string.IsNullOrEmpty(apt.Notes))
+          {<div class="apt-detail-row"><i class="fas fa-sticky-note"></i>@apt.Notes</div>}
+        </div>
+        @if(filterTag == "upcoming")
+        {
+          <div class="apt-actions">
+            <form method="post" action="/Patient/CancelAppointment/@apt.Id" style="flex:1;">
+              @Html.AntiForgeryToken()
+              <button type="submit" class="btn-cancel" style="width:100%;"
+                      onclick="return confirm('هل تريد إلغاء هذا الموعد؟')">
+                <i class="fas fa-times"></i>إلغاء الموعد
+              </button>
+            </form>
+          </div>
+        }
+      </div>
+    }
+    </div>
+  }
+</div>
+
+<script>
+function filterAppts(filter, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.apt-card').forEach(card => {
+    card.style.display = (filter === 'all' || card.dataset.status === filter) ? '' : 'none';
+  });
+}
+</script>
+</body>
+</html>

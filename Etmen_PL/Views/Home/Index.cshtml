@@ -1,0 +1,1609 @@
+@model Etmen_PL.Models.Home.LandingPageViewModel
+@{
+    ViewData["Title"] = "إطمن — منصة الرعاية الصحية الذكية";
+    Layout = null; /* Standalone page — owns its own full HTML */
+}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <meta name="description" content="إطمن — منصة صحية ذكية تجمع المرضى والأطباء ومقدمي الرعاية في مكان واحد مع نظام متكامل لإدارة الأزمات الصحية." />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet" />
+    <!-- Bootstrap RTL -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.rtl.min.css" />
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+    <style>
+        /* ═══════════════════════════════════════════════════
+           DESIGN TOKENS
+        ═══════════════════════════════════════════════════ */
+        :root {
+            --primary:        #1A6FBF;
+            --primary-dark:   #0D4C8A;
+            --primary-light:  #E8F4FD;
+            --accent:         #00C9A7;
+            --accent-dark:    #00A087;
+            --success:        #27AE60;
+            --warning:        #F39C12;
+            --danger:         #E74C3C;
+            --crisis:         #E67E22;
+            --dark:           #0F1923;
+            --dark-2:         #1B2A38;
+            --text:           #2C3E50;
+            --text-muted:     #7F8C8D;
+            --border:         #DDE3EC;
+            --white:          #FFFFFF;
+            --glass:          rgba(255,255,255,0.08);
+            --glass-border:   rgba(255,255,255,0.15);
+        }
+
+        /* ═══════════════════════════════════════════════════
+           RESET & BASE
+        ═══════════════════════════════════════════════════ */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            color: var(--text);
+            background: var(--white);
+            overflow-x: hidden;
+            line-height: 1.7;
+        }
+
+        /* ═══════════════════════════════════════════════════
+           NAVBAR
+        ═══════════════════════════════════════════════════ */
+        .etmen-nav {
+            position: fixed;
+            top: 0; right: 0; left: 0;
+            z-index: 1000;
+            padding: 0 2rem;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(15, 25, 35, 0.92);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--glass-border);
+            transition: background 0.3s;
+        }
+        .etmen-nav.scrolled {
+            background: rgba(15, 25, 35, 0.98);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+        .nav-logo-icon {
+            width: 42px; height: 42px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+            color: white;
+            box-shadow: 0 0 20px rgba(26, 111, 191, 0.4);
+        }
+        .nav-logo-text {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: white;
+            letter-spacing: -0.5px;
+        }
+        .nav-logo-text span { color: var(--accent); }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            list-style: none;
+        }
+        .nav-links a {
+            color: rgba(255,255,255,0.75);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: color 0.2s;
+            position: relative;
+        }
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px; right: 0; left: 0;
+            height: 2px;
+            background: var(--accent);
+            transform: scaleX(0);
+            transition: transform 0.2s;
+            transform-origin: right;
+        }
+        .nav-links a:hover { color: white; }
+        .nav-links a:hover::after { transform: scaleX(1); }
+
+        .nav-actions { display: flex; gap: 0.75rem; align-items: center; }
+
+        .btn-nav-login {
+            padding: 8px 20px;
+            border: 1.5px solid rgba(255,255,255,0.3);
+            background: transparent;
+            color: white;
+            border-radius: 8px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .btn-nav-login:hover {
+            border-color: white;
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .btn-nav-register {
+            padding: 8px 20px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.25s;
+            box-shadow: 0 4px 15px rgba(26, 111, 191, 0.35);
+        }
+        .btn-nav-register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(26, 111, 191, 0.45);
+            color: white;
+        }
+
+        /* ═══════════════════════════════════════════════════
+           CRISIS BANNER
+        ═══════════════════════════════════════════════════ */
+        .crisis-banner {
+            position: fixed;
+            top: 70px; right: 0; left: 0;
+            z-index: 999;
+            background: linear-gradient(90deg, #c0392b, #e67e22, #c0392b);
+            background-size: 200% 100%;
+            animation: crisisBg 3s linear infinite;
+            color: white;
+            text-align: center;
+            padding: 8px 2rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+        @@keyframes crisisBg {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .crisis-pulse {
+            display: inline-block;
+            width: 10px; height: 10px;
+            background: white;
+            border-radius: 50%;
+            animation: pulse 1.4s ease-in-out infinite;
+        }
+        @@keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50%       { opacity: 0.4; transform: scale(1.5); }
+        }
+
+        /* ═══════════════════════════════════════════════════
+           HERO SECTION
+        ═══════════════════════════════════════════════════ */
+        .hero {
+            min-height: 100vh;
+            background: linear-gradient(150deg, var(--dark) 0%, var(--dark-2) 50%, #0a2a4a 100%);
+            position: relative;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            padding-top: 70px;
+        }
+        /* Animated grid background */
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(26,111,191,0.06) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(26,111,191,0.06) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+        /* Glow orbs */
+        .hero-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.18;
+            animation: floatOrb 8s ease-in-out infinite;
+        }
+        .hero-orb-1 {
+            width: 500px; height: 500px;
+            background: var(--primary);
+            top: -100px; left: -100px;
+        }
+        .hero-orb-2 {
+            width: 350px; height: 350px;
+            background: var(--accent);
+            bottom: -80px; right: 10%;
+            animation-delay: -3s;
+        }
+        @@keyframes floatOrb {
+            0%, 100% { transform: translate(0, 0); }
+            50%       { transform: translate(30px, -30px); }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            padding: 6rem 0 4rem;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 50px;
+            padding: 6px 16px;
+            color: var(--accent);
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            backdrop-filter: blur(8px);
+        }
+        .hero-badge .dot {
+            width: 8px; height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .hero-title {
+            font-size: clamp(2.8rem, 6vw, 5rem);
+            font-weight: 900;
+            color: white;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            letter-spacing: -1px;
+        }
+        .hero-title .highlight {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.15rem;
+            color: rgba(255,255,255,0.65);
+            max-width: 560px;
+            margin-bottom: 2.5rem;
+            font-weight: 400;
+            line-height: 1.8;
+        }
+
+        .hero-cta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 4rem;
+        }
+        .btn-hero-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 35px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 8px 30px rgba(26, 111, 191, 0.4);
+        }
+        .btn-hero-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(26, 111, 191, 0.5);
+            color: white;
+        }
+        .btn-hero-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 30px;
+            background: transparent;
+            color: white;
+            border: 1.5px solid rgba(255,255,255,0.3);
+            border-radius: 12px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-hero-secondary:hover {
+            border-color: white;
+            background: rgba(255,255,255,0.08);
+            color: white;
+        }
+
+        /* Hero Stats */
+        .hero-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2.5rem;
+        }
+        .hero-stat { text-align: center; }
+        .hero-stat-num {
+            font-size: 2rem;
+            font-weight: 900;
+            color: white;
+            display: block;
+            line-height: 1;
+        }
+        .hero-stat-num span { color: var(--accent); }
+        .hero-stat-label {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.5);
+            margin-top: 4px;
+            font-weight: 400;
+        }
+
+        /* Hero Visual (right side) */
+        .hero-visual {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .hero-card-stack {
+            position: relative;
+            width: 380px;
+            height: 460px;
+        }
+        .hcard {
+            position: absolute;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 20px;
+            color: white;
+            transition: transform 0.4s;
+        }
+        .hcard-main {
+            width: 300px;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 3;
+            background: rgba(26, 111, 191, 0.2);
+            border-color: rgba(26, 111, 191, 0.4);
+        }
+        .hcard-top {
+            width: 260px;
+            top: 10px; right: 0;
+            z-index: 2;
+            transform: rotate(4deg);
+        }
+        .hcard-bottom {
+            width: 260px;
+            bottom: 10px; left: 0;
+            z-index: 1;
+            transform: rotate(-4deg);
+        }
+        .hcard-label {
+            font-size: 0.7rem;
+            color: var(--accent);
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .hcard-value {
+            font-size: 2rem;
+            font-weight: 900;
+            margin-bottom: 4px;
+        }
+        .hcard-desc { font-size: 0.8rem; color: rgba(255,255,255,0.6); }
+        .hcard-icon {
+            width: 44px; height: 44px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+        }
+        .risk-bar {
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.15);
+            margin-top: 12px;
+            overflow: hidden;
+        }
+        .risk-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            background: linear-gradient(90deg, #27AE60, #F39C12);
+            animation: fillBar 2s ease-out forwards;
+        }
+        @@keyframes fillBar { from { width: 0; } }
+
+        /* Floating badges on hero */
+        .float-badge {
+            position: absolute;
+            background: white;
+            border-radius: 14px;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text);
+            z-index: 10;
+            animation: floatBadge 3s ease-in-out infinite;
+        }
+        .float-badge-1 { top: 5%;  right: -20px; animation-delay: 0s; }
+        .float-badge-2 { bottom: 15%; left: -20px; animation-delay: 1.5s; }
+        @@keyframes floatBadge {
+            0%, 100% { transform: translateY(0); }
+            50%       { transform: translateY(-8px); }
+        }
+        .float-badge i { font-size: 1rem; }
+
+        /* ═══════════════════════════════════════════════════
+           SECTION COMMONS
+        ═══════════════════════════════════════════════════ */
+        section { padding: 100px 0; }
+
+        .section-label {
+            display: inline-block;
+            background: var(--primary-light);
+            color: var(--primary);
+            border-radius: 50px;
+            padding: 5px 18px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 1rem;
+        }
+        .section-title {
+            font-size: clamp(1.8rem, 4vw, 2.8rem);
+            font-weight: 800;
+            color: var(--text);
+            line-height: 1.2;
+            margin-bottom: 1rem;
+        }
+        .section-title .accent { color: var(--primary); }
+        .section-desc {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            line-height: 1.8;
+        }
+
+        /* ═══════════════════════════════════════════════════
+           FEATURES SECTION
+        ═══════════════════════════════════════════════════ */
+        .features { background: #F8FBFF; }
+
+        .feature-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+            height: 100%;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            transform: scaleX(0);
+            transition: transform 0.35s;
+            transform-origin: right;
+        }
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 50px rgba(26, 111, 191, 0.12);
+            border-color: rgba(26, 111, 191, 0.2);
+        }
+        .feature-card:hover::before { transform: scaleX(1); }
+
+        .feature-icon {
+            width: 64px; height: 64px;
+            border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.6rem;
+            margin-bottom: 1.2rem;
+        }
+        .feature-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.6rem;
+        }
+        .feature-desc {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+        .feature-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--primary);
+            font-size: 0.87rem;
+            font-weight: 600;
+            text-decoration: none;
+            margin-top: 1.2rem;
+            transition: gap 0.2s;
+        }
+        .feature-link:hover { gap: 10px; color: var(--primary-dark); }
+
+        /* ═══════════════════════════════════════════════════
+           ROLES / WHO USES IT
+        ═══════════════════════════════════════════════════ */
+        .roles { background: white; }
+
+        .roles-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-bottom: 3rem;
+        }
+        .role-tab {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 24px;
+            background: #F5F7FA;
+            border: 2px solid transparent;
+            border-radius: 50px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+        .role-tab:hover, .role-tab.active {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .role-content { display: none; }
+        .role-content.active { display: flex; }
+
+        .role-info h3 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 1rem;
+        }
+        .role-info p {
+            color: var(--text-muted);
+            font-size: 1rem;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+        }
+        .role-features { list-style: none; }
+        .role-features li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            font-size: 0.95rem;
+            color: var(--text);
+            border-bottom: 1px solid var(--border);
+        }
+        .role-features li:last-child { border-bottom: none; }
+        .role-features li i {
+            color: var(--success);
+            font-size: 0.9rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .role-visual {
+            background: linear-gradient(135deg, var(--dark), var(--dark-2));
+            border-radius: 24px;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-height: 360px;
+        }
+        .mini-stat-card {
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            color: white;
+            transition: transform 0.25s;
+        }
+        .mini-stat-card:hover { transform: translateX(-6px); }
+        .mini-stat-icon {
+            width: 40px; height: 40px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        .mini-stat-label { font-size: 0.78rem; color: rgba(255,255,255,0.5); }
+        .mini-stat-value { font-size: 1.05rem; font-weight: 700; }
+
+        /* ═══════════════════════════════════════════════════
+           CRISIS MODE SECTION
+        ═══════════════════════════════════════════════════ */
+        .crisis-section {
+            background: linear-gradient(150deg, var(--dark) 0%, #1a0a0a 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        .crisis-section::before {
+            content: '';
+            position: absolute; inset: 0;
+            background-image:
+                radial-gradient(circle at 20% 50%, rgba(230,126,34,0.08) 0%, transparent 60%),
+                radial-gradient(circle at 80% 50%, rgba(231,76,60,0.06) 0%, transparent 60%);
+        }
+        .crisis-section .section-label {
+            background: rgba(230,126,34,0.15);
+            color: var(--crisis);
+        }
+        .crisis-section .section-title { color: white; }
+        .crisis-section .section-desc { color: rgba(255,255,255,0.6); }
+
+        .crisis-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 28px;
+            color: white;
+            transition: all 0.3s;
+        }
+        .crisis-card:hover {
+            background: rgba(255,255,255,0.07);
+            transform: translateY(-4px);
+        }
+        .crisis-card-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        .crisis-card h4 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .crisis-card p {
+            font-size: 0.88rem;
+            color: rgba(255,255,255,0.55);
+            line-height: 1.7;
+        }
+
+        .crisis-types {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 2rem;
+        }
+        .crisis-type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 50px;
+            padding: 8px 18px;
+            color: rgba(255,255,255,0.8);
+            font-size: 0.87rem;
+            font-weight: 600;
+        }
+
+        /* ═══════════════════════════════════════════════════
+           HOW IT WORKS
+        ═══════════════════════════════════════════════════ */
+        .how-it-works { background: #F8FBFF; }
+
+        .step-card {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            position: relative;
+        }
+        .step-num {
+            width: 60px; height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            font-size: 1.4rem;
+            font-weight: 900;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1.5rem;
+            box-shadow: 0 8px 24px rgba(26,111,191,0.3);
+        }
+        .step-connector {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            width: 50%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), transparent);
+            opacity: 0.3;
+        }
+        [dir="rtl"] .step-connector { right: auto; left: 0; }
+        .step-card:last-child .step-connector { display: none; }
+        .step-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .step-desc {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        /* ═══════════════════════════════════════════════════
+           CTA SECTION
+        ═══════════════════════════════════════════════════ */
+        .cta-section {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            text-align: center;
+            padding: 80px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        .cta-section::before {
+            content: '';
+            position: absolute; inset: 0;
+            background-image: radial-gradient(circle at 70% 50%, rgba(0,201,167,0.1) 0%, transparent 60%);
+        }
+        .cta-section h2 {
+            font-size: clamp(1.8rem, 4vw, 2.6rem);
+            font-weight: 900;
+            color: white;
+            margin-bottom: 1rem;
+        }
+        .cta-section p {
+            color: rgba(255,255,255,0.75);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+        .btn-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 40px;
+            background: white;
+            color: var(--primary-dark);
+            border: none;
+            border-radius: 12px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 800;
+            text-decoration: none;
+            transition: all 0.3s;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+        }
+        .btn-cta:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+            color: var(--primary-dark);
+        }
+
+        /* ═══════════════════════════════════════════════════
+           FOOTER
+        ═══════════════════════════════════════════════════ */
+        footer {
+            background: var(--dark);
+            color: rgba(255,255,255,0.6);
+            padding: 60px 0 30px;
+        }
+        .footer-logo { margin-bottom: 1rem; }
+        .footer-desc {
+            font-size: 0.9rem;
+            line-height: 1.8;
+            max-width: 300px;
+        }
+        .footer-heading {
+            color: white;
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 1.2rem;
+        }
+        .footer-links { list-style: none; }
+        .footer-links li { margin-bottom: 0.6rem; }
+        .footer-links a {
+            color: rgba(255,255,255,0.5);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+        .footer-links a:hover { color: white; }
+        .footer-divider {
+            border-color: rgba(255,255,255,0.08);
+            margin: 2rem 0 1.5rem;
+        }
+        .footer-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            font-size: 0.85rem;
+        }
+        .social-links { display: flex; gap: 0.75rem; }
+        .social-link {
+            width: 36px; height: 36px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.07);
+            display: flex; align-items: center; justify-content: center;
+            color: rgba(255,255,255,0.6);
+            text-decoration: none;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+        .social-link:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* ═══════════════════════════════════════════════════
+           SCROLL ANIMATIONS
+        ═══════════════════════════════════════════════════ */
+        [data-animate] {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+        [data-animate].in-view {
+            opacity: 1;
+            transform: none;
+        }
+        [data-animate-delay="1"] { transition-delay: 0.1s; }
+        [data-animate-delay="2"] { transition-delay: 0.2s; }
+        [data-animate-delay="3"] { transition-delay: 0.3s; }
+        [data-animate-delay="4"] { transition-delay: 0.4s; }
+        [data-animate-delay="5"] { transition-delay: 0.5s; }
+
+        /* ═══════════════════════════════════════════════════
+           RESPONSIVE
+        ═══════════════════════════════════════════════════ */
+        @@media (max-width: 991px) {
+            .hero-card-stack { width: 300px; height: 380px; }
+            .hcard-main { width: 250px; }
+            .nav-links { display: none; }
+        }
+        @@media (max-width: 767px) {
+            section { padding: 70px 0; }
+            .hero-cta { flex-direction: column; align-items: flex-start; }
+            .hero-visual { display: none; }
+        }
+
+        /* ═══════════════════════════════════════════════════
+           COUNTER ANIMATION
+        ═══════════════════════════════════════════════════ */
+        .count-up { display: inline; }
+    </style>
+</head>
+
+<body>
+
+    <!-- ═══ NAVBAR ═══════════════════════════════════════════ -->
+    <nav class="etmen-nav" id="mainNav">
+        <a href="/" class="nav-logo">
+            <div class="nav-logo-icon">
+                <i class="fas fa-heartbeat"></i>
+            </div>
+            <span class="nav-logo-text">إط<span>من</span></span>
+        </a>
+
+        <ul class="nav-links">
+            <li><a href="#features">المميزات</a></li>
+            <li><a href="#roles">من يستخدمها؟</a></li>
+            <li><a href="#crisis">نظام الأزمات</a></li>
+            <li><a href="#how">كيف تعمل؟</a></li>
+        </ul>
+
+        <div class="nav-actions">
+            <a href="/Account/Login" class="btn-nav-login">تسجيل الدخول</a>
+            <a href="/Account/Register" class="btn-nav-register">
+                <i class="fas fa-user-plus me-1"></i> انضم الآن
+            </a>
+        </div>
+    </nav>
+
+    <!-- ═══ CRISIS BANNER (conditional) ═══════════════════════ -->
+    @if (Model.HasActiveCrisis)
+    {
+        <div class="crisis-banner">
+            <span class="crisis-pulse"></span>
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>وضع الأزمة مفعّل:</strong>
+            <span>@Model.ActiveCrisisName</span>
+            <span style="opacity:0.7;">—</span>
+            <span>يُرجى اتباع التعليمات الصحية المعتمدة</span>
+        </div>
+    }
+
+    <!-- ═══ HERO ══════════════════════════════════════════════ -->
+    <section class="hero" id="home">
+        <div class="hero-orb hero-orb-1"></div>
+        <div class="hero-orb hero-orb-2"></div>
+
+        <div class="container">
+            <div class="row align-items-center g-5">
+                <!-- Left: Text -->
+                <div class="col-lg-6 hero-content">
+                    <div class="hero-badge">
+                        <span class="dot"></span>
+                        منصة الرعاية الصحية الذكية في مصر
+                    </div>
+
+                    <h1 class="hero-title">
+                        صحتك في أمان<br />مع <span class="highlight">إطمن</span>
+                    </h1>
+
+                    <p class="hero-subtitle">
+                        منصة طبية متكاملة تجمع المرضى والأطباء ومقدمي الرعاية الصحية.
+                        تقييم مخاطر ذكي، مواعيد إلكترونية، سجلات طبية، ونظام متقدم لإدارة الأزمات الصحية.
+                    </p>
+
+                    <div class="hero-cta">
+                        <a href="/Account/Register" class="btn-hero-primary">
+                            <i class="fas fa-rocket"></i>
+                            ابدأ مجاناً الآن
+                        </a>
+                        <a href="#features" class="btn-hero-secondary">
+                            <i class="fas fa-play-circle"></i>
+                            اكتشف المميزات
+                        </a>
+                    </div>
+
+                    <div class="hero-stats">
+                        <div class="hero-stat">
+                            <span class="hero-stat-num">
+                                <span class="count-up" data-target="50000">0</span><span>+</span>
+                            </span>
+                            <div class="hero-stat-label">مريض مسجّل</div>
+                        </div>
+                        <div class="hero-stat">
+                            <span class="hero-stat-num">
+                                <span class="count-up" data-target="1200">0</span><span>+</span>
+                            </span>
+                            <div class="hero-stat-label">طبيب متخصص</div>
+                        </div>
+                        <div class="hero-stat">
+                            <span class="hero-stat-num">
+                                <span class="count-up" data-target="98">0</span><span>%</span>
+                            </span>
+                            <div class="hero-stat-label">رضا المستخدمين</div>
+                        </div>
+                        <div class="hero-stat">
+                            <span class="hero-stat-num">
+                                <span class="count-up" data-target="24">0</span><span>/7</span>
+                            </span>
+                            <div class="hero-stat-label">دعم مستمر</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Visual Cards -->
+                <div class="col-lg-6 hero-visual">
+                    <div class="hero-card-stack">
+                        <!-- Background cards -->
+                        <div class="hcard hcard-top">
+                            <div class="hcard-label">موعدك القادم</div>
+                            <div class="hcard-value" style="font-size:1.1rem;">د. سارة أحمد</div>
+                            <div class="hcard-desc">تخصص القلب — الثلاثاء 10:00 ص</div>
+                        </div>
+                        <div class="hcard hcard-bottom">
+                            <div class="hcard-label">آخر تحليل</div>
+                            <div class="hcard-value" style="font-size:1.1rem;">سكر الدم: طبيعي</div>
+                            <div class="hcard-desc">110 mg/dL — 12 يناير 2025</div>
+                        </div>
+
+                        <!-- Main card -->
+                        <div class="hcard hcard-main">
+                            <div class="hcard-label">تقييم المخاطر الصحية</div>
+                            <div class="hcard-icon" style="background:rgba(39,174,96,0.2); color:#27AE60;">
+                                <i class="fas fa-shield-heart"></i>
+                            </div>
+                            <div class="hcard-value">32%</div>
+                            <div class="hcard-desc" style="color:rgba(255,255,255,0.7);">مستوى المخاطر: <span style="color:#27AE60; font-weight:700;">منخفض ✓</span></div>
+                            <div class="risk-bar">
+                                <div class="risk-bar-fill" style="width:32%;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Floating badges -->
+                        <div class="float-badge float-badge-1">
+                            <i class="fas fa-check-circle" style="color:#27AE60;"></i>
+                            تقييم تلقائي
+                        </div>
+                        <div class="float-badge float-badge-2">
+                            <i class="fas fa-bolt" style="color:#F39C12;"></i>
+                            استجابة فورية
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ FEATURES ══════════════════════════════════════════ -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="text-center mb-5" data-animate>
+                <span class="section-label">المميزات الأساسية</span>
+                <h2 class="section-title">كل ما تحتاجه في مكان <span class="accent">واحد</span></h2>
+                <p class="section-desc mx-auto">
+                    منظومة صحية رقمية متكاملة مصممة خصيصاً للبيئة الطبية المصرية، تجمع أحدث التقنيات مع أعلى معايير الأمان.
+                </p>
+            </div>
+
+            <div class="row g-4">
+                @{
+                    var features = new[]
+                    {
+                        new { Icon="fas fa-brain", Color="#1A6FBF", Bg="#E8F4FD",
+                              Title="تقييم المخاطر الذكي", Anchor="#",
+                              Desc="محرك ذكي يحلل علاماتك الحيوية والأعراض لحساب مستوى المخاطر الصحية فورياً بناءً على معايير طبية معتمدة." },
+                        new { Icon="fas fa-calendar-check", Color="#27AE60", Bg="#D5F5E3",
+                              Title="حجز المواعيد الإلكتروني", Anchor="#",
+                              Desc="احجز موعدك مع أي طبيب في ثوانٍ. عرض المواعيد المتاحة، التأكيد الفوري، والتذكير التلقائي." },
+                        new { Icon="fas fa-file-medical", Color="#9B59B6", Bg="#F0E6FF",
+                              Title="السجلات الطبية الرقمية", Anchor="#",
+                              Desc="سجل طبي موحد وآمن لكل مريض. يشمل العلامات الحيوية، التشخيصات، الوصفات، ونتائج التحاليل." },
+                        new { Icon="fas fa-flask", Color="#E67E22", Bg="#FDEBD0",
+                              Title="رفع وتحليل نتائج المخبر", Anchor="#",
+                              Desc="ارفع صور نتائجك وسيقوم النظام باستخراج البيانات تلقائياً وتحليلها بتقنية OCR متقدمة." },
+                        new { Icon="fas fa-users", Color="#E74C3C", Bg="#FADBD8",
+                              Title="ربط أفراد العائلة", Anchor="#",
+                              Desc="ربط حسابات أفراد عائلتك لمتابعة حالتهم الصحية، مع تحكم دقيق في صلاحيات الوصول." },
+                        new { Icon="fas fa-ambulance", Color="#C0392B", Bg="#FADBD8",
+                              Title="نظام الطوارئ الفوري", Anchor="#",
+                              Desc="إرسال طلب طوارئ بضغطة واحدة مع تحديد الموقع تلقائياً وإرسال أقرب مستشفى طوارئ." },
+                        new { Icon="fas fa-robot", Color="#00C9A7", Bg="#E0FAF5",
+                              Title="المساعد الصحي الذكي", Anchor="#",
+                              Desc="محادثة ذكية تجيب على أسئلتك الصحية وترشدك للخطوة الصحيحة على مدار الساعة." },
+                        new { Icon="fas fa-map-marked-alt", Color="#3498DB", Bg="#D6EEF9",
+                              Title="أقرب مقدم رعاية صحية", Anchor="#",
+                              Desc="ابحث عن أقرب مستشفى أو عيادة أو صيدلية حولك مع معلومات الأسرة المتاحة والطوارئ." },
+                    };
+                }
+
+                @foreach (var (f, i) in features.Select((x, i) => (x, i)))
+                {
+                    <div class="col-md-6 col-lg-3" data-animate data-animate-delay="@((i % 4) + 1)">
+                        <div class="feature-card">
+                            <div class="feature-icon" style="background:@f.Bg; color:@f.Color;">
+                                <i class="@f.Icon"></i>
+                            </div>
+                            <div class="feature-title">@f.Title</div>
+                            <div class="feature-desc">@f.Desc</div>
+                            <a href="@f.Anchor" class="feature-link">
+                                اعرف أكثر <i class="fas fa-arrow-left"></i>
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ ROLES ══════════════════════════════════════════════ -->
+    <section class="roles" id="roles">
+        <div class="container">
+            <div class="text-center mb-5" data-animate>
+                <span class="section-label">المستخدمون</span>
+                <h2 class="section-title">منصة واحدة — <span class="accent">للجميع</span></h2>
+                <p class="section-desc mx-auto">
+                    صُممت إطمن لخدمة جميع أطراف المنظومة الصحية، لكل دور بيئة عمل مخصصة وكاملة.
+                </p>
+            </div>
+
+            <div class="roles-tabs" data-animate>
+                <button class="role-tab active" onclick="switchRole('patient', this)">
+                    <i class="fas fa-user-injured"></i> مريض
+                </button>
+                <button class="role-tab" onclick="switchRole('doctor', this)">
+                    <i class="fas fa-user-md"></i> طبيب
+                </button>
+                <button class="role-tab" onclick="switchRole('admin', this)">
+                    <i class="fas fa-user-shield"></i> مدير النظام
+                </button>
+                <button class="role-tab" onclick="switchRole('crisis', this)">
+                    <i class="fas fa-biohazard"></i> مدير الأزمات
+                </button>
+                <button class="role-tab" onclick="switchRole('hospital', this)">
+                    <i class="fas fa-hospital-symbol"></i> موظف مستشفى
+                </button>
+            </div>
+
+            <!-- Patient -->
+            <div class="role-content active" id="role-patient" data-animate>
+                <div class="row g-5 align-items-center">
+                    <div class="col-lg-6 role-info">
+                        <h3>👤 المريض</h3>
+                        <p>
+                            المستخدم الأساسي للمنصة. يستطيع إدارة صحته بالكامل إلكترونياً من مكانه،
+                            مع تقييم فوري للمخاطر وربط بأقرب الأطباء والمستشفيات.
+                        </p>
+                        <ul class="role-features">
+                            <li><i class="fas fa-check-circle"></i> لوحة تحكم صحية شاملة</li>
+                            <li><i class="fas fa-check-circle"></i> تقييم المخاطر الصحية الذكي</li>
+                            <li><i class="fas fa-check-circle"></i> حجز وإدارة المواعيد</li>
+                            <li><i class="fas fa-check-circle"></i> رفع وعرض نتائج التحاليل</li>
+                            <li><i class="fas fa-check-circle"></i> ربط أفراد العائلة ومشاركة السجلات</li>
+                            <li><i class="fas fa-check-circle"></i> طلب الطوارئ الفوري بالموقع</li>
+                            <li><i class="fas fa-check-circle"></i> محادثة مع المساعد الطبي الذكي</li>
+                        </ul>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="role-visual">
+                            <div class="mini-stat-card">
+                                <div class="mini-stat-icon" style="background:rgba(39,174,96,0.2); color:#27AE60;">
+                                    <i class="fas fa-shield-heart"></i>
+                                </div>
+                                <div>
+                                    <div class="mini-stat-label">مستوى الخطر الصحي</div>
+                                    <div class="mini-stat-value">منخفض — 28%</div>
+                                </div>
+                            </div>
+                            <div class="mini-stat-card">
+                                <div class="mini-stat-icon" style="background:rgba(26,111,191,0.2); color:#1A6FBF;">
+                                    <i class="fas fa-calendar-check"></i>
+                                </div>
+                                <div>
+                                    <div class="mini-stat-label">موعدك القادم</div>
+                                    <div class="mini-stat-value">د. أحمد — الثلاثاء 10 ص</div>
+                                </div>
+                            </div>
+                            <div class="mini-stat-card">
+                                <div class="mini-stat-icon" style="background:rgba(155,89,182,0.2); color:#9B59B6;">
+                                    <i class="fas fa-file-medical"></i>
+                                </div>
+                                <div>
+                                    <div class="mini-stat-label">آخر سجل طبي</div>
+                                    <div class="mini-stat-value">ضغط: 120/80 — طبيعي ✓</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Doctor -->
+            <div class="role-content" id="role-doctor">
+                <div class="row g-5 align-items-center">
+                    <div class="col-lg-6 role-info">
+                        <h3>👨‍⚕️ الطبيب</h3>
+                        <p>
+                            بيئة عمل طبية احترافية تمكّن الطبيب من إدارة مرضاه ومواعيده وتسجيل ملاحظاته الطبية
+                            بكفاءة عالية وفي أي وقت.
+                        </p>
+                        <ul class="role-features">
+                            <li><i class="fas fa-check-circle"></i> لوحة تحكم يومية وإحصائيات</li>
+                            <li><i class="fas fa-check-circle"></i> إدارة المواعيد والجداول</li>
+                            <li><i class="fas fa-check-circle"></i> عرض وإضافة سجلات المرضى</li>
+                            <li><i class="fas fa-check-circle"></i> إدارة فترات الاستقبال المتاحة</li>
+                            <li><i class="fas fa-check-circle"></i> البحث السريع عن المرضى</li>
+                            <li><i class="fas fa-check-circle"></i> إحصائيات أداء شاملة</li>
+                        </ul>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="role-visual">
+                            <div class="mini-stat-card">
+                                <div class="mini-stat-icon" style="background:rgba(26,111,191,0.2); color:#1A6FBF;">
+                                    <i class="fas fa-calendar-day"></i>
+                                </div>
+                                <div>
+                                    <div class="mini-stat-label">مواعيد اليوم</div>
+                                    <div class="mini-stat-value">12 موعد</div>
+                                </div>
+                            </div>
+                            <div class="mini-stat-card">
+                                <div class="mini-stat-icon" style="background:rgba(39,174,96,0.2); color:#27AE60;">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div>
+                                    <div class="mini-stat-label">إجمالي المرضى</div>
+                                    <div class="mini-stat-value">348 مريض</div>
+                                </div>
+                            </div>
+                            <div class="mini-stat-card">
+                                <div class="mini-stat-icon" style="background:rgba(243,156,18,0.2); color:#F39C12;">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <div>
+                                    <div class="mini-stat-label">متوسط التقييم</div>
+                                    <div class="mini-stat-value">4.8 / 5 ⭐</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin -->
+            <div class="role-content" id="role-admin">
+                <div class="row g-5 align-items-center">
+                    <div class="col-lg-6 role-info">
+                        <h3>🛡️ مدير النظام</h3>
+                        <p>
+                            إشراف كامل على المنصة — إدارة المستخدمين، مقدمي الخدمات، التقارير، ومراقبة
+                            أداء النظام بشكل مستمر.
+                        </p>
+                        <ul class="role-features">
+                            <li><i class="fas fa-check-circle"></i> لوحة تحكم إدارية شاملة</li>
+                            <li><i class="fas fa-check-circle"></i> إدارة كامل المستخدمين (تفعيل / تعطيل)</li>
+                            <li><i class="fas fa-check-circle"></i> إدارة مقدمي الخدمات الصحية</li>
+                            <li><i class="fas fa-check-circle"></i> الموافقة على إعلانات الأزمات</li>
+                            <li><i class="fas fa-check-circle"></i> سجل النشاط والتقارير</li>
+                            <li><i class="fas fa-check-circle"></i> إعدادات النظام المتقدمة</li>
+                        </ul>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="role-visual">
+                            <div class="mini-stat-card">
+                                <div class="mini-stat-icon" style="background:rgba(52,152,219,0.2); color:#3498DB;">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div>
+                                    <div class="mini-stat-label">إجمالي المستخدمين</div>
+                                    <div class="mini-stat-value">51,200 مستخدم</div>
+                                </div>
+                            </div>
+                            <div class="mini-stat-card">
+                                <div class="mini-stat-icon" style="background:rgba(231,76,60,0.2); color:#E74C3C;">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <div>
+                                    <div class="mini-stat-label">طلبات طوارئ معلقة</div>
+                                    <div class="mini-stat-value">3 طلبات</div>
+                                </div>
+                            </div>
+                            <div class="mini-stat-card">
+                                <div class="mini-stat-icon" style="background:rgba(39,174,96,0.2); color:#27AE60;">
+                                    <i class="fas fa-server"></i>
+                                </div>
+                                <div>
+                                    <div class="mini-stat-label">حالة النظام</div>
+                                    <div class="mini-stat-value">يعمل بكفاءة 99.9%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Crisis Admin -->
+            <div class="role-content" id="role-crisis">
+                <div class="row g-5 align-items-center">
+                    <div class="col-lg-6 role-info">
+                        <h3>⚠️ مدير الأزمات</h3>
+                        <p>
+                            دور متخصص لإدارة الأوبئة والأزمات الصحية — إنشاء سيناريوهات الأزمات،
+                            تحديد مناطق التفشي، وضبط آلية تقييم المخاطر.
+                        </p>
+                        <ul class="role-features">
+                            <li><i class="fas fa-check-circle"></i> إنشاء وتعديل سيناريوهات الأزمات</li>
+                            <li><i class="fas fa-check-circle"></i> تحديد وزن الأعراض في كل أزمة</li>
+                            <li><i class="fas fa-check-circle"></i> رسم مناطق التفشي على الخريطة</li>
+                            <li><i class="fas fa-check-circle"></i> ضبط حدود مستويات الخطر</li>
+                            <li><i class="fas fa-check-circle"></i> دعم 4 أنواع أزمات: فيروسية / إشعاعية / كيميائية / بيولوجية</li>
+                        </ul>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="role-visual">
+                            <div class="mini-stat-card">
+                                <div class="mini-stat-icon" style="background:rgba(230,126,34,0.2); color:#E67E22;">
+                                    <i class="fas fa-biohazard"></i>
+                                </div>
+                                <div>
+                                    <div class="mini-stat-label">الأزمة النشطة</div>
+                                    <div class="mini-stat-value">لا توجد أزمة حالياً</div>
+                                </div>
+                            </div>
+                            <div class="mini-stat-card">
+                                <div class="mini-stat-icon" style="background:rgba(231,76,60,0.2); color:#E74C3C;">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </div>
+                                <div>
+                                    <div class="mini-stat-label">مناطق التفشي المُعرَّفة</div>
+                                    <div class="mini-stat-value">0 منطقة</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hospital Staff -->
+            <div class="role-content" id="role-hospital">
+                <div class="row g-5 align-items-center">
+                    <div class="col-lg-6 role-info">
+                        <h3>🏥 موظف المستشفى</h3>
+                        <p>
+                            يدير طابور الطوارئ، يتابع طلبات الإسعاف الواردة، ويحدّث حالة الأسرة المتاحة
+                            في الوقت الحقيقي.
+                        </p>
+                        <ul class="role-features">
+                            <li><i class="fas fa-check-circle"></i> عرض وإدارة طلبات الطوارئ</li>
+                            <li><i class="fas fa-check-circle"></i> لوحة kanban للطوارئ المعلقة والمقبولة</li>
+                            <li><i class="fas fa-check-circle"></i> تحديث حالة الأسرة المتاحة</li>
+                            <li><i class="fas fa-check-circle"></i> إحالة الحالات للمستشفيات الأخرى</li>
+                        </ul>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="role-visual">
+                            <div class="mini-stat-card">
+                                <div class="mini-stat-icon" style="background:rgba(231,76,60,0.2); color:#E74C3C;">
+                                    <i class="fas fa-ambulance"></i>
+                                </div>
+                                <div>
+                                    <div class="mini-stat-label">طلبات طوارئ معلقة</div>
+                                    <div class="mini-stat-value">2 طلبات</div>
+                                </div>
+                            </div>
+                            <div class="mini-stat-card">
+                                <div class="mini-stat-icon" style="background:rgba(39,174,96,0.2); color:#27AE60;">
+                                    <i class="fas fa-bed"></i>
+                                </div>
+                                <div>
+                                    <div class="mini-stat-label">الأسرة المتاحة</div>
+                                    <div class="mini-stat-value">24 سرير</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ CRISIS SYSTEM ══════════════════════════════════════ -->
+    <section class="crisis-section" id="crisis">
+        <div class="container" style="position:relative; z-index:1;">
+            <div class="text-center mb-5" data-animate>
+                <span class="section-label">نظام إدارة الأزمات</span>
+                <h2 class="section-title">جاهزون <span style="color:var(--crisis);">لكل الأزمات</span></h2>
+                <p class="section-desc mx-auto" style="color:rgba(255,255,255,0.6);">
+                    نظام متكامل لإدارة الأوبئة والأزمات الصحية الكبرى، يتحول النظام تلقائياً لوضع الأزمة
+                    مع تغيير آلية تقييم المخاطر بناءً على طبيعة كل أزمة.
+                </p>
+            </div>
+
+            <div class="row g-4 mb-5">
+                @{
+                    var crisisCards = new[]
+                    {
+                        new { Icon="🧬", Title="محرك تقييم ذكي", Desc="حساب مستوى الخطر لكل مريض بناءً على أعراض مخصصة لكل نوع أزمة مع أوزان قابلة للضبط." },
+                        new { Icon="🗺️", Title="خريطة التفشي التفاعلية", Desc="رسم مناطق التفشي على الخريطة مع تحديد نطاق الخطر والمستوى لكل منطقة جغرافياً." },
+                        new { Icon="⚡", Title="تنبيهات فورية", Desc="إرسال تنبيهات فورية للمرضى في المناطق عالية الخطر مع توصيات طبية مخصصة." },
+                        new { Icon="📊", Title="إحصائيات لحظية", Desc="لوحة بيانات تعرض توزيع مستويات الخطر ومؤشرات الأزمة بشكل لحظي للمسؤولين." },
+                    };
+                }
+                @foreach (var (c, i) in crisisCards.Select((x,i)=>(x,i)))
+                {
+                    <div class="col-md-6 col-lg-3" data-animate data-animate-delay="@(i+1)">
+                        <div class="crisis-card">
+                            <div class="crisis-card-icon">@c.Icon</div>
+                            <h4>@c.Title</h4>
+                            <p>@c.Desc</p>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="text-center" data-animate>
+                <p style="color:rgba(255,255,255,0.6); margin-bottom:1rem; font-size:0.9rem;">أنواع الأزمات المدعومة:</p>
+                <div class="crisis-types justify-content-center">
+                    <span class="crisis-type-badge">🦠 فيروسية (Viral)</span>
+                    <span class="crisis-type-badge">☢️ إشعاعية (Radiation)</span>
+                    <span class="crisis-type-badge">☣️ كيميائية (Chemical)</span>
+                    <span class="crisis-type-badge">🔬 بيولوجية (Biological)</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ HOW IT WORKS ══════════════════════════════════════ -->
+    <section class="how-it-works" id="how">
+        <div class="container">
+            <div class="text-center mb-5" data-animate>
+                <span class="section-label">كيف تعمل المنصة؟</span>
+                <h2 class="section-title">ابدأ في <span class="accent">3 خطوات</span></h2>
+            </div>
+
+            <div class="row g-4" data-animate>
+                @{
+                    var steps = new[]
+                    {
+                        new { Num="١", Title="إنشاء حساب مجاني", Desc="سجّل بياناتك الأساسية في دقيقة واحدة. لا حاجة لبطاقة ائتمانية." },
+                        new { Num="٢", Title="أكمل ملفك الصحي", Desc="أدخل بياناتك الطبية الأساسية كالطول والوزن والأمراض المزمنة والحساسية." },
+                        new { Num="٣", Title="استمتع بخدمات إطمن", Desc="احجز مواعيد، قيّم مخاطرك الصحية، ارفع تحاليلك، وتواصل مع طبيبك." },
+                    };
+                }
+                @foreach (var (s, i) in steps.Select((x,i)=>(x,i)))
+                {
+                    <div class="col-md-4" data-animate-delay="@(i+1)">
+                        <div class="step-card">
+                            @if (i < steps.Length - 1) { <div class="step-connector"></div> }
+                            <div class="step-num">@s.Num</div>
+                            <div class="step-title">@s.Title</div>
+                            <p class="step-desc">@s.Desc</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ CTA ════════════════════════════════════════════════ -->
+    <section class="cta-section">
+        <div class="container" style="position:relative; z-index:1;">
+            <h2>ابدأ رحلتك الصحية اليوم</h2>
+            <p>انضم لأكثر من 50,000 مستخدم يثقون في إطمن لإدارة صحتهم</p>
+            <a href="/Account/Register" class="btn-cta">
+                <i class="fas fa-user-plus"></i>
+                سجل مجاناً الآن
+            </a>
+        </div>
+    </section>
+
+    <!-- ═══ FOOTER ═════════════════════════════════════════════ -->
+    <footer>
+        <div class="container">
+            <div class="row g-5">
+                <div class="col-lg-4">
+                    <div class="footer-logo">
+                        <a href="/" class="nav-logo" style="text-decoration:none;">
+                            <div class="nav-logo-icon"><i class="fas fa-heartbeat"></i></div>
+                            <span class="nav-logo-text">إط<span>من</span></span>
+                        </a>
+                    </div>
+                    <p class="footer-desc">
+                        منصة صحية رقمية متكاملة تجمع المرضى والأطباء ومقدمي الرعاية الصحية في بيئة آمنة وذكية.
+                    </p>
+                </div>
+                <div class="col-sm-4 col-lg-2 offset-lg-2">
+                    <div class="footer-heading">الخدمات</div>
+                    <ul class="footer-links">
+                        <li><a href="#">تقييم المخاطر</a></li>
+                        <li><a href="#">حجز المواعيد</a></li>
+                        <li><a href="#">السجلات الطبية</a></li>
+                        <li><a href="#">نتائج التحاليل</a></li>
+                        <li><a href="#">خدمات الطوارئ</a></li>
+                    </ul>
+                </div>
+                <div class="col-sm-4 col-lg-2">
+                    <div class="footer-heading">المنصة</div>
+                    <ul class="footer-links">
+                        <li><a href="#">عن إطمن</a></li>
+                        <li><a href="#">سياسة الخصوصية</a></li>
+                        <li><a href="#">الشروط والأحكام</a></li>
+                        <li><a href="#">تواصل معنا</a></li>
+                    </ul>
+                </div>
+                <div class="col-sm-4 col-lg-2">
+                    <div class="footer-heading">للمختصين</div>
+                    <ul class="footer-links">
+                        <li><a href="/Account/Login">دخول الأطباء</a></li>
+                        <li><a href="/Account/Login">دخول المستشفيات</a></li>
+                        <li><a href="/Account/Login">لوحة الإدارة</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <hr class="footer-divider" />
+
+            <div class="footer-bottom">
+                <span>© 2025 إطمن — جميع الحقوق محفوظة | مشروع DEPI</span>
+                <div class="social-links">
+                    <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-github"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // ── Navbar scroll effect ─────────────────────────────
+        window.addEventListener('scroll', () => {
+            document.getElementById('mainNav').classList.toggle('scrolled', window.scrollY > 30);
+        });
+
+        // ── Scroll-triggered animations ──────────────────────
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in-view'); });
+        }, { threshold: 0.12 });
+
+        document.querySelectorAll('[data-animate]').forEach(el => observer.observe(el));
+
+        // ── Counter animation ────────────────────────────────
+        function animateCount(el) {
+            const target = parseInt(el.dataset.target, 10);
+            const duration = 1800;
+            const step = target / (duration / 16);
+            let current = 0;
+            const timer = setInterval(() => {
+                current = Math.min(current + step, target);
+                el.textContent = Math.floor(current).toLocaleString('ar-EG');
+                if (current >= target) clearInterval(timer);
+            }, 16);
+        }
+
+        const countObserver = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+                if (e.isIntersecting) {
+                    animateCount(e.target);
+                    countObserver.unobserve(e.target);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        document.querySelectorAll('.count-up').forEach(el => countObserver.observe(el));
+
+        // ── Role tabs ────────────────────────────────────────
+        function switchRole(role, btn) {
+            document.querySelectorAll('.role-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.role-tab').forEach(el => el.classList.remove('active'));
+            document.getElementById('role-' + role).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        // ── Smooth scroll for anchor links ───────────────────
+        document.querySelectorAll('a[href^="#"]').forEach(a => {
+            a.addEventListener('click', e => {
+                const target = document.querySelector(a.getAttribute('href'));
+                if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+            });
+        });
+    </script>
+</body>
+</html>

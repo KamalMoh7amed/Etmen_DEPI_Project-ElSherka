@@ -1,0 +1,139 @@
+@* ═══════════════════════════════════════════════════════════
+   VerifyEmailNotice.cshtml
+   ═══════════════════════════════════════════════════════════ *@
+@{
+    ViewData["Title"] = "تحقق من بريدك — إطمن";
+    Layout = null;
+    var email = ViewBag.Email as string ?? "";
+}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+        :root { --primary:#1A6FBF; --accent:#00C9A7; --dark:#0F1923; --text:#2C3E50; --muted:#7F8C8D; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family:'Tajawal',sans-serif; background:var(--dark);
+            min-height:100vh; display:flex; align-items:center; justify-content:center;
+            position:relative; overflow:hidden;
+        }
+        body::before {
+            content:''; position:absolute; inset:0;
+            background-image: linear-gradient(rgba(26,111,191,0.06) 1px,transparent 1px),
+                              linear-gradient(90deg,rgba(26,111,191,0.06) 1px,transparent 1px);
+            background-size:55px 55px;
+        }
+        .orb {
+            position:absolute; border-radius:50%; filter:blur(80px); opacity:0.12;
+            animation:float 8s ease-in-out infinite;
+        }
+        .o1 { width:400px;height:400px;background:var(--primary);top:-100px;left:-100px; }
+        .o2 { width:300px;height:300px;background:var(--accent);bottom:-50px;right:-50px;animation-delay:-4s; }
+        @@keyframes float { 0%,100%{transform:translate(0,0)} 50%{transform:translate(20px,-20px)} }
+
+        .card {
+            position:relative; z-index:2;
+            background:white; border-radius:24px;
+            padding:52px 48px; max-width:500px; width:92%;
+            text-align:center;
+            box-shadow:0 24px 80px rgba(0,0,0,0.4);
+            animation:cardIn 0.5s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        @@keyframes cardIn { from{opacity:0;transform:scale(0.9) translateY(20px)} to{opacity:1;transform:none} }
+
+        .icon-wrap {
+            width:100px; height:100px; margin:0 auto 2rem;
+            background:linear-gradient(135deg, #E8F4FD, #D0EAFC);
+            border-radius:50%;
+            display:flex; align-items:center; justify-content:center;
+            font-size:2.5rem; color:var(--primary);
+            box-shadow:0 8px 30px rgba(26,111,191,0.2);
+            animation:pulse 2.5s ease-in-out infinite;
+        }
+        @@keyframes pulse {
+            0%,100%{box-shadow:0 8px 30px rgba(26,111,191,0.2)}
+            50%    {box-shadow:0 8px 50px rgba(26,111,191,0.4)}
+        }
+
+        h1 { font-size:1.7rem; font-weight:900; color:var(--text); margin-bottom:.6rem; }
+        .subtitle { color:var(--muted); font-size:.95rem; line-height:1.7; margin-bottom:1.5rem; }
+        .email-chip {
+            display:inline-block; background:#F0F7FF;
+            border:1px solid #C0D8F0; border-radius:8px;
+            padding:6px 16px; color:var(--primary);
+            font-weight:700; font-size:.9rem; margin-bottom:2rem;
+            word-break:break-all;
+        }
+        .notice {
+            background:#FFFBEB; border:1px solid #FDE68A;
+            border-radius:12px; padding:14px 16px;
+            font-size:.83rem; color:#92400E; margin-bottom:2rem; line-height:1.6;
+        }
+        .btn-resend {
+            width:100%; padding:14px; border:2px solid var(--primary);
+            background:transparent; color:var(--primary); border-radius:12px;
+            font-family:'Tajawal',sans-serif; font-size:.95rem; font-weight:700;
+            cursor:pointer; transition:all .25s; margin-bottom:1rem;
+        }
+        .btn-resend:hover { background:var(--primary); color:white; }
+        .btn-resend:disabled { opacity:.5; cursor:not-allowed; }
+        .back-link { font-size:.85rem; color:var(--muted); }
+        .back-link a { color:var(--primary); font-weight:700; text-decoration:none; }
+        .back-link a:hover { text-decoration:underline; }
+        #timer { font-weight:700; color:var(--primary); }
+    </style>
+</head>
+<body>
+    <div class="orb o1"></div>
+    <div class="orb o2"></div>
+
+    <div class="card">
+        <div class="icon-wrap"><i class="fas fa-envelope-open-text"></i></div>
+        <h1>تحقق من بريدك الإلكتروني</h1>
+        <p class="subtitle">أرسلنا رابط التحقق إلى</p>
+        @if (!string.IsNullOrEmpty(email))
+        {
+            <div class="email-chip">@email</div>
+        }
+        <div class="notice">
+            <i class="fas fa-info-circle" style="margin-left:6px;"></i>
+            تحقق من مجلد البريد غير المرغوب (Spam) إذا لم يصلك الرابط خلال دقيقتين.
+        </div>
+
+        <form method="post" asp-area="Auth" asp-controller="Account" asp-action="ResendVerification">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="email" value="@email" />
+            <button type="submit" class="btn-resend" id="resendBtn">
+                <i class="fas fa-rotate-right"></i> إعادة إرسال رابط التحقق
+            </button>
+        </form>
+
+        <div class="back-link">
+            <a href="/Account/Login"><i class="fas fa-arrow-right"></i> العودة لتسجيل الدخول</a>
+        </div>
+    </div>
+
+    <script>
+        // 60s cooldown after page load (simulate already sent)
+        let seconds = 60;
+        const btn = document.getElementById('resendBtn');
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fas fa-clock"></i> إعادة الإرسال بعد <span id="timer">${seconds}</span>s`;
+        const interval = setInterval(() => {
+            seconds--;
+            const t = document.getElementById('timer');
+            if (t) t.textContent = seconds;
+            if (seconds <= 0) {
+                clearInterval(interval);
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

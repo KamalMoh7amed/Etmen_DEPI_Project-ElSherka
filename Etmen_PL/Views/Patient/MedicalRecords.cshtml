@@ -1,0 +1,245 @@
+@model IEnumerable<Etmen_BLL.DTOs.Medical.MedicalRecordDto>
+@{
+    ViewData["Title"] = "السجلات الطبية — إطمن";
+    Layout = null;
+    var records = Model?.ToList() ?? new List<Etmen_BLL.DTOs.Medical.MedicalRecordDto>();
+    var newRecord = ViewBag.NewRecord as Etmen_BLL.DTOs.Medical.MedicalRecordCreateDto
+                    ?? new Etmen_BLL.DTOs.Medical.MedicalRecordCreateDto();
+}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>@ViewData["Title"]</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.rtl.min.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+:root{--primary:#1A6FBF;--primary-dark:#0D4C8A;--accent:#00C9A7;--success:#27AE60;--danger:#E74C3C;--dark:#0F1923;--text:#2C3E50;--text-muted:#7F8C8D;--border:#DDE3EC;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Tajawal',sans-serif;background:#F0F4F9;min-height:100vh;display:flex;}
+.sidebar{width:260px;min-height:100vh;background:var(--dark);display:flex;flex-direction:column;position:fixed;right:0;top:0;z-index:100;}
+.sidebar-logo{padding:28px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.sidebar-logo .logo-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;}
+.sidebar-logo .logo-text{color:#fff;font-weight:800;font-size:1.2rem;}.sidebar-logo .logo-text span{color:var(--accent);}
+.nav-section{padding:20px 16px 8px;color:rgba(255,255,255,.35);font-size:.72rem;font-weight:700;letter-spacing:.08em;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px 20px;color:rgba(255,255,255,.65);text-decoration:none;border-radius:10px;margin:2px 10px;transition:.2s;font-size:.95rem;}
+.nav-item:hover,.nav-item.active{background:rgba(26,111,191,.25);color:#fff;}.nav-item.active{border-right:3px solid var(--primary);}
+.nav-item i{width:20px;text-align:center;}
+.sidebar-footer{margin-top:auto;padding:20px;border-top:1px solid rgba(255,255,255,.08);}
+.logout-btn{display:flex;align-items:center;gap:10px;color:rgba(255,255,255,.5);text-decoration:none;font-size:.9rem;padding:10px 12px;border-radius:8px;transition:.2s;}
+.logout-btn:hover{background:rgba(231,76,60,.15);color:#E74C3C;}
+.main{margin-right:260px;flex:1;padding:32px;min-height:100vh;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
+.page-header h1{font-size:1.6rem;font-weight:800;color:var(--dark);}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;border:none;padding:11px 24px;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;text-decoration:none;transition:.2s;}
+.btn-primary:hover{box-shadow:0 6px 20px rgba(26,111,191,.35);}
+.card{background:#fff;border-radius:16px;border:1px solid var(--border);overflow:hidden;margin-bottom:24px;}
+.card-header{padding:20px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.card-header h3{font-size:1rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;}
+/* Add form */
+.add-form{padding:24px 28px;background:#F8FAFB;border-bottom:1px solid var(--border);}
+.form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px;}
+.form-group{display:flex;flex-direction:column;gap:6px;}
+.form-group label{font-size:.82rem;font-weight:600;color:var(--text);}
+.form-control{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:9px;font-family:'Tajawal',sans-serif;font-size:.9rem;color:var(--text);background:#fff;outline:none;transition:.2s;}
+.form-control:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(26,111,191,.1);}
+/* Timeline */
+.timeline{padding:0 28px;}
+.timeline-item{display:flex;gap:20px;padding:24px 0;border-bottom:1px solid rgba(0,0,0,.05);}
+.timeline-item:last-child{border-bottom:none;}
+.timeline-dot{display:flex;flex-direction:column;align-items:center;gap:0;}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--primary);border:2px solid var(--primary-dark);flex-shrink:0;margin-top:4px;}
+.dot-line{width:2px;background:var(--border);flex:1;min-height:20px;}
+.timeline-content{flex:1;}
+.timeline-date{font-size:.82rem;color:var(--text-muted);font-weight:600;margin-bottom:12px;}
+.vitals-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-bottom:12px;}
+.vital-chip{background:#F0F4F9;border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:2px;}
+.vital-chip .vital-label{font-size:.72rem;color:var(--text-muted);font-weight:600;}
+.vital-chip .vital-value{font-size:.95rem;font-weight:700;color:var(--dark);}
+.record-notes{background:#FFFBF0;border-radius:10px;padding:12px 16px;font-size:.88rem;color:var(--text);border-right:3px solid var(--warning);}
+.empty-state{padding:48px;text-align:center;color:var(--text-muted);}
+.empty-state i{font-size:2.5rem;margin-bottom:12px;opacity:.3;}
+.alert-box{background:#E8F8F0;border:1px solid #A8D5B5;border-radius:12px;padding:14px 20px;display:flex;align-items:center;gap:10px;color:var(--success);font-weight:600;margin-bottom:20px;}
+.alert-error{background:#FDECEA;border:1px solid #F5B7B1;color:var(--danger);}
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon"><i class="fas fa-heartbeat"></i></div>
+    <div class="logo-text">إط<span>من</span></div>
+  </div>
+  <span class="nav-section">القائمة الرئيسية</span>
+  <a href="/Patient/Dashboard" class="nav-item"><i class="fas fa-th-large"></i>لوحة التحكم</a>
+  <a href="/Patient/Profile"   class="nav-item"><i class="fas fa-user-circle"></i>الملف الشخصي</a>
+  <a href="/Patient/RiskAssessment" class="nav-item"><i class="fas fa-shield-virus"></i>تقييم المخاطر</a>
+  <span class="nav-section">الرعاية الصحية</span>
+  <a href="/Patient/Appointments"   class="nav-item"><i class="fas fa-calendar-alt"></i>المواعيد</a>
+  <a href="/Patient/MedicalRecords" class="nav-item active"><i class="fas fa-notes-medical"></i>السجلات الطبية</a>
+  <a href="/Patient/LabResults"     class="nav-item"><i class="fas fa-flask"></i>نتائج التحاليل</a>
+  <span class="nav-section">أخرى</span>
+  <a href="/Patient/Alerts"  class="nav-item"><i class="fas fa-bell"></i>التنبيهات</a>
+  <a href="/Patient/Nearby"  class="nav-item"><i class="fas fa-map-marker-alt"></i>مقدمو خدمات</a>
+  <div class="sidebar-footer">
+    <form method="post" action="/Account/Logout">
+      @Html.AntiForgeryToken()
+      <button type="submit" class="logout-btn" style="background:none;border:none;width:100%;cursor:pointer;">
+        <i class="fas fa-sign-out-alt"></i>تسجيل الخروج
+      </button>
+    </form>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="page-header">
+    <div>
+      <h1>السجلات الطبية</h1>
+      <p style="color:var(--text-muted);font-size:.95rem;margin-top:4px;">سجّل مؤشراتك الصحية بانتظام</p>
+    </div>
+    <button class="btn-primary" onclick="toggleAddForm()">
+      <i class="fas fa-plus"></i>سجل جديد
+    </button>
+  </div>
+
+  @if(TempData["Success"] is string s){<div class="alert-box"><i class="fas fa-check-circle"></i>@s</div>}
+  @if(TempData["Error"]   is string e){<div class="alert-box alert-error"><i class="fas fa-exclamation-circle"></i>@e</div>}
+
+  <!-- Add Record Card -->
+  <div class="card" id="addFormCard" style="display:none;">
+    <div class="card-header">
+      <h3><i class="fas fa-plus-circle" style="color:var(--success);"></i>إضافة سجل طبي جديد</h3>
+    </div>
+    <form method="post" action="/Patient/AddMedicalRecord">
+      @Html.AntiForgeryToken()
+      <div class="add-form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>معدل ضربات القلب (bpm)</label>
+            <input name="HeartRate" type="number" step="0.1" class="form-control" placeholder="72"/>
+          </div>
+          <div class="form-group">
+            <label>ضغط الدم الانقباضي (mmHg)</label>
+            <input name="SystolicBP" type="number" step="0.1" class="form-control" placeholder="120"/>
+          </div>
+          <div class="form-group">
+            <label>ضغط الدم الانبساطي (mmHg)</label>
+            <input name="DiastolicBP" type="number" step="0.1" class="form-control" placeholder="80"/>
+          </div>
+          <div class="form-group">
+            <label>درجة الحرارة (°C)</label>
+            <input name="Temperature" type="number" step="0.1" class="form-control" placeholder="36.5"/>
+          </div>
+          <div class="form-group">
+            <label>تشبع الأكسجين (%)</label>
+            <input name="OxygenSaturation" type="number" step="0.1" class="form-control" placeholder="98"/>
+          </div>
+          <div class="form-group">
+            <label>سكر الدم (mg/dL)</label>
+            <input name="BloodSugar" type="number" step="0.1" class="form-control" placeholder="100"/>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:16px;">
+          <label>الأعراض</label>
+          <input name="Symptoms" type="text" class="form-control" placeholder="مثال: صداع، تعب عام..."/>
+        </div>
+        <div class="form-group" style="margin-bottom:16px;">
+          <label>ملاحظات</label>
+          <textarea name="Notes" class="form-control" rows="2" placeholder="أي ملاحظات إضافية..."></textarea>
+        </div>
+        <div style="display:flex;gap:12px;">
+          <button type="submit" class="btn-primary"><i class="fas fa-save"></i>حفظ السجل</button>
+          <button type="button" class="btn-primary" style="background:#F0F4F9;color:var(--text);box-shadow:none;" onclick="toggleAddForm()">إلغاء</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Records Timeline -->
+  <div class="card">
+    <div class="card-header">
+      <h3><i class="fas fa-history" style="color:var(--primary);"></i>سجل القياسات</h3>
+      <span style="font-size:.85rem;color:var(--text-muted);">@records.Count سجل</span>
+    </div>
+    @if(!records.Any())
+    {
+      <div class="empty-state">
+        <i class="fas fa-notes-medical"></i>
+        <p>لا توجد سجلات طبية بعد. أضف أول قياس!</p>
+      </div>
+    }
+    else
+    {
+      <div class="timeline">
+        @foreach(var rec in records.OrderByDescending(r => r.RecordDate))
+        {
+          <div class="timeline-item">
+            <div class="timeline-dot">
+              <div class="dot"></div>
+              <div class="dot-line"></div>
+            </div>
+            <div class="timeline-content">
+              <div class="timeline-date">
+                <i class="fas fa-calendar-alt"></i>
+                @rec.RecordDate.ToString("dd MMMM yyyy — hh:mm tt")
+              </div>
+              <div class="vitals-grid">
+                @if(rec.HeartRate.HasValue)
+                {
+                  <div class="vital-chip">
+                    <span class="vital-label">💓 معدل القلب</span>
+                    <span class="vital-value">@rec.HeartRate bpm</span>
+                  </div>
+                }
+                @if(rec.SystolicBP.HasValue && rec.DiastolicBP.HasValue)
+                {
+                  <div class="vital-chip">
+                    <span class="vital-label">🩺 ضغط الدم</span>
+                    <span class="vital-value">@rec.SystolicBP/@rec.DiastolicBP</span>
+                  </div>
+                }
+                @if(rec.Temperature.HasValue)
+                {
+                  <div class="vital-chip">
+                    <span class="vital-label">🌡️ الحرارة</span>
+                    <span class="vital-value">@rec.Temperature °C</span>
+                  </div>
+                }
+                @if(rec.OxygenSaturation.HasValue)
+                {
+                  <div class="vital-chip">
+                    <span class="vital-label">🫁 الأكسجين</span>
+                    <span class="vital-value">@rec.OxygenSaturation%</span>
+                  </div>
+                }
+                @if(rec.BloodSugar.HasValue)
+                {
+                  <div class="vital-chip">
+                    <span class="vital-label">🩸 السكر</span>
+                    <span class="vital-value">@rec.BloodSugar mg/dL</span>
+                  </div>
+                }
+              </div>
+              @if(!string.IsNullOrEmpty(rec.Symptoms))
+              {<p style="font-size:.85rem;color:var(--text-muted);margin-bottom:8px;"><b>الأعراض:</b> @rec.Symptoms</p>}
+              @if(!string.IsNullOrEmpty(rec.Notes))
+              {<div class="record-notes">@rec.Notes</div>}
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>
+
+<script>
+function toggleAddForm(){
+  const f = document.getElementById('addFormCard');
+  f.style.display = f.style.display === 'none' ? '' : 'none';
+  if(f.style.display !== 'none') f.scrollIntoView({behavior:'smooth'});
+}
+</script>
+</body>
+</html>

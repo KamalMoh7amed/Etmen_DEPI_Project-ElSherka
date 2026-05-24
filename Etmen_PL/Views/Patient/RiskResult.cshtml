@@ -1,0 +1,196 @@
+@model Etmen_BLL.DTOs.Risk.RiskResultDto
+@{
+    ViewData["Title"] = "نتيجة التقييم — إطمن";
+    Layout = null;
+    string color  = Model?.RiskColor  ?? "#27AE60";
+    string label  = Model?.RiskLabel  ?? "—";
+    double score  = (double)(Model?.RiskScore ?? 0);
+    bool isEmerg  = Model?.IsEmergency ?? false;
+    double circ   = 3.14159 * 2 * 60;
+    double offset = circ - (score / 100.0 * circ);
+}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>@ViewData["Title"]</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.rtl.min.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+:root{--primary:#1A6FBF;--primary-dark:#0D4C8A;--accent:#00C9A7;--success:#27AE60;--danger:#E74C3C;--dark:#0F1923;--text:#2C3E50;--text-muted:#7F8C8D;--border:#DDE3EC;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Tajawal',sans-serif;background:#F0F4F9;min-height:100vh;display:flex;}
+.sidebar{width:260px;min-height:100vh;background:var(--dark);display:flex;flex-direction:column;position:fixed;right:0;top:0;z-index:100;}
+.sidebar-logo{padding:28px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.sidebar-logo .logo-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;}
+.sidebar-logo .logo-text{color:#fff;font-weight:800;font-size:1.2rem;}.sidebar-logo .logo-text span{color:var(--accent);}
+.nav-section{padding:20px 16px 8px;color:rgba(255,255,255,.35);font-size:.72rem;font-weight:700;letter-spacing:.08em;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px 20px;color:rgba(255,255,255,.65);text-decoration:none;border-radius:10px;margin:2px 10px;transition:.2s;font-size:.95rem;}
+.nav-item:hover,.nav-item.active{background:rgba(26,111,191,.25);color:#fff;}.nav-item.active{border-right:3px solid var(--primary);}
+.nav-item i{width:20px;text-align:center;}
+.sidebar-footer{margin-top:auto;padding:20px;border-top:1px solid rgba(255,255,255,.08);}
+.logout-btn{display:flex;align-items:center;gap:10px;color:rgba(255,255,255,.5);text-decoration:none;font-size:.9rem;padding:10px 12px;border-radius:8px;transition:.2s;background:none;border:none;width:100%;cursor:pointer;}
+.logout-btn:hover{background:rgba(231,76,60,.15);color:#E74C3C;}
+.main{margin-right:260px;flex:1;padding:32px;min-height:100vh;display:flex;flex-direction:column;align-items:center;}
+/* Emergency Banner */
+.emergency-banner{width:100%;max-width:800px;background:linear-gradient(135deg,#E74C3C,#C0392B);border-radius:16px;padding:20px 28px;display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;color:#fff;animation:pulse 2s ease infinite;}
+@@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(231,76,60,.4);}50%{box-shadow:0 0 0 12px rgba(231,76,60,0);}}
+.emergency-banner h3{font-size:1.1rem;font-weight:800;margin-bottom:4px;}
+.emergency-banner p{font-size:.85rem;opacity:.9;}
+.btn-emergency{background:#fff;color:#E74C3C;border:none;padding:10px 22px;border-radius:10px;font-family:'Tajawal',sans-serif;font-weight:700;font-size:.9rem;cursor:pointer;display:flex;align-items:center;gap:8px;white-space:nowrap;}
+/* Result Card */
+.result-card{background:#fff;border-radius:20px;border:1px solid var(--border);padding:40px;width:100%;max-width:800px;margin-bottom:24px;text-align:center;}
+.result-title{font-size:1.1rem;font-weight:700;color:var(--text-muted);margin-bottom:28px;}
+.gauge-wrap{display:inline-flex;flex-direction:column;align-items:center;margin-bottom:28px;}
+.gauge-circle{position:relative;width:180px;height:180px;}
+.gauge-circle svg{transform:rotate(-90deg);}
+.gauge-bg{fill:none;stroke:#E8F0FE;stroke-width:14;}
+.gauge-fill{fill:none;stroke-width:14;stroke-linecap:round;transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1);}
+.gauge-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.gauge-score{font-size:2.2rem;font-weight:900;line-height:1;}
+.gauge-pct{font-size:.85rem;color:var(--text-muted);}
+.level-badge{display:inline-flex;align-items:center;gap:10px;padding:10px 24px;border-radius:30px;font-weight:700;font-size:1.1rem;margin-bottom:24px;}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;text-align:right;}
+.detail-box{background:#F8FAFB;border-radius:12px;padding:18px 20px;border:1px solid var(--border);}
+.detail-box h4{font-size:.85rem;font-weight:700;color:var(--text-muted);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.detail-box ul{list-style:none;display:flex;flex-direction:column;gap:6px;}
+.detail-box ul li{font-size:.88rem;color:var(--text);display:flex;align-items:flex-start;gap:6px;}
+.detail-box ul li::before{content:'•';color:var(--primary);font-weight:700;flex-shrink:0;}
+/* Actions */
+.actions-row{display:flex;gap:14px;justify-content:center;margin-top:28px;}
+.btn{padding:12px 28px;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:8px;text-decoration:none;border:none;transition:.2s;}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(26,111,191,.35);color:#fff;}
+.btn-outline{background:#fff;color:var(--text);border:1.5px solid var(--border);}
+.btn-outline:hover{border-color:var(--primary);color:var(--primary);}
+/* Nearest Center */
+.nearest-card{background:#fff;border-radius:16px;border:1px solid var(--border);padding:20px 24px;width:100%;max-width:800px;margin-bottom:24px;display:flex;align-items:center;gap:16px;}
+.nearest-icon{width:48px;height:48px;border-radius:14px;background:rgba(0,201,167,.1);display:flex;align-items:center;justify-content:center;font-size:1.3rem;color:var(--accent);flex-shrink:0;}
+.nearest-info h4{font-size:.95rem;font-weight:700;color:var(--dark);}
+.nearest-info p{font-size:.85rem;color:var(--text-muted);margin-top:2px;}
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon"><i class="fas fa-heartbeat"></i></div>
+    <div class="logo-text">إط<span>من</span></div>
+  </div>
+  <span class="nav-section">القائمة الرئيسية</span>
+  <a href="/Patient/Dashboard"      class="nav-item"><i class="fas fa-th-large"></i>لوحة التحكم</a>
+  <a href="/Patient/Profile"        class="nav-item"><i class="fas fa-user-circle"></i>الملف الشخصي</a>
+  <a href="/Patient/RiskAssessment" class="nav-item active"><i class="fas fa-shield-virus"></i>تقييم المخاطر</a>
+  <span class="nav-section">الرعاية الصحية</span>
+  <a href="/Patient/Appointments"   class="nav-item"><i class="fas fa-calendar-alt"></i>المواعيد</a>
+  <a href="/Patient/MedicalRecords" class="nav-item"><i class="fas fa-notes-medical"></i>السجلات الطبية</a>
+  <a href="/Patient/LabResults"     class="nav-item"><i class="fas fa-flask"></i>نتائج التحاليل</a>
+  <span class="nav-section">أخرى</span>
+  <a href="/Patient/Alerts"  class="nav-item"><i class="fas fa-bell"></i>التنبيهات</a>
+  <a href="/Patient/Nearby"  class="nav-item"><i class="fas fa-map-marker-alt"></i>مقدمو خدمات</a>
+  <div class="sidebar-footer">
+    <form method="post" action="/Account/Logout">
+      @Html.AntiForgeryToken()
+      <button type="submit" class="logout-btn"><i class="fas fa-sign-out-alt"></i>تسجيل الخروج</button>
+    </form>
+  </div>
+</aside>
+
+<div class="main">
+  @if(isEmerg)
+  {
+    <div class="emergency-banner" style="max-width:800px;">
+      <div>
+        <h3><i class="fas fa-exclamation-triangle"></i> تنبيه طوارئ!</h3>
+        <p>حالتك تستدعي تدخلاً طبياً فورياً. اتصل بالإسعاف أو أرسل طلب طوارئ الآن.</p>
+      </div>
+      <form method="post" action="/Patient/Emergency">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="EmergencyType" value="HighRisk"/>
+        <input type="hidden" name="Description" value="تقييم عالي الخطورة من التطبيق"/>
+        <button type="submit" class="btn-emergency"><i class="fas fa-phone-alt"></i>طلب إسعاف</button>
+      </form>
+    </div>
+  }
+
+  <div class="result-card">
+    <div class="result-title">نتيجة تقييم المخاطر الصحية</div>
+
+    <div class="gauge-wrap">
+      <div class="gauge-circle">
+        <svg width="180" height="180" viewBox="0 0 180 180">
+          <circle class="gauge-bg" cx="90" cy="90" r="60"/>
+          <circle class="gauge-fill" cx="90" cy="90" r="60"
+                  stroke="@color"
+                  stroke-dasharray="@circ.ToString("F1")"
+                  stroke-dashoffset="@offset.ToString("F1")"/>
+        </svg>
+        <div class="gauge-center">
+          <span class="gauge-score" style="color:@color;">@score.ToString("F0")</span>
+          <span class="gauge-pct">% نسبة الخطورة</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="level-badge" style="background:@@color22;color:@color;background-color:@(color + "22");">
+      <i class="fas fa-circle" style="font-size:.7rem;"></i>
+      @label
+    </div>
+
+    @if(Model != null)
+    {
+      <div class="detail-grid">
+        @if(Model.Recommendations.Any())
+        {
+          <div class="detail-box">
+            <h4><i class="fas fa-lightbulb" style="color:var(--warning);"></i>التوصيات</h4>
+            <ul>
+              @foreach(var rec in Model.Recommendations)
+              {<li>@rec</li>}
+            </ul>
+          </div>
+        }
+        @if(Model.TriggeredSymptoms.Any())
+        {
+          <div class="detail-box">
+            <h4><i class="fas fa-exclamation-circle" style="color:var(--danger);"></i>الأعراض المسجّلة</h4>
+            <ul>
+              @foreach(var sym in Model.TriggeredSymptoms)
+              {<li>@sym</li>}
+            </ul>
+          </div>
+        }
+      </div>
+    }
+
+    <div class="actions-row">
+      <a href="/Patient/RiskAssessment" class="btn btn-primary">
+        <i class="fas fa-redo"></i>تقييم جديد
+      </a>
+      <a href="/Patient/Dashboard" class="btn btn-outline">
+        <i class="fas fa-home"></i>الرئيسية
+      </a>
+      <a href="/Patient/Nearby" class="btn btn-outline">
+        <i class="fas fa-map-marker-alt"></i>أقرب طبيب
+      </a>
+    </div>
+  </div>
+
+  @if(!string.IsNullOrEmpty(Model?.NearestEmergencyCenter))
+  {
+    <div class="nearest-card">
+      <div class="nearest-icon"><i class="fas fa-hospital-alt"></i></div>
+      <div class="nearest-info">
+        <h4>أقرب مركز طوارئ</h4>
+        <p>@Model.NearestEmergencyCenter</p>
+      </div>
+      <a href="/Patient/Nearby" class="btn btn-outline" style="margin-right:auto;">
+        <i class="fas fa-directions"></i>الاتجاهات
+      </a>
+    </div>
+  }
+</div>
+</body>
+</html>
