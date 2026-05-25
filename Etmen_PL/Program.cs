@@ -1,3 +1,4 @@
+using Etmen_BLL.Helpers;
 using Etmen_BLL.Mapping;
 using Etmen_BLL.Repositories.IServices;
 using Etmen_BLL.Repositories.Services;
@@ -102,7 +103,15 @@ builder.Services.AddScoped<IAlertService, AlertService>();
 
 // Communications
 builder.Services.AddScoped<INotificationService, NotificationService>();
-builder.Services.AddScoped<IAIChatService, AIChatService>();
+
+builder.Services.Configure<ChatbotApiOptions>(
+        builder.Configuration.GetSection("ChatbotApi"));
+
+builder.Services.AddHttpClient<IChatbotService, ChatbotService>()
+    .ConfigureHttpClient(client =>
+    {
+        client.Timeout = TimeSpan.FromSeconds(30);
+    });
 
 // Family
 builder.Services.AddScoped<IFamilyService, FamilyService>();

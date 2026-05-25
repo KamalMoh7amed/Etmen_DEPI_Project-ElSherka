@@ -32,9 +32,9 @@ namespace Etmen_DAL.Configurations
                 .IsUnique();
 
             builder.HasOne(x => x.DoctorProfile)
-                .WithMany(x => x.AvailableSlots)
-                .HasForeignKey(x => x.DoctorProfileId)
-                .OnDelete(DeleteBehavior.Cascade);
+        .WithMany(x => x.AvailableSlots)
+        .HasForeignKey(x => x.DoctorProfileId)
+        .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

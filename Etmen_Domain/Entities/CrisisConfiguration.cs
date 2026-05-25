@@ -23,7 +23,7 @@ namespace Etmen_Domain.Entities
         public decimal HighRiskThreshold { get; set; } = 0.5m;
         public decimal MediumRiskThreshold { get; set; } = 0.3m;
 
-        public virtual ICollection<SymptomWeight> SymptomWeights { get; set; } = new List<SymptomWeight>();
+        public ICollection<SymptomWeight> SymptomWeights { get; set; } = new List<SymptomWeight>();
         public virtual ICollection<OutbreakZone> OutbreakZones { get; set; } = new List<OutbreakZone>();
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

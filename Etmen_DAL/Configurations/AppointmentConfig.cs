@@ -39,9 +39,9 @@ namespace Etmen_DAL.Configurations
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasOne(x => x.DoctorProfile)
-                .WithMany(x => x.Appointments)
-                .HasForeignKey(x => x.DoctorProfileId)
-                .OnDelete(DeleteBehavior.NoAction);
+        .WithMany(x => x.Appointments)
+        .HasForeignKey(x => x.DoctorProfileId)
+        .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

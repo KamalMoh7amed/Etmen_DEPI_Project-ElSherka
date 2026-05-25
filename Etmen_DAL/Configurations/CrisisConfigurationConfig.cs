@@ -32,10 +32,17 @@ namespace Etmen_DAL.Configurations
             builder.Property(x => x.CreatedAt)
                 .IsRequired();
 
-            builder.HasMany(x => x.SymptomWeights)
-                .WithOne()
-                .OnDelete(DeleteBehavior.Cascade);
+            builder.OwnsMany(x => x.SymptomWeights, sw =>
+            {
+                
+                sw.ToTable("CrisisSymptomWeights"); 
 
+               
+                sw.Property(s => s.SymptomName).HasMaxLength(200).IsRequired();
+                sw.Property(s => s.Weight).HasColumnType("decimal(3,2)");
+            });
+
+           
             builder.HasMany(x => x.OutbreakZones)
                 .WithOne()
                 .OnDelete(DeleteBehavior.Cascade);
