@@ -2,6 +2,7 @@
 {
     public class BookingRequestDto
     {
+        public int PatientProfileId { get; set; }
         public int DoctorId { get; set; }
         public int SlotId { get; set; }
         public DateTime Date { get; set; }
@@ -9,4 +10,4 @@
         public TimeSpan EndTime { get; set; }
         public string? Notes { get; set; }
     }
-}   
+}
