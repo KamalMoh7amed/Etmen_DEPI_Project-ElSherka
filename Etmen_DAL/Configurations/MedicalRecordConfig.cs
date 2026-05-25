@@ -8,7 +8,14 @@ namespace Etmen_DAL.Configurations
     {
         public void Configure(EntityTypeBuilder<MedicalRecord> builder)
         {
-            throw new NotImplementedException("Configure is not implemented yet.");
+            builder.HasOne(m => m.PatientProfile)
+                   .WithMany(p => p.MedicalRecords)
+                   .HasForeignKey(m => m.PatientProfileId)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Property(m => m.Symptoms).HasMaxLength(1000);
+            builder.Property(m => m.Notes).HasMaxLength(1000);
+            builder.HasIndex(m => m.RecordDate);
         }
     }
 }

@@ -8,7 +8,16 @@ namespace Etmen_DAL.Configurations
     {
         public void Configure(EntityTypeBuilder<RiskAssessment> builder)
         {
-            throw new NotImplementedException("Configure is not implemented yet.");
+            builder.HasCheckConstraint("CK_RiskAssessment_Score", "RiskScore >= 0 AND RiskScore <= 1");
+
+            builder.Property(r => r.RecommendationsJson).HasColumnType("nvarchar(max)");
+
+            builder.HasOne(r => r.PatientProfile)
+                   .WithMany(p => p.RiskAssessments)
+                   .HasForeignKey(r => r.PatientProfileId)
+                   .OnDelete(DeleteBehavior.Restrict); 
+
+            builder.HasIndex(r => r.AssessmentDate);
         }
     }
 }

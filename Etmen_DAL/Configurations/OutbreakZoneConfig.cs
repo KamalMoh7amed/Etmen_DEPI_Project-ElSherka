@@ -8,7 +8,16 @@ namespace Etmen_DAL.Configurations
     {
         public void Configure(EntityTypeBuilder<OutbreakZone> builder)
         {
-            throw new NotImplementedException("Configure is not implemented yet.");
+            builder.Property(z => z.PolygonCoordinatesJson).HasColumnType("nvarchar(max)");
+
+            builder.Property(z => z.ZoneName).HasMaxLength(150);
+            builder.Property(z => z.CenterLatitude).HasColumnType("decimal(9,6)");
+            builder.Property(z => z.CenterLongitude).HasColumnType("decimal(9,6)");
+
+            builder.HasOne(z => z.CrisisConfiguration)
+                   .WithMany(c => c.OutbreakZones)
+                   .HasForeignKey(z => z.CrisisConfigurationId)
+                   .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

@@ -8,7 +8,16 @@ namespace Etmen_DAL.Configurations
     {
         public void Configure(EntityTypeBuilder<Notification> builder)
         {
-            throw new NotImplementedException("Configure is not implemented yet.");
+            builder.HasOne(n => n.User)
+                   .WithMany(u => u.Notifications)
+                   .HasForeignKey(n => n.UserId)
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Property(n => n.Title).HasMaxLength(200);
+            builder.Property(n => n.Message).HasMaxLength(1000);
+            builder.Property(n => n.Link).HasMaxLength(500);
+
+            builder.HasIndex(n => new { n.UserId, n.IsRead });
         }
     }
 }
