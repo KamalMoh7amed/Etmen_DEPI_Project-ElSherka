@@ -31,9 +31,6 @@ namespace Etmen_DAL.Helpers
             return (decimal)Math.Round(distance, 2);
         }
 
-        /// <summary>
-        /// التحقق إذا كانت النقطة داخل منطقة تفشي (دائرية)
-        /// </summary>
         public static bool IsPointInZone(decimal latitude, decimal longitude, OutbreakZone zone)
         {
             var distance = CalculateDistance(latitude, longitude, zone.CenterLatitude, zone.CenterLongitude);
