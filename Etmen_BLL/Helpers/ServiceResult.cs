@@ -68,5 +68,8 @@ namespace Etmen_BLL.Helpers
 
         public static ServiceResult Forbidden(string message = "Access denied") =>
             new() { IsSuccess = false, ErrorMessage = message, StatusCode = 403 };
+
+        public static ServiceResult Conflict(string message) =>
+            new() { IsSuccess = false, ErrorMessage = message, StatusCode = 409 };
     }
 }

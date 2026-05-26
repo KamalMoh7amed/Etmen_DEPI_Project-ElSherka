@@ -118,6 +118,9 @@ builder.Services.AddScoped<IFamilyService, FamilyService>();
 
 // Emergency
 builder.Services.AddScoped<IEmergencyService, EmergencyService>();
+builder.Services.AddScoped<IHospitalStaffService, HospitalStaffService>();
+builder.Services.AddScoped<ICriticalCareEscalationService, CriticalCareEscalationService>();
+builder.Services.AddScoped<ICriticalIntelligenceService, CriticalIntelligenceService>();
 
 // Crisis
 builder.Services.AddScoped<ICrisisService, CrisisService>();

@@ -13,10 +13,14 @@ namespace Etmen_BLL.Repositories.Services
     public sealed class PatientService : IPatientService
     {
         private readonly IUnitOfWork _uow;
+        private readonly ICriticalCareEscalationService _criticalCareEscalationService;
 
-        public PatientService(IUnitOfWork uow)
+        public PatientService(
+            IUnitOfWork uow,
+            ICriticalCareEscalationService criticalCareEscalationService)
         {
             _uow = uow;
+            _criticalCareEscalationService = criticalCareEscalationService;
         }
 
         public async Task<ServiceResult<ProfileDto>> GetProfileAsync(string userId)
@@ -341,6 +345,10 @@ namespace Etmen_BLL.Repositories.Services
                 await _uow.RiskAssessments.AddAsync(riskAssessment);
                 await _uow.CompleteAsync();
 
+                var escalationResult = await _criticalCareEscalationService.EscalateIfNeededAsync(patient, riskAssessment, input);
+                if (!escalationResult.IsSuccess)
+                    return ServiceResult<RiskResultDto>.Failure(escalationResult.ErrorMessage ?? "Risk was saved, but automatic escalation failed.");
+
                 var result = new RiskResultDto
                 {
                     RiskScore = riskScore,
@@ -349,7 +357,10 @@ namespace Etmen_BLL.Repositories.Services
                     RiskLabel = riskLabel,
                     IsEmergency = isEmergency,
                     Recommendations = recommendations,
-                    TriggeredSymptoms = triggeredFactors
+                    TriggeredSymptoms = triggeredFactors,
+                    EmergencyRequestId = escalationResult.Data?.EmergencyRequestId,
+                    WasAutoEscalated = escalationResult.Data?.WasEscalated ?? false,
+                    EscalationMessage = escalationResult.Data?.Message
                 };
 
                 return ServiceResult<RiskResultDto>.Success(result, 201);

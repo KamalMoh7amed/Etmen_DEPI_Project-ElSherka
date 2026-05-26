@@ -2,6 +2,7 @@
 {
     public class LabUploadDto
     {
+        public int PatientId { get; set; }
         public string TestName { get; set; } = string.Empty;
         public DateTime TestDate { get; set; }
         public string? FilePath { get; set; }

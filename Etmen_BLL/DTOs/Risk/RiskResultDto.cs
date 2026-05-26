@@ -12,5 +12,8 @@ namespace Etmen_BLL.DTOs.Risk
         public List<string> Recommendations { get; set; } = new List<string>();
         public List<string> TriggeredSymptoms { get; set; } = new List<string>();
         public string? NearestEmergencyCenter { get; set; }
+        public bool WasAutoEscalated { get; set; }
+        public int? EmergencyRequestId { get; set; }
+        public string? EscalationMessage { get; set; }
     }
 }
