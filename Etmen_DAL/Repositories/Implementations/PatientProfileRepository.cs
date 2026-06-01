@@ -1,5 +1,7 @@
-﻿using Etmen_DAL.Repositories.Interfaces;
+﻿using Etmen_DAL.DbContext;
+using Etmen_DAL.Repositories.Interfaces;
 using Etmen_Domain.Entities;
+using Etmen_Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Etmen_DAL.Repositories.Implementations

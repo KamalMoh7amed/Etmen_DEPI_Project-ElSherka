@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Etmen_Domain.Entities;
+using Etmen_Domain.Enums;
 
 namespace Etmen_DAL.Configurations
 {
