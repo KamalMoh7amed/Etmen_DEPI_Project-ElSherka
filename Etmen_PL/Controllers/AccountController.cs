@@ -4,36 +4,58 @@ using Etmen_Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
 
 namespace Etmen_PL.Controllers
 {
-    
     public class AccountController : Controller
     {
         private readonly IAuthService _authService;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<AccountController> _logger;
 
         public AccountController(
             IAuthService authService,
             SignInManager<ApplicationUser> signInManager,
+            UserManager<ApplicationUser> userManager,
             ILogger<AccountController> logger)
         {
-            _authService = authService;
+            _authService  = authService;
             _signInManager = signInManager;
-            _logger = logger;
+            _userManager   = userManager;
+            _logger        = logger;
         }
 
-       
+        // ─────────────────────────────────────────────────────────
+        // STEP 1 — Select Role (entry point for new users)
+        // ─────────────────────────────────────────────────────────
+
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult Register()
+        public IActionResult SelectRole()
         {
             if (User.Identity?.IsAuthenticated == true)
-                return RedirectToHome();
+                return RedirectByRole();
 
-            return View(new RegisterDto());
+            return View();
+        }
+
+        // ─────────────────────────────────────────────────────────
+        // STEP 2 — Register (with role pre-selected)
+        // ─────────────────────────────────────────────────────────
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult Register(string role = "Patient")
+        {
+            if (User.Identity?.IsAuthenticated == true)
+                return RedirectByRole();
+
+            var allowedRoles = new[] { "Patient", "Doctor" };
+            if (!allowedRoles.Contains(role))
+                role = "Patient";
+
+            return View(new RegisterDto { Role = role });
         }
 
         [HttpPost]
@@ -54,23 +76,28 @@ namespace Etmen_PL.Controllers
 
             if (result.IsSuccess)
             {
-                _logger.LogInformation("New user registered: {Email}", dto.Email);
+                _logger.LogInformation("New {Role} registered: {Email}", dto.Role, dto.Email);
                 TempData["Email"] = dto.Email;
+                TempData["RegisteredRole"] = dto.Role;
                 return RedirectToAction(nameof(VerifyEmailNotice));
             }
 
-            // Map BLL errors to ModelState
             foreach (var error in result.Errors)
                 ModelState.AddModelError(string.Empty, error);
 
             return View(dto);
         }
 
+        // ─────────────────────────────────────────────────────────
+        // Email Verification
+        // ─────────────────────────────────────────────────────────
+
         [HttpGet]
         [AllowAnonymous]
         public IActionResult VerifyEmailNotice()
         {
             ViewBag.Email = TempData["Email"]?.ToString() ?? string.Empty;
+            ViewBag.Role  = TempData["RegisteredRole"]?.ToString() ?? "Patient";
             return View();
         }
 
@@ -91,13 +118,16 @@ namespace Etmen_PL.Controllers
             return View();
         }
 
+        // ─────────────────────────────────────────────────────────
+        // Login
+        // ─────────────────────────────────────────────────────────
 
         [HttpGet]
         [AllowAnonymous]
         public IActionResult Login(string? returnUrl = null)
         {
             if (User.Identity?.IsAuthenticated == true)
-                return RedirectToHome();
+                return RedirectByRole();
 
             ViewBag.ReturnUrl = returnUrl;
             return View(new LoginDto());
@@ -120,7 +150,8 @@ namespace Etmen_PL.Controllers
                 if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                     return Redirect(returnUrl);
 
-                return RedirectToHome();
+                // Redirect based on role from AuthResult
+                return RedirectByRole(result.Data?.Role);
             }
 
             if (result.Errors.Any(e => e.Contains("مقفل") || e.Contains("locked")))
@@ -135,7 +166,9 @@ namespace Etmen_PL.Controllers
             return View(dto);
         }
 
-       
+        // ─────────────────────────────────────────────────────────
+        // Logout
+        // ─────────────────────────────────────────────────────────
 
         [HttpPost]
         [Authorize]
@@ -148,7 +181,9 @@ namespace Etmen_PL.Controllers
             return RedirectToAction(nameof(Login));
         }
 
-       
+        // ─────────────────────────────────────────────────────────
+        // Forgot / Reset Password
+        // ─────────────────────────────────────────────────────────
 
         [HttpGet]
         [AllowAnonymous]
@@ -162,7 +197,6 @@ namespace Etmen_PL.Controllers
             if (!ModelState.IsValid)
                 return View(dto);
 
-          
             await _authService.ForgotPasswordAsync(dto);
 
             TempData["Email"] = dto.Email;
@@ -176,7 +210,6 @@ namespace Etmen_PL.Controllers
             ViewBag.Email = TempData["Email"]?.ToString() ?? string.Empty;
             return View();
         }
-
 
         [HttpGet]
         [AllowAnonymous]
@@ -211,7 +244,9 @@ namespace Etmen_PL.Controllers
         [AllowAnonymous]
         public IActionResult ResetPasswordConfirmation() => View();
 
-        
+        // ─────────────────────────────────────────────────────────
+        // Misc
+        // ─────────────────────────────────────────────────────────
 
         [HttpGet]
         [AllowAnonymous]
@@ -221,8 +256,34 @@ namespace Etmen_PL.Controllers
         [AllowAnonymous]
         public IActionResult AccessDenied() => View();
 
-       
-        private IActionResult RedirectToHome() =>
-            RedirectToAction("Index", "Home", new { area = "" });
+        // ─────────────────────────────────────────────────────────
+        // Helpers
+        // ─────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Redirects to the correct dashboard based on role.
+        /// If role is null, reads it from the currently signed-in user's claims.
+        /// </summary>
+        private IActionResult RedirectByRole(string? role = null)
+        {
+            if (string.IsNullOrWhiteSpace(role))
+            {
+                // Determine from current claims
+                if (User.IsInRole("Doctor"))         role = "Doctor";
+                else if (User.IsInRole("Admin"))     role = "Admin";
+                else if (User.IsInRole("CrisisAdmin")) role = "CrisisAdmin";
+                else if (User.IsInRole("HospitalStaff")) role = "HospitalStaff";
+                else                                 role = "Patient";
+            }
+
+            return role switch
+            {
+                "Doctor"        => RedirectToAction("Index", "DoctorDashboard"),
+                "Admin"         => RedirectToAction("Index", "AdminDashboard"),
+                "CrisisAdmin"   => RedirectToAction("Index", "AdminDashboard"),
+                "HospitalStaff" => RedirectToAction("Index", "HospitalQueue"),
+                _               => RedirectToAction("Index", "PatientDashboard"),
+            };
+        }
     }
 }

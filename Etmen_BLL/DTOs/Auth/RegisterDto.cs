@@ -33,5 +33,11 @@ namespace Etmen_BLL.DTOs.Auth
         [Phone(ErrorMessage = "رقم الهاتف غير صحيح")]
         [Display(Name = "رقم الهاتف")]
         public string? PhoneNumber { get; set; }
+
+        /// <summary>
+        /// دور المستخدم: "Patient" أو "Doctor"
+        /// </summary>
+        [Required(ErrorMessage = "يجب اختيار نوع الحساب")]
+        public string Role { get; set; } = "Patient";
     }
 }

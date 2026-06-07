@@ -59,9 +59,9 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 // ── Cookie authentication ──────────────────────────────────────
 builder.Services.ConfigureApplicationCookie(options =>
 {
-    options.LoginPath = "/Auth/Account/Login";
-    options.LogoutPath = "/Auth/Account/Logout";
-    options.AccessDeniedPath = "/Auth/Account/AccessDenied";
+    options.LoginPath = "/Account/Login";
+    options.LogoutPath = "/Account/Logout";
+    options.AccessDeniedPath = "/Account/AccessDenied";
 
     options.Cookie.Name = "EtmenAuthCookie";
     options.Cookie.HttpOnly = true;

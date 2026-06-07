@@ -462,7 +462,7 @@
 
         <div class="form-header">
             <div class="form-eyebrow">انضم إلى إطمن</div>
-            <h2 class="form-title">إنشاء حساب جديد</h2>
+            <h2 class="form-title">@(Model.Role == "Doctor" ? "تسجيل حساب طبيب" : "إنشاء حساب جديد")</h2>
             <p class="form-subtitle">جميع الحقول المعلمة بـ <span style="color:var(--danger);">*</span> إلزامية</p>
         </div>
 
@@ -480,13 +480,42 @@
         }
 
         <form method="post"
-              asp-area="Auth"
               asp-controller="Account"
               asp-action="Register"
               id="registerForm"
               novalidate>
 
             @Html.AntiForgeryToken()
+
+            <!-- Hidden Role field -->
+            <input type="hidden" asp-for="Role" id="roleField" />
+
+            <!-- Role badge -->
+            @{
+                var isDoctor = Model.Role == "Doctor";
+                var roleBadgeColor = isDoctor ? "#1A6FBF" : "#00C9A7";
+                var roleIcon  = isDoctor ? "fa-user-md" : "fa-user-injured";
+                var roleLabel = isDoctor ? "تسجيل كطبيب" : "تسجيل كمريض";
+            }
+            <div style="display:flex; align-items:center; gap:10px; background:rgba(26,111,191,0.07);
+                        border:1px solid rgba(26,111,191,0.15); border-radius:12px;
+                        padding:12px 16px; margin-bottom:1.5rem;">
+                <span style="width:36px;height:36px;border-radius:9px;
+                             background:@(isDoctor ? "rgba(26,111,191,0.15)" : "rgba(0,201,167,0.12)");
+                             color:@roleBadgeColor;
+                             display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">
+                    <i class="fas @roleIcon"></i>
+                </span>
+                <div>
+                    <div style="font-size:0.78rem;font-weight:700;color:@roleBadgeColor;letter-spacing:0.5px;">
+                        @roleLabel
+                    </div>
+                    <a href="/Account/SelectRole"
+                       style="font-size:0.76rem;color:var(--text-muted);text-decoration:none;">
+                        <i class="fas fa-exchange-alt" style="font-size:0.65rem;"></i> تغيير نوع الحساب
+                    </a>
+                </div>
+            </div>
 
             <!-- ── Personal Info ── -->
             <div class="field-section-title">المعلومات الشخصية</div>

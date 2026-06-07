@@ -616,9 +616,9 @@
     <!-- ═══ FORM PANEL ════════════════════════════════════════ -->
     <div class="form-panel">
 
-        <a href="/" class="form-back-link">
+        <a href="@Url.Action("SelectUserType", "Account")" class="form-back-link" title="اختر نوع حسابك مجدداً">
             <i class="fas fa-arrow-right"></i>
-            العودة للرئيسية
+            تغيير نوع الحساب
         </a>
 
         <div class="form-header">
@@ -718,7 +718,7 @@
                     <span class="check-box"></span>
                     تذكرني
                 </label>
-                <a href="/Account/ForgotPassword" class="forgot-link">نسيت كلمة المرور؟</a>
+                <a href="@Url.Action("ForgotPassword", "Account")" class="forgot-link">نسيت كلمة المرور؟</a>
             </div>
 
             <!-- Submit -->

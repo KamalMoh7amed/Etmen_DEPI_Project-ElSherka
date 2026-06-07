@@ -1,0 +1,320 @@
+@{
+    ViewData["Title"] = "اختر نوع حسابك — إطمن";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.rtl.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+    <style>
+        :root {
+            --primary:       #1A6FBF;
+            --primary-dark:  #0D4C8A;
+            --accent:        #00C9A7;
+            --success:       #27AE60;
+            --dark:          #0F1923;
+            --text:          #2C3E50;
+            --text-muted:    #7F8C8D;
+            --border:        #DDE3EC;
+            --white:         #FFFFFF;
+            --glass:         rgba(255,255,255,0.06);
+            --glass-border:  rgba(255,255,255,0.14);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            min-height: 100vh;
+            background: var(--dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Background grid */
+        body::before {
+            content: '';
+            position: absolute; inset: 0;
+            background-image:
+                linear-gradient(rgba(26,111,191,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(26,111,191,0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridDrift 30s linear infinite;
+        }
+        @@keyframes gridDrift { to { background-position: 50px 50px; } }
+
+        /* Orbs */
+        .orb {
+            position: fixed; border-radius: 50%; filter: blur(100px);
+            pointer-events: none; z-index: 0;
+        }
+        .orb-1 { width: 500px; height: 500px; background: var(--primary); opacity: 0.1; top: -150px; left: -100px; }
+        .orb-2 { width: 350px; height: 350px; background: var(--accent);  opacity: 0.08; bottom: -80px; right: -80px; }
+
+        /* Container */
+        .page-wrapper {
+            position: relative; z-index: 1;
+            display: flex; flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+            width: 100%;
+            max-width: 820px;
+        }
+
+        /* Logo */
+        .brand-logo {
+            display: flex; align-items: center; gap: 10px;
+            text-decoration: none; margin-bottom: 2.5rem;
+        }
+        .brand-logo-icon {
+            width: 44px; height: 44px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; color: white;
+            box-shadow: 0 0 28px rgba(26,111,191,0.4);
+        }
+        .brand-logo-text { font-size: 1.6rem; font-weight: 900; color: white; }
+        .brand-logo-text span { color: var(--accent); }
+
+        /* Heading */
+        .page-title {
+            font-size: clamp(1.6rem, 4vw, 2.4rem);
+            font-weight: 900; color: white;
+            text-align: center; margin-bottom: 0.6rem;
+            letter-spacing: -0.4px;
+        }
+        .page-subtitle {
+            font-size: 1rem; color: rgba(255,255,255,0.45);
+            text-align: center; margin-bottom: 3rem;
+        }
+
+        /* Role cards grid */
+        .roles-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            width: 100%;
+        }
+
+        .role-card {
+            background: rgba(255,255,255,0.04);
+            border: 1.5px solid var(--glass-border);
+            border-radius: 22px;
+            padding: 2.4rem 2rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex; flex-direction: column; align-items: center;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative; overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .role-card::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: radial-gradient(circle at 50% 0%, var(--card-color) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+        .role-card:hover::before { opacity: 0.08; }
+
+        .role-card:hover {
+            border-color: var(--card-color);
+            transform: translateY(-6px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4), 0 0 30px rgba(0,0,0,0.2);
+        }
+
+        /* Patient card */
+        .role-card.patient { --card-color: var(--accent); }
+        .role-card.patient:hover { box-shadow: 0 20px 50px rgba(0,0,0,0.4), 0 0 40px rgba(0,201,167,0.15); }
+
+        /* Doctor card */
+        .role-card.doctor { --card-color: var(--primary); }
+        .role-card.doctor:hover { box-shadow: 0 20px 50px rgba(0,0,0,0.4), 0 0 40px rgba(26,111,191,0.2); }
+
+        .role-icon-wrap {
+            width: 80px; height: 80px;
+            border-radius: 22px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 1.4rem;
+            position: relative;
+        }
+        .role-card.patient .role-icon-wrap {
+            background: rgba(0,201,167,0.12);
+            color: var(--accent);
+            box-shadow: 0 0 30px rgba(0,201,167,0.2);
+        }
+        .role-card.doctor .role-icon-wrap {
+            background: rgba(26,111,191,0.15);
+            color: #60AEFF;
+            box-shadow: 0 0 30px rgba(26,111,191,0.2);
+        }
+
+        .role-name {
+            font-size: 1.4rem; font-weight: 900;
+            color: white; margin-bottom: 0.6rem;
+        }
+
+        .role-desc {
+            font-size: 0.88rem;
+            color: rgba(255,255,255,0.42);
+            line-height: 1.7;
+            margin-bottom: 1.6rem;
+        }
+
+        .role-features {
+            list-style: none; padding: 0;
+            text-align: right; width: 100%;
+            margin-bottom: 2rem;
+        }
+        .role-features li {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.55);
+            margin-bottom: 8px;
+        }
+        .role-features li i {
+            font-size: 0.7rem; flex-shrink: 0;
+        }
+        .role-card.patient .role-features li i { color: var(--accent); }
+        .role-card.doctor  .role-features li i { color: #60AEFF; }
+
+        .role-btn {
+            width: 100%; height: 46px;
+            border: none; border-radius: 12px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 0.95rem; font-weight: 800;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            transition: all 0.25s;
+        }
+        .role-card.patient .role-btn {
+            background: linear-gradient(135deg, var(--accent), #00a589);
+            color: white;
+            box-shadow: 0 6px 20px rgba(0,201,167,0.3);
+        }
+        .role-card.doctor .role-btn {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 6px 20px rgba(26,111,191,0.35);
+        }
+        .role-card:hover .role-btn { transform: translateY(-1px); }
+
+        /* Hover ring */
+        .role-card::after {
+            content: '';
+            position: absolute; inset: -1px;
+            border-radius: 23px;
+            border: 2px solid var(--card-color);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .role-card:hover::after { opacity: 0.5; }
+
+        /* Login link */
+        .login-link-row {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.35);
+        }
+        .login-link-row a {
+            color: var(--accent);
+            font-weight: 700;
+            text-decoration: none;
+        }
+        .login-link-row a:hover { text-decoration: underline; }
+
+        /* Responsive */
+        @@media (max-width: 640px) {
+            .roles-grid { grid-template-columns: 1fr; }
+            .role-card { padding: 2rem 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <div class="page-wrapper">
+        <!-- Logo -->
+        <a href="/" class="brand-logo">
+            <div class="brand-logo-icon"><i class="fas fa-heartbeat"></i></div>
+            <span class="brand-logo-text">إطمن<span>من</span></span>
+        </a>
+
+        <!-- Heading -->
+        <h1 class="page-title">من أنت في منصة إطمن؟</h1>
+        <p class="page-subtitle">اختر نوع حسابك للبدء — يمكنك التسجيل خلال دقيقة واحدة فقط</p>
+
+        <!-- Role Cards -->
+        <div class="roles-grid">
+
+            <!-- Patient Card -->
+            <a href="/Account/Register?role=Patient" class="role-card patient">
+                <div class="role-icon-wrap">
+                    <i class="fas fa-user-injured"></i>
+                </div>
+                <div class="role-name">مريض</div>
+                <p class="role-desc">
+                    سجّل كمريض للوصول إلى خدمات الرعاية الصحية الشاملة وإدارة صحتك بسهولة.
+                </p>
+                <ul class="role-features">
+                    <li><i class="fas fa-check-circle"></i> حجز مواعيد مع الأطباء</li>
+                    <li><i class="fas fa-check-circle"></i> عرض نتائج التحاليل والتقارير</li>
+                    <li><i class="fas fa-check-circle"></i> تقييم المخاطر الصحية بالذكاء الاصطناعي</li>
+                    <li><i class="fas fa-check-circle"></i> التواصل مع الأطباء عبر الدردشة</li>
+                </ul>
+                <button class="role-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    أنا مريض — ابدأ الآن
+                </button>
+            </a>
+
+            <!-- Doctor Card -->
+            <a href="/Account/Register?role=Doctor" class="role-card doctor">
+                <div class="role-icon-wrap">
+                    <i class="fas fa-user-md"></i>
+                </div>
+                <div class="role-name">طبيب</div>
+                <p class="role-desc">
+                    سجّل كطبيب لإدارة مرضاك وجداول مواعيدك وتقديم رعاية صحية متميزة.
+                </p>
+                <ul class="role-features">
+                    <li><i class="fas fa-check-circle"></i> إدارة مواعيد المرضى بكفاءة</li>
+                    <li><i class="fas fa-check-circle"></i> كتابة التقارير الطبية الإلكترونية</li>
+                    <li><i class="fas fa-check-circle"></i> متابعة الحالات الحرجة فورياً</li>
+                    <li><i class="fas fa-check-circle"></i> لوحة تحكم إحصائية متكاملة</li>
+                </ul>
+                <button class="role-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    أنا طبيب — ابدأ الآن
+                </button>
+            </a>
+
+        </div>
+
+        <!-- Login link -->
+        <div class="login-link-row">
+            لديك حساب بالفعل؟
+            <a href="/Account/Login">
+                <i class="fas fa-right-to-bracket"></i> تسجيل الدخول
+            </a>
+        </div>
+    </div>
+</body>
+</html>

@@ -8,7 +8,6 @@ using Microsoft.Extensions.Logging;
 
 namespace Etmen_BLL.Repositories.Services
 {
-    
     public sealed class AuthService : IAuthService
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -22,10 +21,10 @@ namespace Etmen_BLL.Repositories.Services
             IUnitOfWork uow,
             ILogger<AuthService> logger)
         {
-            _userManager    = userManager;
-            _signInManager  = signInManager;
-            _uow            = uow;
-            _logger         = logger;
+            _userManager   = userManager;
+            _signInManager = signInManager;
+            _uow           = uow;
+            _logger        = logger;
         }
 
 
@@ -34,6 +33,10 @@ namespace Etmen_BLL.Repositories.Services
             // Guard: duplicate e-mail
             if (await IsEmailTakenAsync(dto.Email))
                 return ServiceResult<AuthResult>.Conflict("البريد الإلكتروني مستخدم بالفعل.");
+
+            // Validate role — only Patient or Doctor allowed through self-registration
+            var allowedRoles = new[] { "Patient", "Doctor" };
+            var role = allowedRoles.Contains(dto.Role) ? dto.Role : "Patient";
 
             var user = new ApplicationUser
             {
@@ -49,20 +52,37 @@ namespace Etmen_BLL.Repositories.Services
             if (!createResult.Succeeded)
                 return ServiceResult<AuthResult>.Failure(createResult.Errors.Select(e => e.Description));
 
-            var profile = new PatientProfile
-            {
-                ApplicationUserId = user.Id,
-                FullName          = $"{dto.FirstName} {dto.LastName}".Trim(),
-                CreatedAt         = DateTime.UtcNow,
-            };
+            // Assign role
+            await _userManager.AddToRoleAsync(user, role);
 
-            await _uow.PatientProfiles.AddAsync(profile);
+            // Create the matching profile
+            if (role == "Doctor")
+            {
+                var doctorProfile = new DoctorProfile
+                {
+                    ApplicationUserId = user.Id,
+                    FullName          = $"{dto.FirstName} {dto.LastName}".Trim(),
+                    CreatedAt         = DateTime.UtcNow,
+                };
+                await _uow.DoctorProfiles.AddAsync(doctorProfile);
+            }
+            else // Patient
+            {
+                var patientProfile = new PatientProfile
+                {
+                    ApplicationUserId = user.Id,
+                    FullName          = $"{dto.FirstName} {dto.LastName}".Trim(),
+                    CreatedAt         = DateTime.UtcNow,
+                };
+                await _uow.PatientProfiles.AddAsync(patientProfile);
+            }
+
             await _uow.CompleteAsync();
 
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
-            _logger.LogInformation("New user registered: {Email}, verification token generated.", user.Email);
-
+            _logger.LogInformation(
+                "New {Role} registered: {Email}, verification token generated.", role, user.Email);
 
             return ServiceResult<AuthResult>.Created(new AuthResult
             {
@@ -93,18 +113,22 @@ namespace Etmen_BLL.Repositories.Services
             user.LastLoginAt = DateTime.UtcNow;
             await _userManager.UpdateAsync(user);
 
-            _logger.LogInformation("User {Email} signed in successfully.", user.Email);
+            // Fetch the user's primary role for redirect purposes
+            var roles = await _userManager.GetRolesAsync(user);
+            var primaryRole = roles.FirstOrDefault() ?? "Patient";
 
-         
+            _logger.LogInformation("User {Email} signed in successfully as {Role}.", user.Email, primaryRole);
+
             return ServiceResult<AuthResult>.Success(new AuthResult
             {
                 Success = true,
                 Message = "تم تسجيل الدخول بنجاح.",
                 UserId  = user.Id,
+                Role    = primaryRole,
             });
         }
 
-     
+
         public async Task<ServiceResult> VerifyEmailAsync(string userId, string token)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -136,8 +160,6 @@ namespace Etmen_BLL.Repositories.Services
             await _userManager.UpdateAsync(user);
 
             _logger.LogInformation("Password reset token generated for {Email}.", dto.Email);
-
-
             return ServiceResult.Success();
         }
 
