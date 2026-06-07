@@ -1,4 +1,5 @@
 using Etmen_BLL.Repositories.IServices;
+using Etmen_BLL.DTOs.Admin;
 using Etmen_PL.Models.ViewModels.Admin;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -35,9 +36,16 @@ namespace Etmen_PL.Controllers
         {
             try
             {
-                // TODO: Implementation
-                var users = new List<AdminUserViewModel>();
-                return View(users);
+                pageNumber = Math.Max(pageNumber, 1);
+
+                var result = await _adminService.GetAllUsersAsync(pageNumber);
+                if (!result.IsSuccess || result.Data is null)
+                {
+                    TempData["Error"] = result.ErrorMessage ?? "Error loading users";
+                    return RedirectToAction("Index", "AdminDashboard");
+                }
+
+                return View(result.Data);
             }
             catch (Exception ex)
             {
@@ -56,15 +64,32 @@ namespace Etmen_PL.Controllers
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateStatus(UpdateUserStatusViewModel viewModel)
+        public async Task<IActionResult> UpdateStatus(string userId, bool isActive, string? reason)
         {
-            if (!ModelState.IsValid)
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                TempData["Error"] = "Invalid user id";
                 return RedirectToAction(nameof(Index));
+            }
 
             try
             {
-                // TODO: Implementation
-                _logger.LogInformation("User status updated");
+                var dto = new UpdateUserStatusDto
+                {
+                    UserId = userId,
+                    IsActive = isActive,
+                    Reason = reason
+                };
+
+                var numericUserId = int.TryParse(userId, out var parsedUserId) ? parsedUserId : 0;
+                var result = await _adminService.UpdateUserStatusAsync(numericUserId, dto);
+                if (!result.IsSuccess)
+                {
+                    TempData["Error"] = result.ErrorMessage ?? "Error updating user status";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                _logger.LogInformation("User {UserId} status updated", userId);
                 TempData["Success"] = "تم تحديث حالة المستخدم بنجاح";
                 return RedirectToAction(nameof(Index));
             }
@@ -85,7 +110,7 @@ namespace Etmen_PL.Controllers
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> BulkAction(int[] userIds, string action)
+        public async Task<IActionResult> BulkAction(string[] userIds, string action)
         {
             if (userIds == null || userIds.Length == 0)
             {
@@ -95,8 +120,26 @@ namespace Etmen_PL.Controllers
 
             try
             {
-                // TODO: Implementation (Activate, Deactivate, Delete, etc.)
-                _logger.LogInformation("Bulk user action performed");
+                var dto = new BulkUserActionDto
+                {
+                    UserIds = userIds.Where(id => !string.IsNullOrWhiteSpace(id)).ToList(),
+                    Action = action
+                };
+
+                if (dto.UserIds.Count == 0)
+                {
+                    TempData["Error"] = "Invalid user ids";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var result = await _adminService.BulkUserActionAsync(dto);
+                if (!result.IsSuccess)
+                {
+                    TempData["Error"] = result.ErrorMessage ?? "Error performing bulk action";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                _logger.LogInformation("Bulk user action {Action} performed for {Count} users", action, userIds.Length);
                 TempData["Success"] = "تم تنفيذ الإجراء بنجاح";
                 return RedirectToAction(nameof(Index));
             }
@@ -117,12 +160,31 @@ namespace Etmen_PL.Controllers
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(int userId)
+        public async Task<IActionResult> Delete(string userId)
         {
             try
             {
-                // TODO: Implementation
-                _logger.LogInformation("User deleted");
+                if (string.IsNullOrWhiteSpace(userId))
+                {
+                    TempData["Error"] = "Invalid user id";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var result = int.TryParse(userId, out var numericUserId)
+                    ? await _adminService.DeleteUserAsync(numericUserId)
+                    : await _adminService.BulkUserActionAsync(new BulkUserActionDto
+                    {
+                        UserIds = new List<string> { userId },
+                        Action = "delete"
+                    });
+
+                if (!result.IsSuccess)
+                {
+                    TempData["Error"] = result.ErrorMessage ?? "Error deleting user";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                _logger.LogInformation("User {UserId} deleted", userId);
                 TempData["Success"] = "تم حذف المستخدم بنجاح";
                 return RedirectToAction(nameof(Index));
             }

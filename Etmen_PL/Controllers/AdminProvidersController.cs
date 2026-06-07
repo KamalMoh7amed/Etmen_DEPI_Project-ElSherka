@@ -1,4 +1,5 @@
 using Etmen_BLL.Repositories.IServices;
+using Etmen_BLL.DTOs.Admin;
 using Etmen_PL.Models.ViewModels.Admin;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -35,9 +36,16 @@ namespace Etmen_PL.Controllers
         {
             try
             {
-                // TODO: Implementation
-                var providers = new List<object>();
-                return View(providers);
+                pageNumber = Math.Max(pageNumber, 1);
+
+                var result = await _adminService.GetAllProvidersAsync(pageNumber);
+                if (!result.IsSuccess || result.Data is null)
+                {
+                    TempData["Error"] = result.ErrorMessage ?? "Error loading providers";
+                    return RedirectToAction("Index", "AdminDashboard");
+                }
+
+                return View(result.Data);
             }
             catch (Exception ex)
             {
@@ -75,8 +83,26 @@ namespace Etmen_PL.Controllers
 
             try
             {
-                // TODO: Implementation
-                _logger.LogInformation("Provider created");
+                var dto = new CreateProviderDto
+                {
+                    Name = viewModel.Name,
+                    Type = viewModel.ProviderType ?? string.Empty,
+                    Address = viewModel.Address,
+                    Phone = viewModel.PhoneNumber,
+                    AvailableBeds = viewModel.AvailableBeds,
+                    Latitude = viewModel.Latitude,
+                    Longitude = viewModel.Longitude,
+                    IsEmergencyCenter = viewModel.AvailableBeds.GetValueOrDefault() > 0
+                };
+
+                var result = await _adminService.CreateProviderAsync(dto);
+                if (!result.IsSuccess)
+                {
+                    ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Error creating provider");
+                    return View(viewModel);
+                }
+
+                _logger.LogInformation("Provider {ProviderName} created", viewModel.Name);
                 TempData["Success"] = "تم إنشاء المركز الصحي بنجاح";
                 return RedirectToAction(nameof(Index));
             }
@@ -100,8 +126,29 @@ namespace Etmen_PL.Controllers
         {
             try
             {
-                // TODO: Implementation
-                return View();
+                if (id <= 0)
+                    return BadRequest();
+
+                var result = await _adminService.GetProviderByIdAsync(id);
+                if (!result.IsSuccess || result.Data is null)
+                {
+                    TempData["Error"] = result.ErrorMessage ?? "Provider not found";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var viewModel = new CreateProviderViewModel
+                {
+                    Name = result.Data.Name,
+                    ProviderType = result.Data.Type,
+                    Address = result.Data.Address,
+                    PhoneNumber = result.Data.Phone,
+                    AvailableBeds = result.Data.AvailableBeds,
+                    Latitude = result.Data.Latitude,
+                    Longitude = result.Data.Longitude,
+                    IsActive = result.Data.IsActive
+                };
+
+                return View(viewModel);
             }
             catch (Exception ex)
             {
@@ -127,8 +174,31 @@ namespace Etmen_PL.Controllers
 
             try
             {
-                // TODO: Implementation
-                _logger.LogInformation("Provider updated");
+                if (id <= 0)
+                    return BadRequest();
+
+                var dto = new UpdateProviderDto
+                {
+                    Id = id,
+                    Name = viewModel.Name,
+                    Type = viewModel.ProviderType ?? string.Empty,
+                    Address = viewModel.Address,
+                    Phone = viewModel.PhoneNumber,
+                    AvailableBeds = viewModel.AvailableBeds,
+                    Latitude = viewModel.Latitude,
+                    Longitude = viewModel.Longitude,
+                    IsEmergencyCenter = viewModel.AvailableBeds.GetValueOrDefault() > 0,
+                    IsActive = viewModel.IsActive
+                };
+
+                var result = await _adminService.UpdateProviderAsync(id, dto);
+                if (!result.IsSuccess)
+                {
+                    ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Error updating provider");
+                    return View(viewModel);
+                }
+
+                _logger.LogInformation("Provider {ProviderId} updated", id);
                 TempData["Success"] = "تم تحديث المركز الصحي بنجاح";
                 return RedirectToAction(nameof(Index));
             }
@@ -153,8 +223,17 @@ namespace Etmen_PL.Controllers
         {
             try
             {
-                // TODO: Implementation
-                _logger.LogInformation("Provider deleted");
+                if (id <= 0)
+                    return BadRequest();
+
+                var result = await _adminService.DeleteProviderAsync(id);
+                if (!result.IsSuccess)
+                {
+                    TempData["Error"] = result.ErrorMessage ?? "Error deleting provider";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                _logger.LogInformation("Provider {ProviderId} deleted", id);
                 TempData["Success"] = "تم حذف المركز الصحي بنجاح";
                 return RedirectToAction(nameof(Index));
             }

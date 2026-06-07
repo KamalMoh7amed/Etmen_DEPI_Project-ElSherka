@@ -34,8 +34,24 @@ namespace Etmen_PL.Controllers
         {
             try
             {
-                // TODO: Implementation
-                var viewModel = new AdminDashboardViewModel();
+                var result = await _adminService.GetDashboardAsync();
+                if (!result.IsSuccess || result.Data is null)
+                {
+                    TempData["Error"] = result.ErrorMessage ?? "Error loading admin dashboard";
+                    return RedirectToAction("Index", "Home");
+                }
+
+                var viewModel = new AdminDashboardViewModel
+                {
+                    TotalUsers = result.Data.TotalUsers,
+                    ActiveDoctors = result.Data.ActiveDoctors,
+                    ActivePatients = result.Data.ActivePatients,
+                    TotalAppointments = result.Data.TotalAppointments,
+                    PendingEmergencyRequests = result.Data.PendingEmergencyRequests,
+                    IsCrisisModeActive = result.Data.IsCrisisModeActive,
+                    ActiveCrisisName = result.Data.ActiveCrisisName
+                };
+
                 return View(viewModel);
             }
             catch (Exception ex)
