@@ -52,7 +52,7 @@ namespace Etmen_PL.Controllers
                     var profileResult = await _patientService.GetProfileAsync(userId);
                     if (!profileResult.IsSuccess || profileResult.Data == null)
                     {
-                        TempData["Error"] = profileResult.ErrorMessage ?? "Patient profile was not found.";
+                        TempData["Error"] = profileResult.ErrorMessage ?? "لم يتم العثور على الملف الشخصي للمريض.";
                         return RedirectToAction("Index", "PatientDashboard");
                     }
 
@@ -75,18 +75,18 @@ namespace Etmen_PL.Controllers
                         "Failed to request ambulance for patient profile {PatientProfileId}: {Message}",
                         patientProfileId,
                         result.ErrorMessage);
-                    TempData["Error"] = result.ErrorMessage ?? "Unable to request an ambulance.";
+                    TempData["Error"] = result.ErrorMessage ?? "تعذر إرسال طلب الإسعاف.";
                     return RedirectToAction("Index", "PatientDashboard");
                 }
 
                 _logger.LogInformation("Emergency ambulance requested for patient profile {PatientProfileId}", patientProfileId);
-                TempData["Success"] = "Ambulance request submitted successfully.";
+                TempData["Success"] = "تم إرسال طلب الإسعاف بنجاح.";
                 return RedirectToAction(nameof(Track));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error requesting ambulance");
-                TempData["Error"] = "Error requesting ambulance.";
+                TempData["Error"] = "حدث خطأ أثناء طلب الإسعاف.";
                 return RedirectToAction("Index", "PatientDashboard");
             }
         }
@@ -107,7 +107,7 @@ namespace Etmen_PL.Controllers
                     var requestResult = await _emergencyService.GetEmergencyRequestAsync(id.Value);
                     if (!requestResult.IsSuccess || requestResult.Data == null)
                     {
-                        TempData["Error"] = requestResult.ErrorMessage ?? "Emergency request was not found.";
+                        TempData["Error"] = requestResult.ErrorMessage ?? "لم يتم العثور على طلب الإسعاف.";
                         return RedirectToAction("Index", "PatientDashboard");
                     }
 
@@ -123,7 +123,7 @@ namespace Etmen_PL.Controllers
                     var pendingResult = await _emergencyService.GetPendingEmergenciesAsync();
                     if (!pendingResult.IsSuccess || pendingResult.Data == null || pendingResult.Data.Count == 0)
                     {
-                        TempData["Error"] = pendingResult.ErrorMessage ?? "No active emergency request was found.";
+                        TempData["Error"] = pendingResult.ErrorMessage ?? "لا يوجد طلب إسعاف نشط حاليًا.";
                         return RedirectToAction("Index", "PatientDashboard");
                     }
 
@@ -148,7 +148,7 @@ namespace Etmen_PL.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error tracking emergency");
-                TempData["Error"] = "Error tracking ambulance.";
+                TempData["Error"] = "حدث خطأ أثناء تتبع الإسعاف.";
                 return RedirectToAction("Index", "PatientDashboard");
             }
         }

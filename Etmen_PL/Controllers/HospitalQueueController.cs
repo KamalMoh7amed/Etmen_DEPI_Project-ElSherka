@@ -37,7 +37,7 @@ namespace Etmen_PL.Controllers
                 if (!result.IsSuccess || result.Data == null)
                 {
                     _logger.LogWarning("Failed to retrieve hospital queue for provider {ProviderId}: {Message}", providerId, result.ErrorMessage);
-                    TempData["Error"] = result.ErrorMessage ?? "Unable to load hospital queue.";
+                    TempData["Error"] = result.ErrorMessage ?? "تعذر تحميل قائمة انتظار المستشفى.";
                     return View(new HospitalQueueViewModel { ProviderId = providerId });
                 }
 
@@ -46,7 +46,7 @@ namespace Etmen_PL.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving hospital queue");
-                TempData["Error"] = "Error loading hospital queue.";
+                TempData["Error"] = "حدث خطأ أثناء تحميل قائمة انتظار المستشفى.";
                 return RedirectToAction("Index", "Home");
             }
         }
@@ -62,7 +62,7 @@ namespace Etmen_PL.Controllers
             {
                 if (id <= 0)
                 {
-                    TempData["Error"] = "Valid emergency request id is required.";
+                    TempData["Error"] = "رقم طلب الطوارئ غير صحيح.";
                     return RedirectToAction(nameof(Index));
                 }
 
@@ -70,7 +70,7 @@ namespace Etmen_PL.Controllers
                 if (!result.IsSuccess || result.Data == null)
                 {
                     _logger.LogWarning("Failed to retrieve emergency request {RequestId}: {Message}", id, result.ErrorMessage);
-                    TempData["Error"] = result.ErrorMessage ?? "Unable to load request details.";
+                    TempData["Error"] = result.ErrorMessage ?? "تعذر تحميل تفاصيل طلب الطوارئ.";
                     return RedirectToAction(nameof(Index), new { providerId });
                 }
 
@@ -79,7 +79,7 @@ namespace Etmen_PL.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving request details");
-                TempData["Error"] = "Error loading request details.";
+                TempData["Error"] = "حدث خطأ أثناء تحميل تفاصيل الطلب.";
                 return RedirectToAction(nameof(Index));
             }
         }
@@ -109,18 +109,18 @@ namespace Etmen_PL.Controllers
                 if (!result.IsSuccess)
                 {
                     _logger.LogWarning("Failed to respond to emergency request {RequestId}: {Message}", viewModel.RequestId, result.ErrorMessage);
-                    TempData["Error"] = result.ErrorMessage ?? "Unable to save response.";
+                    TempData["Error"] = result.ErrorMessage ?? "تعذر حفظ الرد.";
                     return RedirectToAction(nameof(Details), new { id = viewModel.RequestId, providerId = viewModel.ProviderId });
                 }
 
                 _logger.LogInformation("Response provided to emergency request {RequestId}", viewModel.RequestId);
-                TempData["Success"] = "Response saved successfully.";
+                TempData["Success"] = "تم تسجيل الرد بنجاح.";
                 return RedirectToAction(nameof(Index), new { providerId = viewModel.ProviderId });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error responding to request");
-                TempData["Error"] = "Error saving response.";
+                TempData["Error"] = "حدث خطأ أثناء حفظ الرد.";
                 return RedirectToAction(nameof(Index), new { providerId = viewModel.ProviderId });
             }
         }
@@ -148,18 +148,18 @@ namespace Etmen_PL.Controllers
                 if (!result.IsSuccess)
                 {
                     _logger.LogWarning("Failed to update beds for provider {ProviderId}: {Message}", viewModel.ProviderId, result.ErrorMessage);
-                    TempData["Error"] = result.ErrorMessage ?? "Unable to update beds.";
+                    TempData["Error"] = result.ErrorMessage ?? "تعذر تحديث عدد الأسرة المتاحة.";
                     return RedirectToAction(nameof(Index), new { providerId = viewModel.ProviderId });
                 }
 
                 _logger.LogInformation("Hospital beds updated for provider {ProviderId}", viewModel.ProviderId);
-                TempData["Success"] = "Available beds updated successfully.";
+                TempData["Success"] = "تم تحديث عدد الأسرة المتاحة بنجاح.";
                 return RedirectToAction(nameof(Index), new { providerId = viewModel.ProviderId });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating beds");
-                TempData["Error"] = "Error updating beds.";
+                TempData["Error"] = "حدث خطأ أثناء تحديث عدد الأسرة.";
                 return RedirectToAction(nameof(Index), new { providerId = viewModel.ProviderId });
             }
         }

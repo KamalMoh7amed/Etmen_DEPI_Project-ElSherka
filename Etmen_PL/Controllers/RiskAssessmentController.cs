@@ -70,7 +70,7 @@ namespace Etmen_PL.Controllers
                 if (!result.IsSuccess || result.Data == null)
                 {
                     _logger.LogWarning("Failed to assess risk for user {UserId}: {Message}", userId, result.ErrorMessage);
-                    ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Unable to assess risk.");
+                    ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "تعذر تقييم مستوى المخاطر.");
                     return View(viewModel);
                 }
 
@@ -81,7 +81,7 @@ namespace Etmen_PL.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error assessing risk");
-                ModelState.AddModelError(string.Empty, "Error assessing risk.");
+                ModelState.AddModelError(string.Empty, "حدث خطأ أثناء تقييم المخاطر.");
                 return View(viewModel);
             }
         }
@@ -129,7 +129,7 @@ namespace Etmen_PL.Controllers
                 if (!result.IsSuccess)
                 {
                     _logger.LogWarning("Failed to retrieve risk history for user {UserId}: {Message}", userId, result.ErrorMessage);
-                    TempData["Error"] = result.ErrorMessage ?? "Unable to load risk history.";
+                    TempData["Error"] = result.ErrorMessage ?? "تعذر تحميل سجل تقييمات المخاطر.";
                     return RedirectToAction("Index", "PatientDashboard");
                 }
 
@@ -138,7 +138,7 @@ namespace Etmen_PL.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving risk history");
-                TempData["Error"] = "Error loading risk history.";
+                TempData["Error"] = "حدث خطأ أثناء تحميل سجل المخاطر.";
                 return RedirectToAction("Index", "PatientDashboard");
             }
         }

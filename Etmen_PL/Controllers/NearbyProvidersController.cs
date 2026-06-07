@@ -54,7 +54,7 @@ namespace Etmen_PL.Controllers
 
             if (!viewModel.Latitude.HasValue || !viewModel.Longitude.HasValue)
             {
-                ModelState.AddModelError(string.Empty, "Latitude and longitude are required.");
+                ModelState.AddModelError(string.Empty, "خط العرض وخط الطول مطلوبان.");
                 return View(viewModel);
             }
 
@@ -72,7 +72,7 @@ namespace Etmen_PL.Controllers
                 if (!result.IsSuccess)
                 {
                     _logger.LogWarning("Nearby providers search failed: {Message}", result.ErrorMessage);
-                    ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Unable to search nearby providers.");
+                    ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "تعذر البحث عن مقدمي الخدمة القريبين.");
                     return View(viewModel);
                 }
 
@@ -83,7 +83,7 @@ namespace Etmen_PL.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error searching nearby providers");
-                ModelState.AddModelError(string.Empty, "Error searching nearby providers.");
+                ModelState.AddModelError(string.Empty, "حدث خطأ أثناء البحث عن مقدمي الخدمة القريبين.");
                 return View(viewModel);
             }
         }
@@ -100,7 +100,7 @@ namespace Etmen_PL.Controllers
             {
                 if (providerId <= 0 || slotId <= 0)
                 {
-                    TempData["Error"] = "Valid provider and slot are required.";
+                    TempData["Error"] = "مقدم الخدمة والموعد المحدد مطلوبان.";
                     return RedirectToAction(nameof(Index));
                 }
 
@@ -111,21 +111,21 @@ namespace Etmen_PL.Controllers
                 var profileResult = await _patientService.GetProfileAsync(userId);
                 if (!profileResult.IsSuccess || profileResult.Data == null)
                 {
-                    TempData["Error"] = profileResult.ErrorMessage ?? "Patient profile was not found.";
+                    TempData["Error"] = profileResult.ErrorMessage ?? "لم يتم العثور على الملف الشخصي للمريض.";
                     return RedirectToAction(nameof(Index));
                 }
 
                 var slotsResult = await _nearbyService.GetAvailableSlotsByProviderAsync(providerId);
                 if (!slotsResult.IsSuccess || slotsResult.Data == null)
                 {
-                    TempData["Error"] = slotsResult.ErrorMessage ?? "Unable to load available slots.";
+                    TempData["Error"] = slotsResult.ErrorMessage ?? "تعذر تحميل المواعيد المتاحة.";
                     return RedirectToAction(nameof(Index));
                 }
 
                 var slot = slotsResult.Data.FirstOrDefault(s => s.Id == slotId);
                 if (slot == null)
                 {
-                    TempData["Error"] = "Selected slot is not available.";
+                    TempData["Error"] = "الموعد المحدد غير متاح.";
                     return RedirectToAction(nameof(Index));
                 }
 
@@ -143,18 +143,18 @@ namespace Etmen_PL.Controllers
                 if (!result.IsSuccess)
                 {
                     _logger.LogWarning("Failed to book appointment for user {UserId}: {Message}", userId, result.ErrorMessage);
-                    TempData["Error"] = result.ErrorMessage ?? "Unable to book appointment.";
+                    TempData["Error"] = result.ErrorMessage ?? "تعذر حجز الموعد.";
                     return RedirectToAction(nameof(Index));
                 }
 
                 _logger.LogInformation("Appointment booked for user {UserId}", userId);
-                TempData["Success"] = "Appointment booked successfully.";
+                TempData["Success"] = "تم حجز الموعد بنجاح.";
                 return RedirectToAction("Index", "PatientDashboard");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error booking appointment");
-                TempData["Error"] = "Error booking appointment.";
+                TempData["Error"] = "حدث خطأ أثناء حجز الموعد.";
                 return RedirectToAction(nameof(Index));
             }
         }
