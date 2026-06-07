@@ -77,6 +77,19 @@ namespace Etmen_PL.Controllers
             if (result.IsSuccess)
             {
                 _logger.LogInformation("New {Role} registered: {Email}", dto.Role, dto.Email);
+
+                // For Patients: Auto-login and redirect to dashboard
+                if (dto.Role == "Patient")
+                {
+                    var user = await _userManager.FindByEmailAsync(dto.Email);
+                    if (user != null)
+                    {
+                        await _signInManager.SignInAsync(user, isPersistent: false);
+                        return RedirectByRole("Patient");
+                    }
+                }
+
+                // For Doctors: Redirect to email verification notice
                 TempData["Email"] = dto.Email;
                 TempData["RegisteredRole"] = dto.Role;
                 return RedirectToAction(nameof(VerifyEmailNotice));

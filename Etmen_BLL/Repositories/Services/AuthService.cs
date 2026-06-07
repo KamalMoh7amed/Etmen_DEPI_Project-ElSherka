@@ -79,17 +79,38 @@ namespace Etmen_BLL.Repositories.Services
 
             await _uow.CompleteAsync();
 
-            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-
-            _logger.LogInformation(
-                "New {Role} registered: {Email}, verification token generated.", role, user.Email);
-
-            return ServiceResult<AuthResult>.Created(new AuthResult
+            // For Patients: Auto-confirm email to allow immediate login
+            // For Doctors: Require email verification for security
+            if (role == "Patient")
             {
-                Success = true,
-                Message = "تم إنشاء الحساب بنجاح. يرجى التحقق من بريدك الإلكتروني.",
-                UserId  = user.Id,
-            });
+                user.IsEmailVerified = true;
+                await _userManager.UpdateAsync(user);
+
+                _logger.LogInformation("New Patient registered and auto-verified: {Email}", user.Email);
+
+                return ServiceResult<AuthResult>.Created(new AuthResult
+                {
+                    Success = true,
+                    Message = "تم إنشاء الحساب بنجاح. يمكنك الآن تسجيل الدخول.",
+                    UserId  = user.Id,
+                    Role    = role,
+                });
+            }
+            else // Doctor
+            {
+                var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+                _logger.LogInformation(
+                    "New Doctor registered: {Email}, verification token generated.", user.Email);
+
+                return ServiceResult<AuthResult>.Created(new AuthResult
+                {
+                    Success = true,
+                    Message = "تم إنشاء الحساب بنجاح. يرجى التحقق من بريدك الإلكتروني.",
+                    UserId  = user.Id,
+                    Role    = role,
+                });
+            }
         }
 
 
@@ -116,6 +137,9 @@ namespace Etmen_BLL.Repositories.Services
             // Fetch the user's primary role for redirect purposes
             var roles = await _userManager.GetRolesAsync(user);
             var primaryRole = roles.FirstOrDefault() ?? "Patient";
+
+            // Create the persistent authentication cookie/session
+            await _signInManager.SignInAsync(user, isPersistent: false);
 
             _logger.LogInformation("User {Email} signed in successfully as {Role}.", user.Email, primaryRole);
 
