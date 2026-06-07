@@ -1,0 +1,274 @@
+@{
+    ViewData["Title"] = "الوصول مرفوض — إطمن";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.rtl.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+    <style>
+        :root {
+            --primary:       #1A6FBF;
+            --primary-dark:  #0D4C8A;
+            --accent:        #00C9A7;
+            --danger:        #E74C3C;
+            --warning:       #F39C12;
+            --dark:          #0F1923;
+            --text:          #2C3E50;
+            --text-muted:    #7F8C8D;
+            --border:        #DDE3EC;
+            --white:         #FFFFFF;
+            --glass:         rgba(255,255,255,0.06);
+            --glass-border:  rgba(255,255,255,0.14);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            min-height: 100vh;
+            background: var(--dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Background grid */
+        body::before {
+            content: '';
+            position: absolute; inset: 0;
+            background-image:
+                linear-gradient(rgba(26,111,191,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(26,111,191,0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridDrift 30s linear infinite;
+        }
+        @@keyframes gridDrift { to { background-position: 50px 50px; } }
+
+        /* Orbs */
+        .orb {
+            position: fixed; border-radius: 50%; filter: blur(100px);
+            pointer-events: none; z-index: 0;
+        }
+        .orb-1 { width: 500px; height: 500px; background: var(--danger); opacity: 0.08; top: -150px; left: -100px; }
+        .orb-2 { width: 350px; height: 350px; background: var(--warning);  opacity: 0.06; bottom: -80px; right: -80px; }
+
+        /* Container */
+        .error-wrapper {
+            position: relative; z-index: 1;
+            display: flex; flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+            max-width: 600px;
+            text-align: center;
+            pointer-events: auto;
+        }
+
+        /* Icon */
+        .error-icon {
+            width: 120px; height: 120px;
+            background: linear-gradient(135deg, rgba(231,76,60,0.2), rgba(243,156,18,0.2));
+            border: 2px solid rgba(231,76,60,0.3);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 3rem; color: var(--danger);
+            margin-bottom: 2rem;
+            animation: iconPulse 2s ease-in-out infinite;
+        }
+        @@keyframes iconPulse {
+            0%,100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Heading */
+        .error-title {
+            font-size: 2rem;
+            font-weight: 900; color: white;
+            margin-bottom: 0.8rem;
+            letter-spacing: -0.4px;
+        }
+
+        .error-code {
+            font-size: 0.9rem;
+            color: var(--danger);
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        /* Message */
+        .error-message {
+            font-size: 1rem;
+            color: rgba(255,255,255,0.7);
+            line-height: 1.8;
+            margin-bottom: 2rem;
+        }
+
+        .error-details {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2.5rem;
+            backdrop-filter: blur(8px);
+        }
+
+        .error-details p {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.6);
+            margin: 0.5rem 0;
+        }
+
+        .error-details strong {
+            color: rgba(255,255,255,0.8);
+        }
+
+        /* Actions */
+        .error-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            width: 100%;
+            pointer-events: auto;
+        }
+
+        .btn-error {
+            padding: 12px 24px;
+            border-radius: 10px;
+            border: none;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            pointer-events: auto;
+            z-index: 10;
+            position: relative;
+        }
+
+        .btn-primary-error {
+            background: linear-gradient(135deg, var(--primary), #1a8fbf);
+            color: white;
+            box-shadow: 0 6px 20px rgba(26,111,191,0.3);
+        }
+        .btn-primary-error:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(26,111,191,0.4);
+        }
+
+        .btn-secondary-error {
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.9);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .btn-secondary-error:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: rgba(255,255,255,0.3);
+        }
+
+        /* Footer text */
+        .error-footer {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.4);
+            margin-top: 2rem;
+        }
+
+        .error-footer a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+        .error-footer a:hover {
+            color: lighten(var(--accent), 10%);
+        }
+
+        /* Responsive */
+        @@media (max-width: 480px) {
+            .error-icon {
+                width: 100px; height: 100px;
+                font-size: 2.5rem;
+            }
+
+            .error-title {
+                font-size: 1.6rem;
+            }
+
+            .error-actions {
+                flex-direction: column;
+            }
+
+            .btn-error {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <div class="error-wrapper">
+        <!-- Icon -->
+        <div class="error-icon">
+            <i class="fas fa-lock"></i>
+        </div>
+
+        <!-- Code -->
+        <div class="error-code">403 — الوصول مرفوض</div>
+
+        <!-- Title -->
+        <h1 class="error-title">ليس لديك صلاحية للوصول</h1>
+
+        <!-- Message -->
+        <p class="error-message">
+            عذراً، ليس لديك الصلاحيات اللازمة للوصول إلى هذه الصفحة.
+            <br />
+            يرجى التواصل مع فريق الدعم إذا كنت تعتقد أن هذا خطأ.
+        </p>
+
+        <!-- Details -->
+        <div class="error-details">
+            <p><strong>السبب:</strong> صلاحية غير كافية</p>
+            <p><strong>النوع:</strong> خطأ في التفويض (Authorization Error)</p>
+            <p><strong>الحالة:</strong> لا يمكن متابعة الطلب</p>
+        </div>
+
+        <!-- Actions -->
+        <div class="error-actions">
+            <a href="/" class="btn-error btn-primary-error">
+                <i class="fas fa-home"></i>
+                العودة للرئيسية
+            </a>
+            <a href="/Account/Login" class="btn-error btn-secondary-error">
+                <i class="fas fa-sign-in-alt"></i>
+                تسجيل دخول بحساب آخر
+            </a>
+        </div>
+
+        <!-- Footer -->
+        <p class="error-footer">
+            هل تحتاج إلى مساعدة؟ 
+            <a href="mailto:support@etmen.com">تواصل مع الدعم</a>
+        </p>
+    </div>
+</body>
+</html>
