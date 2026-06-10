@@ -26,8 +26,6 @@ namespace Etmen_PL.Controllers
         /// <summary>
         /// GET: /AdminDashboard/Index
         /// Shows active users, appointments, and crisis status
-        /// TODO: Call _adminService.GetDashboardAsync()
-        /// TODO: Return View(viewModel)
         /// </summary>
         [HttpGet]
         public async Task<IActionResult> Index()

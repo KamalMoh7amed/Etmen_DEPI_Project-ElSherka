@@ -1,7 +1,9 @@
 using Etmen_BLL.Repositories.IServices;
 using Etmen_BLL.DTOs.Admin;
 using Etmen_PL.Models.ViewModels.Admin;
+using Etmen_Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Etmen_PL.Controllers
@@ -14,22 +16,25 @@ namespace Etmen_PL.Controllers
     public class AdminUsersController : Controller
     {
         private readonly IAdminService _adminService;
+        private readonly IEmailService _emailService;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<AdminUsersController> _logger;
 
         public AdminUsersController(
             IAdminService adminService,
+            IEmailService emailService,
+            UserManager<ApplicationUser> userManager,
             ILogger<AdminUsersController> logger)
         {
             _adminService = adminService;
+            _emailService = emailService;
+            _userManager = userManager;
             _logger = logger;
         }
 
         /// <summary>
         /// GET: /AdminUsers/Index
         /// Lists system users with status toggles
-        /// TODO: Parse pageNumber from query parameter (default 1)
-        /// TODO: Call _adminService.GetAllUsersAsync(pageNumber)
-        /// TODO: Return View with PaginatedResult<UserListItemDto>
         /// </summary>
         [HttpGet]
         public async Task<IActionResult> Index(int pageNumber = 1)
@@ -58,9 +63,6 @@ namespace Etmen_PL.Controllers
         /// <summary>
         /// POST: /AdminUsers/UpdateStatus
         /// Activates or deactivates a user account
-        /// TODO: Validate ModelState
-        /// TODO: Call _adminService.UpdateUserStatusAsync(userId, dto)
-        /// TODO: Redirect to Index on success
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -89,6 +91,8 @@ namespace Etmen_PL.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
+                await SendDoctorStatusEmailIfNeededAsync(userId, isActive, reason);
+
                 _logger.LogInformation("User {UserId} status updated", userId);
                 TempData["Success"] = "تم تحديث حالة المستخدم بنجاح";
                 return RedirectToAction(nameof(Index));
@@ -104,9 +108,6 @@ namespace Etmen_PL.Controllers
         /// <summary>
         /// POST: /AdminUsers/BulkAction
         /// Applies actions on multiple users
-        /// TODO: Validate ModelState
-        /// TODO: Call _adminService.BulkUserActionAsync(dto)
-        /// TODO: Redirect to Index on success
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -139,6 +140,8 @@ namespace Etmen_PL.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
+                await SendBulkDoctorStatusEmailsIfNeededAsync(dto.UserIds, action);
+
                 _logger.LogInformation("Bulk user action {Action} performed for {Count} users", action, userIds.Length);
                 TempData["Success"] = "تم تنفيذ الإجراء بنجاح";
                 return RedirectToAction(nameof(Index));
@@ -154,9 +157,6 @@ namespace Etmen_PL.Controllers
         /// <summary>
         /// POST: /AdminUsers/Delete
         /// Permanently deletes a user from the system
-        /// TODO: Validate userId parameter
-        /// TODO: Call _adminService.DeleteUserAsync(userId)
-        /// TODO: Redirect to Index on success
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -194,6 +194,51 @@ namespace Etmen_PL.Controllers
                 TempData["Error"] = "خطأ في حذف المستخدم";
                 return RedirectToAction(nameof(Index));
             }
+        }
+
+        private async Task SendDoctorStatusEmailIfNeededAsync(string userId, bool isApproved, string? reason)
+        {
+            try
+            {
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user is null || !await _userManager.IsInRoleAsync(user, "Doctor"))
+                    return;
+
+                if (string.IsNullOrWhiteSpace(user.Email))
+                {
+                    _logger.LogWarning("Doctor {UserId} status changed but no email address is available.", userId);
+                    return;
+                }
+
+                var doctorName = $"{user.FirstName} {user.LastName}".Trim();
+                await _emailService.SendDoctorApprovalEmailAsync(
+                    user.Email,
+                    string.IsNullOrWhiteSpace(doctorName) ? user.UserName ?? "Doctor" : doctorName,
+                    isApproved,
+                    reason);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send doctor status email for user {UserId}.", userId);
+            }
+        }
+
+        private async Task SendBulkDoctorStatusEmailsIfNeededAsync(IEnumerable<string> userIds, string action)
+        {
+            var normalizedAction = action?.Trim().ToLowerInvariant();
+            if (normalizedAction is not ("activate" or "deactivate" or "delete"))
+                return;
+
+            var isApproved = normalizedAction == "activate";
+            var reason = normalizedAction switch
+            {
+                "deactivate" => "Account deactivated by administrator.",
+                "delete" => "Account removed by administrator.",
+                _ => null
+            };
+
+            foreach (var userId in userIds.Distinct())
+                await SendDoctorStatusEmailIfNeededAsync(userId, isApproved, reason);
         }
     }
 }

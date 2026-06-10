@@ -26,10 +26,6 @@ namespace Etmen_PL.Controllers
         /// <summary>
         /// GET: /PatientProfile/Index
         /// Renders patient profile editing page
-        /// TODO: Get current user ID
-        /// TODO: Call _patientService.GetProfileAsync(userId)
-        /// TODO: Map ProfileDto to PatientProfileViewModel
-        /// TODO: Return View(viewModel)
         /// </summary>
         [HttpGet]
         public async Task<IActionResult> Index()

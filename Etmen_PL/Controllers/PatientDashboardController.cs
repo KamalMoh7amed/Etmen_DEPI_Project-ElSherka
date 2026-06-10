@@ -26,9 +26,6 @@ namespace Etmen_PL.Controllers
         /// <summary>
         /// GET: /PatientDashboard/Index
         /// Renders patient home dashboard panels
-        /// TODO: Implement dashboard retrieval using _patientService.GetDashboardAsync()
-        /// TODO: Handle ServiceResult error checking
-        /// TODO: Return PatientDashboardViewModel with dashboard data
         /// </summary>
         [HttpGet]
         public async Task<IActionResult> Index()

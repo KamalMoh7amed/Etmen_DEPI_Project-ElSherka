@@ -28,7 +28,6 @@ namespace Etmen_PL.Controllers
         /// <summary>
         /// GET: /AdminReports/Index
         /// Shows available report templates (system, epidemiology, operational)
-        /// TODO: Return View with list of report types
         /// </summary>
         [HttpGet]
         public async Task<IActionResult> Index()
@@ -55,9 +54,6 @@ namespace Etmen_PL.Controllers
         /// <summary>
         /// GET: /AdminReports/SystemReport
         /// Generates user count, appointment, and crisis summary report
-        /// TODO: Parse startDate, endDate from query parameters
-        /// TODO: Call _reportService.GetSystemReportAsync(startDate, endDate)
-        /// TODO: Return View or PDF
         /// </summary>
         [HttpGet]
         public async Task<IActionResult> SystemReport(DateTime? startDate, DateTime? endDate)
@@ -78,9 +74,6 @@ namespace Etmen_PL.Controllers
         /// <summary>
         /// GET: /AdminReports/EpidemiologyReport
         /// Generates disease frequency and patient outcome report
-        /// TODO: Parse crisisId, startDate, endDate from query
-        /// TODO: Call _reportService.GetEpidemiologyReportAsync(crisisId, startDate, endDate)
-        /// TODO: Return View or PDF
         /// </summary>
         [HttpGet]
         public async Task<IActionResult> EpidemiologyReport(int? crisisId, DateTime? startDate, DateTime? endDate)
@@ -104,9 +97,6 @@ namespace Etmen_PL.Controllers
         /// <summary>
         /// GET: /AdminReports/OperationalReport
         /// Shows dispatch times and hospital utilization metrics
-        /// TODO: Parse startDate, endDate from query
-        /// TODO: Call _reportService.GetOperationalReportAsync(startDate, endDate)
-        /// TODO: Return View or PDF
         /// </summary>
         [HttpGet]
         public async Task<IActionResult> OperationalReport(DateTime? startDate, DateTime? endDate)
@@ -127,9 +117,6 @@ namespace Etmen_PL.Controllers
         /// <summary>
         /// POST: /AdminReports/Export
         /// Exports report data to CSV or Excel
-        /// TODO: Validate reportType parameter
-        /// TODO: Call appropriate report service method
-        /// TODO: Return File(csv/excel content)
         /// </summary>
         [HttpPost]
         public async Task<IActionResult> Export(string reportType, DateTime? startDate, DateTime? endDate)
@@ -159,10 +146,7 @@ namespace Etmen_PL.Controllers
 
         /// <summary>
         /// POST: /AdminReports/Schedule
-        /// Schedules automated report generation and email delivery
-        /// TODO: Validate ModelState
-        /// TODO: Call _adminService.ScheduleReportAsync(dto)
-        /// TODO: Redirect to Index on success
+        /// Updates report-related system configuration
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]

@@ -82,6 +82,13 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 // 4. BUSINESS LOGIC LAYER — ALL SERVICES
 // ═══════════════════════════════════════════════════════════════
 
+// ── Mail Services (must be registered first — other services depend on them)
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IPdfReportService, PdfReportService>();
+
+// Appointment reminder background service (checks every 30 minutes)
+builder.Services.AddHostedService<AppointmentReminderHostedService>();
+
 // Auth
 builder.Services.AddScoped<IAuthService, AuthService>();
 

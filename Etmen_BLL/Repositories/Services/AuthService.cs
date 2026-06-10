@@ -4,6 +4,7 @@ using Etmen_BLL.Repositories.IServices;
 using Etmen_DAL.Repositories.Interfaces;
 using Etmen_Domain.Entities;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Etmen_BLL.Repositories.Services
@@ -14,17 +15,23 @@ namespace Etmen_BLL.Repositories.Services
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IUnitOfWork _uow;
         private readonly ILogger<AuthService> _logger;
+        private readonly IEmailService _emailService;
+        private readonly string _baseUrl;
 
         public AuthService(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             IUnitOfWork uow,
-            ILogger<AuthService> logger)
+            ILogger<AuthService> logger,
+            IEmailService emailService,
+            IConfiguration configuration)
         {
             _userManager   = userManager;
             _signInManager = signInManager;
             _uow           = uow;
             _logger        = logger;
+            _emailService  = emailService;
+            _baseUrl       = configuration["AppSettings:BaseUrl"] ?? "https://localhost:7001";
         }
 
 
@@ -88,6 +95,10 @@ namespace Etmen_BLL.Repositories.Services
 
                 _logger.LogInformation("New Patient registered and auto-verified: {Email}", user.Email);
 
+                // Send welcome email immediately for patients (auto-verified)
+                var fullName = $"{dto.FirstName} {dto.LastName}".Trim();
+                _ = Task.Run(() => _emailService.SendWelcomeEmailAsync(user.Email!, fullName, role));
+
                 return ServiceResult<AuthResult>.Created(new AuthResult
                 {
                     Success = true,
@@ -96,12 +107,19 @@ namespace Etmen_BLL.Repositories.Services
                     Role    = role,
                 });
             }
-            else // Doctor
+            else // Doctor — must verify email
             {
                 var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
+                // Build activation link and send email
+                var encodedToken  = Uri.EscapeDataString(token);
+                var activationLink = $"{_baseUrl}/Account/VerifyEmail?userId={user.Id}&token={encodedToken}";
+
+                _ = Task.Run(() => _emailService.SendAccountActivationEmailAsync(
+                    user.Email!, $"{dto.FirstName} {dto.LastName}".Trim(), activationLink, role));
+
                 _logger.LogInformation(
-                    "New Doctor registered: {Email}, verification token generated.", user.Email);
+                    "New Doctor registered: {Email}, activation email sent.", user.Email);
 
                 return ServiceResult<AuthResult>.Created(new AuthResult
                 {
@@ -166,6 +184,13 @@ namespace Etmen_BLL.Repositories.Services
             await _userManager.UpdateAsync(user);
 
             _logger.LogInformation("Email verified for user {UserId}.", userId);
+
+            // Send role-specific welcome email after successful verification
+            var roles   = await _userManager.GetRolesAsync(user);
+            var role    = roles.FirstOrDefault() ?? "Patient";
+            var name    = $"{user.FirstName} {user.LastName}".Trim();
+            _ = Task.Run(() => _emailService.SendWelcomeEmailAsync(user.Email!, name, role));
+
             return ServiceResult.Success();
         }
 
@@ -174,6 +199,7 @@ namespace Etmen_BLL.Repositories.Services
         {
             var user = await _userManager.FindByEmailAsync(dto.Email);
 
+            // Always return success to prevent email enumeration
             if (user is null || !user.IsEmailVerified)
                 return ServiceResult.Success();
 
@@ -183,7 +209,15 @@ namespace Etmen_BLL.Repositories.Services
             user.ResetPasswordTokenExpiry = DateTime.UtcNow.AddHours(2);
             await _userManager.UpdateAsync(user);
 
-            _logger.LogInformation("Password reset token generated for {Email}.", dto.Email);
+            // Build reset link and send email
+            var encodedToken = Uri.EscapeDataString(token);
+            var encodedEmail = Uri.EscapeDataString(dto.Email);
+            var resetLink    = $"{_baseUrl}/Account/ResetPassword?token={encodedToken}&email={encodedEmail}";
+            var name         = $"{user.FirstName} {user.LastName}".Trim();
+
+            _ = Task.Run(() => _emailService.SendPasswordResetEmailAsync(user.Email!, name, resetLink));
+
+            _logger.LogInformation("Password reset email sent to {Email}.", dto.Email);
             return ServiceResult.Success();
         }
 

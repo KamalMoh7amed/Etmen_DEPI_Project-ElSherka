@@ -4,16 +4,27 @@ using Etmen_BLL.Repositories.IServices;
 using Etmen_DAL.Repositories.Interfaces;
 using Etmen_Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Etmen_BLL.Repositories.Services
 {
     public sealed class LabService : ILabService
     {
         private readonly IUnitOfWork _uow;
+        private readonly IEmailService _emailService;
+        private readonly IPdfReportService _pdfService;
+        private readonly ILogger<LabService> _logger;
 
-        public LabService(IUnitOfWork uow)
+        public LabService(
+            IUnitOfWork uow,
+            IEmailService emailService,
+            IPdfReportService pdfService,
+            ILogger<LabService> logger)
         {
-            _uow = uow;
+            _uow          = uow;
+            _emailService = emailService;
+            _pdfService   = pdfService;
+            _logger       = logger;
         }
 
         public async Task<ServiceResult<LabResultDto>> GetLabResultByIdAsync(int labResultId)
@@ -66,6 +77,32 @@ namespace Etmen_BLL.Repositories.Services
 
             await _uow.LabResults.AddAsync(lab);
             await _uow.CompleteAsync();
+
+            // ── Send lab result email with PDF (fire-and-forget) ──────────
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    var patient      = await _uow.PatientProfiles.GetByIdAsync(lab.PatientProfileId);
+                    var patientEmail = patient?.ApplicationUser?.Email;
+                    var patientName  = patient?.FullName ?? "المريض";
+
+                    if (!string.IsNullOrWhiteSpace(patientEmail))
+                    {
+                        var pdfBytes = await _pdfService.GenerateLabReportPdfAsync(
+                            patientName, lab.TestName, lab.TestDate,
+                            lab.Results, lab.OcrExtractedData);
+
+                        await _emailService.SendLabResultEmailAsync(
+                            patientEmail, patientName,
+                            lab.TestName, lab.TestDate, pdfBytes);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to send lab result email for lab {Id}", lab.Id);
+                }
+            });
 
             return ServiceResult<LabResultDto>.Created(Map(lab));
         }

@@ -27,9 +27,6 @@ namespace Etmen_PL.Controllers
         /// <summary>
         /// GET: /AdminProviders/Index
         /// Lists provider centers with locations
-        /// TODO: Parse pageNumber from query parameter (default 1)
-        /// TODO: Call _adminService.GetAllProvidersAsync(pageNumber)
-        /// TODO: Return View with PaginatedResult<ProviderListItemDto>
         /// </summary>
         [HttpGet]
         public async Task<IActionResult> Index(int pageNumber = 1)
@@ -58,7 +55,6 @@ namespace Etmen_PL.Controllers
         /// <summary>
         /// GET: /AdminProviders/Create
         /// Form to register a hospital/clinic profile
-        /// TODO: Return View with new CreateProviderViewModel
         /// </summary>
         [HttpGet]
         public IActionResult Create()
@@ -70,9 +66,6 @@ namespace Etmen_PL.Controllers
         /// <summary>
         /// POST: /AdminProviders/Create
         /// Submits details to register a new provider
-        /// TODO: Validate ModelState
-        /// TODO: Call _adminService.CreateProviderAsync(dto)
-        /// TODO: Redirect to Index on success
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -117,9 +110,6 @@ namespace Etmen_PL.Controllers
         /// <summary>
         /// GET: /AdminProviders/Edit
         /// Renders edit provider interface
-        /// TODO: Validate id parameter
-        /// TODO: Call _adminService.GetProviderByIdAsync(id)
-        /// TODO: Return View with provider data
         /// </summary>
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
@@ -161,9 +151,6 @@ namespace Etmen_PL.Controllers
         /// <summary>
         /// POST: /AdminProviders/Edit
         /// Saves updates to provider coordinates, beds, and status
-        /// TODO: Validate ModelState and id
-        /// TODO: Call _adminService.UpdateProviderAsync(id, dto)
-        /// TODO: Redirect to Index on success
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -213,9 +200,6 @@ namespace Etmen_PL.Controllers
         /// <summary>
         /// POST: /AdminProviders/Delete
         /// Deletes a registered provider center
-        /// TODO: Validate id parameter
-        /// TODO: Call _adminService.DeleteProviderAsync(id)
-        /// TODO: Redirect to Index on success
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]

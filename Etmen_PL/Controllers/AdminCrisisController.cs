@@ -35,8 +35,6 @@ namespace Etmen_PL.Controllers
         /// <summary>
         /// GET: /AdminCrisis/Index
         /// Lists all configured crises (active/inactive)
-        /// TODO: Call _crisisService.GetAllCrisesAsync()
-        /// TODO: Return View with List<CrisisConfigurationDto>
         /// </summary>
         [HttpGet]
         public async Task<IActionResult> Index()
@@ -63,7 +61,6 @@ namespace Etmen_PL.Controllers
         /// <summary>
         /// GET: /AdminCrisis/Create
         /// Form to configure a new epidemic
-        /// TODO: Return View with new CreateCrisisViewModel
         /// </summary>
         [HttpGet]
         public IActionResult Create()
@@ -75,9 +72,6 @@ namespace Etmen_PL.Controllers
         /// <summary>
         /// POST: /AdminCrisis/Create
         /// Saves new crisis template
-        /// TODO: Validate ModelState
-        /// TODO: Call _crisisService.CreateCrisisAsync(dto)
-        /// TODO: Redirect to Index on success
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -113,9 +107,6 @@ namespace Etmen_PL.Controllers
         /// <summary>
         /// GET: /AdminCrisis/Edit
         /// Form to edit crisis fields
-        /// TODO: Validate id parameter
-        /// TODO: Call _crisisService.GetCrisisByIdAsync(id)
-        /// TODO: Return View with crisis data
         /// </summary>
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
@@ -154,9 +145,6 @@ namespace Etmen_PL.Controllers
         /// <summary>
         /// POST: /AdminCrisis/Edit
         /// Submits edits to crisis thresholds
-        /// TODO: Validate ModelState and id
-        /// TODO: Call _crisisService.UpdateCrisisAsync(id, dto)
-        /// TODO: Redirect to Index on success
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -195,10 +183,6 @@ namespace Etmen_PL.Controllers
         /// <summary>
         /// GET: /AdminCrisis/Details
         /// Shows crisis configuration, weights, and stats
-        /// TODO: Validate id parameter
-        /// TODO: Call _crisisService.GetCrisisByIdAsync(id)
-        /// TODO: Call _crisisService.GetCrisisStatsAsync(id)
-        /// TODO: Return View with comprehensive crisis data
         /// </summary>
         [HttpGet]
         public async Task<IActionResult> Details(int id)
@@ -232,9 +216,6 @@ namespace Etmen_PL.Controllers
         /// <summary>
         /// POST: /AdminCrisis/Activate
         /// Activates crisis mode for a crisis configuration
-        /// TODO: Validate id parameter
-        /// TODO: Call _crisisService.ActivateCrisisAsync(id)
-        /// TODO: Redirect to Details on success
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -267,9 +248,6 @@ namespace Etmen_PL.Controllers
         /// <summary>
         /// POST: /AdminCrisis/Deactivate
         /// Deactivates a crisis configuration
-        /// TODO: Validate id parameter
-        /// TODO: Call _crisisService.DeactivateCrisisAsync(id)
-        /// TODO: Redirect to Details on success
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -302,9 +280,6 @@ namespace Etmen_PL.Controllers
         /// <summary>
         /// POST: /AdminCrisis/AddSymptom
         /// Associates a symptom weight with a crisis template
-        /// TODO: Validate ModelState and crisisId
-        /// TODO: Call _crisisService.AddSymptomAsync(crisisId, dto)
-        /// TODO: Redirect to Details on success
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -347,9 +322,6 @@ namespace Etmen_PL.Controllers
         /// <summary>
         /// POST: /AdminCrisis/UpdateSymptom
         /// Updates a symptom's weight multiplier
-        /// TODO: Validate parameters
-        /// TODO: Call _crisisService.UpdateSymptomAsync(crisisId, symptomName, dto)
-        /// TODO: Redirect to Details on success
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -392,9 +364,6 @@ namespace Etmen_PL.Controllers
         /// <summary>
         /// POST: /AdminCrisis/RemoveSymptom
         /// Deletes a symptom association
-        /// TODO: Validate parameters
-        /// TODO: Call _crisisService.RemoveSymptomAsync(crisisId, symptomName)
-        /// TODO: Redirect to Details on success
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -427,8 +396,6 @@ namespace Etmen_PL.Controllers
         /// <summary>
         /// GET: /AdminCrisis/CommandCenter
         /// Dashboard showing real-time dispatch wait times
-        /// TODO: Call _criticalIntelligenceService.GetCommandCenterAsync()
-        /// TODO: Return View(viewModel)
         /// </summary>
         [HttpGet]
         public async Task<IActionResult> CommandCenter()
@@ -466,9 +433,6 @@ namespace Etmen_PL.Controllers
         /// <summary>
         /// GET: /AdminCrisis/Heatmap
         /// Shows map of critical clusters and outbreak zones
-        /// TODO: Parse crisisId from query parameter (optional)
-        /// TODO: Call _criticalIntelligenceService.GetCrisisHeatmapAsync(crisisId)
-        /// TODO: Return View(viewModel)
         /// </summary>
         [HttpGet]
         public async Task<IActionResult> Heatmap(int? crisisId = null)
@@ -503,9 +467,6 @@ namespace Etmen_PL.Controllers
         /// <summary>
         /// POST: /AdminCrisis/Approve
         /// Admin approval for newly escalated outbreak zones
-        /// TODO: Validate id parameter
-        /// TODO: Call _adminService.ApproveCrisisAsync(crisisId)
-        /// TODO: Redirect to Index on success
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -538,9 +499,6 @@ namespace Etmen_PL.Controllers
         /// <summary>
         /// POST: /AdminCrisis/Reject
         /// Rejects an escalated zone request with a reason
-        /// TODO: Validate parameters
-        /// TODO: Call _adminService.RejectCrisisAsync(crisisId, reason)
-        /// TODO: Redirect to Index on success
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]

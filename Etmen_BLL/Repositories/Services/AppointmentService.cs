@@ -5,16 +5,27 @@ using Etmen_DAL.Repositories.Interfaces;
 using Etmen_Domain.Entities;
 using Etmen_Domain.Enums;
 using Mapster;
+using Microsoft.Extensions.Logging;
 
 namespace Etmen_BLL.Repositories.Services
 {
     public sealed class AppointmentService : IAppointmentService
     {
         private readonly IUnitOfWork _uow;
+        private readonly IEmailService _emailService;
+        private readonly IPdfReportService _pdfService;
+        private readonly ILogger<AppointmentService> _logger;
 
-        public AppointmentService(IUnitOfWork uow)
+        public AppointmentService(
+            IUnitOfWork uow,
+            IEmailService emailService,
+            IPdfReportService pdfService,
+            ILogger<AppointmentService> logger)
         {
-            _uow = uow;
+            _uow          = uow;
+            _emailService = emailService;
+            _pdfService   = pdfService;
+            _logger       = logger;
         }
 
         public async Task<ServiceResult<AppointmentDto>> BookAppointmentAsync(string userId, BookingRequestDto dto)
@@ -79,6 +90,45 @@ namespace Etmen_BLL.Repositories.Services
                 await _uow.CompleteAsync();
 
                 var appointmentDto = appointment.Adapt<AppointmentDto>();
+
+                // ── Send booking confirmation emails (fire-and-forget) ──────
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        // Refresh with navigation props for email
+                        var patientName  = patient.FullName   ?? "المريض";
+                        var doctorName   = doctor.FullName    ?? "الطبيب";
+                        var patientEmail = patient.ApplicationUser?.Email;
+                        var doctorEmail  = doctor.ApplicationUser?.Email;
+                        var spec         = doctor.Specialization;
+
+                        // Generate appointment PDF
+                        var pdfBytes = await _pdfService.GenerateAppointmentPdfAsync(
+                            patientName, doctorName, spec,
+                            appointment.AppointmentDate, appointment.StartTime, appointment.EndTime,
+                            appointment.Notes);
+
+                        // Email patient
+                        if (!string.IsNullOrWhiteSpace(patientEmail))
+                            await _emailService.SendAppointmentConfirmationEmailAsync(
+                                patientEmail, patientName, doctorName, patientName,
+                                appointment.AppointmentDate, appointment.StartTime, appointment.EndTime,
+                                appointment.Notes, isDoctor: false, pdfBytes);
+
+                        // Email doctor
+                        if (!string.IsNullOrWhiteSpace(doctorEmail))
+                            await _emailService.SendAppointmentConfirmationEmailAsync(
+                                doctorEmail, $"د. {doctorName}", doctorName, patientName,
+                                appointment.AppointmentDate, appointment.StartTime, appointment.EndTime,
+                                appointment.Notes, isDoctor: true);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to send booking confirmation emails for appointment {Id}", appointment.Id);
+                    }
+                });
+
                 return ServiceResult<AppointmentDto>.Created(appointmentDto);
             }
             catch (Exception ex)
@@ -172,6 +222,34 @@ namespace Etmen_BLL.Repositories.Services
                 appointment.Notes = "Cancelled by patient";
                 appointment.UpdatedAt = DateTime.UtcNow;
                 _uow.Appointments.Update(appointment);
+
+                // ── Send cancellation emails (fire-and-forget) ─────────────
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        var patientProfile = appointment.PatientProfile;
+                        var doctorProfile  = appointment.DoctorProfile;
+                        var patientName    = patientProfile?.FullName  ?? "المريض";
+                        var doctorName     = doctorProfile?.FullName   ?? "الطبيب";
+                        var patientEmail   = patientProfile?.ApplicationUser?.Email;
+                        var doctorEmail    = doctorProfile?.ApplicationUser?.Email;
+
+                        if (!string.IsNullOrWhiteSpace(patientEmail))
+                            await _emailService.SendAppointmentCancellationEmailAsync(
+                                patientEmail, patientName, doctorName, patientName,
+                                appointment.AppointmentDate, appointment.StartTime, isDoctor: false);
+
+                        if (!string.IsNullOrWhiteSpace(doctorEmail))
+                            await _emailService.SendAppointmentCancellationEmailAsync(
+                                doctorEmail, $"د. {doctorName}", doctorName, patientName,
+                                appointment.AppointmentDate, appointment.StartTime, isDoctor: true);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to send cancellation emails for appointment {Id}", appointment.Id);
+                    }
+                });
 
                 // Free up the slot if it exists
                 if (appointment.AppointmentDate != default)

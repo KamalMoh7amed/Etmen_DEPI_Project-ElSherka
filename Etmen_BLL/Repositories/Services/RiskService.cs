@@ -3,6 +3,8 @@ using Etmen_BLL.Helpers;
 using Etmen_BLL.Repositories.IServices;
 using Etmen_DAL.Repositories.Interfaces;
 using Etmen_Domain.Entities;
+using Etmen_Domain.Enums;
+using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
 namespace Etmen_BLL.Repositories.Services
@@ -11,13 +13,22 @@ namespace Etmen_BLL.Repositories.Services
     {
         private readonly IUnitOfWork _uow;
         private readonly ICriticalCareEscalationService _criticalCareEscalationService;
+        private readonly IEmailService _emailService;
+        private readonly IPdfReportService _pdfService;
+        private readonly ILogger<RiskService> _logger;
 
         public RiskService(
             IUnitOfWork uow,
-            ICriticalCareEscalationService criticalCareEscalationService)
+            ICriticalCareEscalationService criticalCareEscalationService,
+            IEmailService emailService,
+            IPdfReportService pdfService,
+            ILogger<RiskService> logger)
         {
             _uow = uow;
             _criticalCareEscalationService = criticalCareEscalationService;
+            _emailService = emailService;
+            _pdfService   = pdfService;
+            _logger       = logger;
         }
 
         public async Task<ServiceResult<RiskResultDto>> CalculateRiskAsync(RiskInputDto dto)
@@ -91,6 +102,59 @@ namespace Etmen_BLL.Repositories.Services
             {
                 Symptoms = assessment.Symptoms
             });
+
+            // ── Send risk alert emails for High / Emergency levels ─────
+            var alertLevels = new[] { RiskLevel.High, RiskLevel.Emergency };
+            if (alertLevels.Contains(assessment.RiskLevel))
+            {
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        var patientEmail = patient.ApplicationUser?.Email;
+                        var patientName  = patient.FullName ?? "المريض";
+
+                        // Generate risk PDF report
+                        var pdfBytes = await _pdfService.GenerateRiskReportPdfAsync(
+                            patientName, riskResult.RiskLevel.ToString(),
+                            riskResult.RiskScore, riskResult.Recommendations,
+                            riskResult.TriggeredSymptoms,
+                            assessment.AssessmentDate, assessment.IsEmergency);
+
+                        // Alert the patient
+                        if (!string.IsNullOrWhiteSpace(patientEmail))
+                        {
+                            await _emailService.SendRiskAlertEmailAsync(
+                                patientEmail, patientName, patientName,
+                                riskResult.RiskLabel ?? riskResult.RiskLevel.ToString(),
+                                riskResult.RiskScore, riskResult.Recommendations,
+                                isFamilyMember: false, pdfBytes);
+                        }
+
+                        // Alert all linked family members who have CanViewRisk permission
+                        var familyLinks = await _uow.FamilyLinks.GetByPrimaryPatientIdAsync(patientProfileId);
+                        foreach (var link in familyLinks.Where(fl => fl.IsAccepted && fl.CanViewRisk))
+                        {
+                            var linkedPatient      = await _uow.PatientProfiles.GetByIdAsync(link.LinkedPatientId);
+                            var familyMemberEmail  = linkedPatient?.ApplicationUser?.Email;
+                            var familyMemberName   = linkedPatient?.FullName ?? "فرد من العائلة";
+
+                            if (!string.IsNullOrWhiteSpace(familyMemberEmail))
+                            {
+                                await _emailService.SendRiskAlertEmailAsync(
+                                    familyMemberEmail, familyMemberName, patientName,
+                                    riskResult.RiskLabel ?? riskResult.RiskLevel.ToString(),
+                                    riskResult.RiskScore, riskResult.Recommendations,
+                                    isFamilyMember: true, pdfBytes);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to send risk alert emails for patient {PatientId}", patientProfileId);
+                    }
+                });
+            }
 
             return escalationResult.IsSuccess
                 ? ServiceResult.Success(201)
