@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — إطمن</title>
+    
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.rtl.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+    <style>
+        :root {
+            --primary:       #1A6FBF;
+            --primary-dark:  #0D4C8A;
+            --primary-light: #E8F4FD;
+            --accent:        #00C9A7;
+            --success:       #27AE60;
+            --danger:        #E74C3C;
+            --warning:       #F39C12;
+            --dark:          #0F1923;
+            --dark-2:        #1B2A38;
+            --text:          #2C3E50;
+            --text-muted:    #7F8C8D;
+            --border:        #DDE3EC;
+            --border-focus:  rgba(26,111,191,0.4);
+            --white:         #FFFFFF;
+            --glass:         rgba(255,255,255,0.06);
+            --glass-border:  rgba(255,255,255,0.12);
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #F8FAFC;
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* ═══ NAVBAR ═══════════════════════════════════════════ */
+        .patient-navbar {
+            background: linear-gradient(135deg, var(--dark) 0%, #0a1e30 100%);
+            border-bottom: 3px solid var(--primary);
+            box-shadow: 0 4px 20px rgba(15, 25, 35, 0.15);
+            padding: 0.8rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            transition: transform 0.3s;
+        }
+        .nav-logo:hover {
+            transform: scale(1.02);
+        }
+        .nav-logo-icon {
+            width: 42px; height: 42px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.25rem; color: white;
+            box-shadow: 0 0 20px rgba(26,111,191,0.5);
+            animation: pulseMini 2s infinite;
+        }
+        @@keyframes pulseMini {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+        .nav-logo-text {
+            font-size: 1.6rem; font-weight: 900; color: white;
+        }
+        .nav-logo-text span { color: var(--accent); }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        .nav-menu-link {
+            color: rgba(255,255,255,0.75);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.92rem;
+            padding: 10px 16px;
+            border-radius: 10px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .nav-menu-link:hover {
+            color: white;
+            background: rgba(255,255,255,0.08);
+        }
+        .nav-menu-link.active {
+            color: white;
+            background: var(--primary);
+            box-shadow: 0 4px 15px rgba(26,111,191,0.4);
+        }
+
+        /* Emergency Flash Button */
+        .btn-nav-emergency {
+            background: linear-gradient(135deg, var(--danger), #c0392b);
+            color: white !important;
+            font-weight: 800;
+            box-shadow: 0 4px 15px rgba(231,76,60,0.4);
+            animation: redFlash 1.5s infinite;
+            border: none;
+        }
+        .btn-nav-emergency:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(231,76,60,0.6);
+            background: linear-gradient(135deg, #c0392b, var(--danger));
+        }
+        @@keyframes redFlash {
+            0%, 100% { box-shadow: 0 4px 15px rgba(231,76,60,0.4); }
+            50% { box-shadow: 0 4px 25px rgba(231,76,60,0.8); background: #ff5e4d; }
+        }
+
+        /* User Profile Dropdown Badge */
+        .nav-profile-badge {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: white;
+            border-radius: 30px;
+            padding: 6px 14px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        .nav-profile-badge:hover {
+            background: rgba(255,255,255,0.15);
+            color: white;
+        }
+
+        .btn-nav-logout {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.7);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .btn-nav-logout:hover {
+            background: rgba(231,76,60,0.15);
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        /* ═══ MAIN LAYOUT ══════════════════════════════════════ */
+        .main-wrapper {
+            flex: 1;
+            padding: 2.5rem 0;
+            animation: fadeIn 0.5s ease;
+        }
+
+        /* ═══ FOOTER ═══════════════════════════════════════════ */
+        .patient-footer {
+            background: #0F1923;
+            color: rgba(255,255,255,0.5);
+            padding: 1.8rem 0;
+            font-size: 0.85rem;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            margin-top: auto;
+        }
+        .patient-footer a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .patient-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* ═══ FLOATING CHATBOT ═════════════════════════════════ */
+        .floating-bot {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            width: 60px; height: 60px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            box-shadow: 0 8px 30px rgba(26,111,191,0.4);
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 999;
+            text-decoration: none;
+            animation: botPulse 2.5s infinite;
+        }
+        .floating-bot:hover {
+            transform: scale(1.1) translateY(-5px);
+            box-shadow: 0 12px 35px rgba(26,111,191,0.6);
+            color: white;
+        }
+        @@keyframes botPulse {
+            0%, 100% { box-shadow: 0 8px 25px rgba(26,111,191,0.4); }
+            50% { box-shadow: 0 8px 35px rgba(0,201,167,0.7); }
+        }
+
+        /* ECG Decorative background or elements */
+        .bg-ecg-watermark {
+            position: fixed;
+            bottom: -50px; left: -100px;
+            width: 600px; opacity: 0.02;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Common Premium Card Style */
+        .med-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2.2rem;
+            box-shadow: 0 10px 30px rgba(26,111,191,0.03);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .med-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .med-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 35px rgba(26,111,191,0.07);
+        }
+        .med-card:hover::after {
+            opacity: 1;
+        }
+
+        /* General Alert/Toast */
+        .med-alert {
+            border: none;
+            border-radius: 14px;
+            padding: 16px 20px;
+            font-size: 0.92rem;
+            font-weight: 600;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.03);
+            margin-bottom: 1.5rem;
+        }
+        .med-alert-success {
+            background: #E8F8F0;
+            color: #1E6B45;
+            border-right: 5px solid var(--success);
+        }
+        .med-alert-danger {
+            background: #FDF2F2;
+            color: #9B2C2C;
+            border-right: 5px solid var(--danger);
+        }
+
+        /* Animations */
+        @@keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ═══ NAVBAR ═══════════════════════════════════════════ -->
+    <nav class="navbar navbar-expand-lg patient-navbar">
+        <div class="container-fluid">
+            <!-- Brand Logo -->
+            <a href="/" class="nav-logo">
+                <div class="nav-logo-icon"><i class="fas fa-heartbeat"></i></div>
+                <span class="nav-logo-text">إط<span>من</span></span>
+            </a>
+
+            <!-- Toggle button for mobile -->
+            <button class="navbar-toggler border-0 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#patientNavbarContent" aria-controls="patientNavbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                <i class="fas fa-bars fs-3"></i>
+            </button>
+
+            <!-- Navbar Links & Info -->
+            <div class="collapse navbar-collapse" id="patientNavbarContent">
+                <!-- Center Links -->
+                <ul class="nav-menu mx-auto mt-2 mt-lg-0">
+                    <li>
+                        <a href="/PatientDashboard" class="nav-menu-link @(Context.Request.Path.StartsWithSegments("/PatientDashboard") ? "active" : "")">
+                            <i class="fas fa-chart-pie"></i> لوحة التحكم
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/PatientProfile" class="nav-menu-link @(Context.Request.Path.StartsWithSegments("/PatientProfile") ? "active" : "")">
+                            <i class="fas fa-user-md"></i> ملفك الطبي
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/RiskAssessment" class="nav-menu-link @(Context.Request.Path.StartsWithSegments("/RiskAssessment") ? "active" : "")">
+                            <i class="fas fa-notes-medical"></i> تقييم المخاطر
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/LabResults" class="nav-menu-link @(Context.Request.Path.StartsWithSegments("/LabResults") ? "active" : "")">
+                            <i class="fas fa-flask"></i> التحاليل (OCR)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/NearbyProviders" class="nav-menu-link @(Context.Request.Path.StartsWithSegments("/NearbyProviders") ? "active" : "")">
+                            <i class="fas fa-map-marked-alt"></i> عيادات الطوارئ
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/PatientAppointments" class="nav-menu-link @(Context.Request.Path.StartsWithSegments("/PatientAppointments") ? "active" : "")">
+                            <i class="far fa-calendar-check"></i> مواعيدي
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/FamilyLinking" class="nav-menu-link @(Context.Request.Path.StartsWithSegments("/FamilyLinking") ? "active" : "")">
+                            <i class="fas fa-users"></i> الارتباط العائلي
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Left side: Emergency + Profile & Logout -->
+                <div class="d-flex align-items-center gap-3 mt-3 mt-lg-0 flex-wrap">
+                    <!-- Emergency Call Modal Button -->
+                    <button type="button" class="btn nav-menu-link btn-nav-emergency" data-bs-toggle="modal" data-bs-target="#emergencyAmbulanceModal">
+                        <i class="fas fa-ambulance"></i> إسعاف طارئ
+                    </button>
+
+                    <!-- Notification Bell -->
+                    <a href="/Alerts" class="nav-menu-link position-relative px-3 py-2 text-white" title="التنبيهات الصحية" style="background: rgba(255,255,255,0.08); border-radius: 10px; border: 1px solid rgba(255,255,255,0.15);">
+                        <i class="fas fa-bell fs-5"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light" id="navAlertBadge" style="font-size: 0.65rem; display:none; transform: translate(-50%, -10%) !important;">
+                            0
+                        </span>
+                    </a>
+
+                    <!-- User Name Badge -->
+                    <a href="/PatientProfile" class="nav-profile-badge">
+                        <i class="fas fa-user-circle fs-5"></i>
+                        <span>حسابي</span>
+                    </a>
+
+                    <!-- Logout Form -->
+                    <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn-nav-logout" title="تسجيل الخروج">
+                            <i class="fas fa-sign-out-alt"></i> خروج
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ═══ EMERGENCY AMBULANCE MODAL ════════════════════════ -->
+    <div class="modal fade" id="emergencyAmbulanceModal" tabindex="-1" aria-labelledby="emergencyAmbulanceModalLabel" aria-hidden="true" dir="rtl">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+                <div class="modal-header bg-danger text-white border-0 py-3">
+                    <h5 class="modal-title fw-bold" id="emergencyAmbulanceModalLabel"><i class="fas fa-exclamation-triangle"></i> طلب إسعاف فوري عاجل</h5>
+                    <button type="button" class="btn-close btn-close-white ms-0 me-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <div class="mx-auto mb-3 text-danger" style="font-size: 4rem; animation: pulseMini 1.5s infinite;">
+                        <i class="fas fa-ambulance"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">هل أنت متأكد من رغبتك في استدعاء سيارة إسعاف؟</h5>
+                    <p class="text-muted small">سيقوم النظام بإرسال موقعك الجغرافي الفوري ومعلومات فصيلة دمك وتاريخك المرضي المحفوظ مباشرة إلى أقرب مستشفى طوارئ لإنقاذك.</p>
+                    
+                    <form asp-controller="Emergency" asp-action="RequestAmbulance" method="post" id="navEmergencyForm">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="Latitude" id="navGpsLat" value="30.0444" />
+                        <input type="hidden" name="Longitude" id="navGpsLng" value="31.2357" />
+                        <input type="hidden" name="EmergencyType" value="طوارئ إسعاف عاجل" />
+                        
+                        <div class="mb-3 text-start">
+                            <label class="form-label fw-bold small">وصف الحالة باختصار (اختياري)</label>
+                            <textarea class="form-control" name="Description" rows="2" style="border-radius:10px;" placeholder="مثال: ألم شديد بالصدر وضيق تنفس..."></textarea>
+                        </div>
+
+                        <div class="alert alert-info py-2 px-3 text-start mb-3" style="border-radius:10px; font-size:0.8rem;">
+                            <i class="fas fa-gps-marker text-primary"></i> <span id="navGpsStatus">جاري تحديد موقعك الجغرافي...</span>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-danger w-100 py-3 fw-bold" style="border-radius:12px; font-size:1.1rem;">
+                                <i class="fas fa-paper-plane"></i> نعم، أرسل الإسعاف الآن
+                            </button>
+                            <button type="button" class="btn btn-light w-50 py-3 fw-bold" data-bs-dismiss="modal" style="border-radius:12px;">إلغاء</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ MAIN CONTENT AREA ════════════════════════════════ -->
+    <div class="main-wrapper">
+        <div class="container">
+            <!-- Global Flash Messages -->
+            @if (TempData["Success"] != null)
+            {
+                <div class="med-alert med-alert-success animate__animated animate__fadeInDown" role="alert">
+                    <i class="fas fa-check-circle fs-4 mt-1"></i>
+                    <div>@TempData["Success"]</div>
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="med-alert med-alert-danger animate__animated animate__fadeInDown" role="alert">
+                    <i class="fas fa-exclamation-circle fs-4 mt-1"></i>
+                    <div>@TempData["Error"]</div>
+                </div>
+            }
+
+            @RenderBody()
+        </div>
+    </div>
+
+    <!-- ═══ FLOATING AI CHATBOT BUTTON ═══════════════════════ -->
+    <a href="/Chatbot" class="floating-bot" title="استشارة الذكاء الاصطناعي">
+        <i class="fas fa-robot animate__animated animate__pulse animate__infinite"></i>
+    </a>
+
+    <!-- ECG background decoration -->
+    <svg class="bg-ecg-watermark" viewBox="0 0 900 60" preserveAspectRatio="none">
+        <path fill="none" stroke="#1A6FBF" stroke-width="2"
+              d="M0,30 L80,30 L100,10 L120,50 L140,5 L160,55 L180,30
+                 L280,30 L300,10 L320,50 L340,5 L360,55 L380,30
+                 L480,30 L500,10 L520,50 L540,5 L560,55 L580,30
+                 L680,30 L700,10 L720,50 L740,5 L760,55 L780,30 L900,30" />
+    </svg>
+
+    <!-- ═══ FOOTER ═══════════════════════════════════════════ -->
+    <footer class="patient-footer text-center">
+        <div class="container">
+            <p class="mb-1 fw-bold">🏥 منصة إطمن (Etmen) للخدمات الطبية والطوارئ</p>
+            <p class="mb-0 small text-white-50">جميع الحقوق محفوظة &copy; @DateTime.Now.Year. رعاية صحية ذكية ومتكاملة في كل الأوقات.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        function updateNavbarAlertBadge() {
+            $.get('/Alerts/GetUnreadCount', function(data) {
+                var badge = $('#navAlertBadge');
+                if (data.count > 0) {
+                    badge.text(data.count).show();
+                } else {
+                    badge.hide();
+                }
+            });
+        }
+
+        // Automatic GPS coordinates fetching for Emergency Modal
+        $(document).ready(function() {
+            updateNavbarAlertBadge();
+            // Poll for new alerts every 30 seconds
+            setInterval(updateNavbarAlertBadge, 30000);
+
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        $('#navGpsLat').val(position.coords.latitude.toFixed(6));
+                        $('#navGpsLng').val(position.coords.longitude.toFixed(6));
+                        $('#navGpsStatus').html('<i class="fas fa-check text-success"></i> تم تحديد موقعك الجغرافي بنجاح (دقة عالية)');
+                    },
+                    function(error) {
+                        console.warn("Geolocation access denied or timed out:", error.message);
+                        $('#navGpsStatus').html('<i class="fas fa-exclamation-triangle text-warning"></i> تعذر تحديد موقعك، سيتم استخدام الموقع التقريبي للمدينة');
+                    },
+                    { enableHighAccuracy: true, timeout: 8000 }
+                );
+            } else {
+                $('#navGpsStatus').text("متصفحك لا يدعم تحديد الموقع التلقائي.");
+            }
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

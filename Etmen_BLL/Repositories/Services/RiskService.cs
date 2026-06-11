@@ -98,6 +98,8 @@ namespace Etmen_BLL.Repositories.Services
             await _uow.RiskAssessments.AddAsync(assessment);
             await _uow.CompleteAsync();
 
+            riskResult.Id = assessment.Id;
+
             var escalationResult = await _criticalCareEscalationService.EscalateIfNeededAsync(patient, assessment, new RiskInputDto
             {
                 Symptoms = assessment.Symptoms
@@ -161,6 +163,18 @@ namespace Etmen_BLL.Repositories.Services
                 : ServiceResult.Failure(escalationResult.ErrorMessage ?? "Risk was saved, but automatic escalation failed.");
         }
 
+        public async Task<ServiceResult<RiskResultDto>> GetRiskAssessmentByIdAsync(int assessmentId)
+        {
+            if (assessmentId <= 0)
+                return ServiceResult<RiskResultDto>.Failure("Invalid assessment ID.");
+
+            var assessment = await _uow.RiskAssessments.GetByIdAsync(assessmentId);
+            if (assessment == null)
+                return ServiceResult<RiskResultDto>.NotFound("Risk assessment not found.");
+
+            return ServiceResult<RiskResultDto>.Success(Map(assessment));
+        }
+
         private static RiskResultDto Map(RiskAssessment assessment)
         {
             var recommendations = string.IsNullOrWhiteSpace(assessment.RecommendationsJson)
@@ -169,6 +183,7 @@ namespace Etmen_BLL.Repositories.Services
 
             return new RiskResultDto
             {
+                Id = assessment.Id,
                 RiskScore = assessment.RiskScore,
                 RiskLevel = assessment.RiskLevel,
                 RiskColor = RiskLevelMapper.ToColor(assessment.RiskLevel),
@@ -177,7 +192,8 @@ namespace Etmen_BLL.Repositories.Services
                 Recommendations = recommendations,
                 TriggeredSymptoms = string.IsNullOrWhiteSpace(assessment.Symptoms)
                     ? new List<string>()
-                    : assessment.Symptoms.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList()
+                    : assessment.Symptoms.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList(),
+                AssessmentDate = assessment.AssessmentDate
             };
         }
     }

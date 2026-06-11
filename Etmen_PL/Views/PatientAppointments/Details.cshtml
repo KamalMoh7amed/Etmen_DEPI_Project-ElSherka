@@ -1,0 +1,277 @@
+@model Etmen_BLL.DTOs.Nearby.AppointmentDto
+@{
+    ViewData["Title"] = "تذكرة الموعد الطبي";
+    Layout = "~/Views/Shared/_PatientLayout.cshtml";
+
+    var statusClass = Model.Status.ToLower() switch
+    {
+        "scheduled" => "status-scheduled",
+        "confirmed" => "status-confirmed",
+        "completed" => "status-completed",
+        "cancelled" => "status-cancelled",
+        "noshow" => "status-noshow",
+        _ => "status-scheduled"
+    };
+
+    var statusLabel = Model.Status.ToLower() switch
+    {
+        "scheduled" => "مجدول",
+        "confirmed" => "مؤكد",
+        "completed" => "مكتمل",
+        "cancelled" => "ملغي",
+        "noshow" => "لم يحضر",
+        _ => "مجدول"
+    };
+}
+
+<style>
+    /* Ticket Style Layout */
+    .ticket-container {
+        max-width: 650px;
+        margin: 2rem auto;
+        perspective: 1000px;
+    }
+    .medical-ticket {
+        background: white;
+        border-radius: 30px;
+        box-shadow: 0 15px 40px rgba(0,0,0,0.06);
+        overflow: hidden;
+        border: 1px solid var(--border);
+        position: relative;
+    }
+    .ticket-header {
+        background: linear-gradient(135deg, #1A6FBF 0%, #0d4c8a 100%);
+        color: white;
+        padding: 2.5rem 2rem;
+        position: relative;
+        text-align: center;
+        border-bottom: 2px dashed #DDE3EC;
+    }
+    /* Ticket side cuts decoration */
+    .ticket-header::after, .ticket-header::before {
+        content: '';
+        position: absolute;
+        bottom: -15px;
+        width: 30px; height: 30px;
+        background: #F8FAFC; /* Match body bg */
+        border-radius: 50%;
+        border: 1px solid var(--border);
+        z-index: 10;
+    }
+    .ticket-header::before { left: -16px; }
+    .ticket-header::after { right: -16px; }
+
+    .ticket-body {
+        padding: 2.5rem 2rem;
+        background: white;
+        position: relative;
+    }
+
+    .ticket-divider {
+        border-top: 2px dashed var(--border);
+        margin: 2rem 0;
+        position: relative;
+    }
+    .ticket-divider::after, .ticket-divider::before {
+        content: '';
+        position: absolute;
+        top: -15px;
+        width: 30px; height: 30px;
+        background: #F8FAFC; /* Match body bg */
+        border-radius: 50%;
+        border: 1px solid var(--border);
+        z-index: 10;
+    }
+    .ticket-divider::before { left: -36px; }
+    .ticket-divider::after { right: -36px; }
+
+    .ticket-details-item {
+        margin-bottom: 1.25rem;
+    }
+    .ticket-details-label {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+        display: block;
+    }
+    .ticket-details-value {
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: var(--dark);
+    }
+    .barcode-section {
+        text-align: center;
+        margin-top: 1.5rem;
+        opacity: 0.85;
+    }
+    .barcode-svg {
+        height: 60px;
+        width: 80%;
+    }
+    .barcode-number {
+        font-family: monospace;
+        font-size: 0.82rem;
+        letter-spacing: 4px;
+        margin-top: 6px;
+        color: var(--text-muted);
+    }
+
+    .badge-status {
+        padding: 6px 14px;
+        border-radius: 30px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        display: inline-block;
+    }
+    .status-scheduled { background: #E8F4FD; color: var(--primary); }
+    .status-confirmed { background: #E8F8F0; color: var(--success); }
+    .status-completed { background: #F1F5F9; color: var(--text-muted); }
+    .status-cancelled { background: #FDF2F2; color: var(--danger); }
+    .status-noshow { background: #FFF3E0; color: #E67E22; }
+</style>
+
+<div class="container py-3 animate__animated animate__fadeIn">
+    <div class="ticket-container">
+        <!-- Ticket Wrapper -->
+        <div class="medical-ticket">
+            <!-- Header section -->
+            <div class="ticket-header">
+                <div class="d-flex align-items-center justify-content-center gap-2 mb-2">
+                    <span class="fs-4"><i class="fas fa-heartbeat"></i></span>
+                    <span class="fw-bold tracking-wider text-white-50">تذكرة موعد طبية (اطمئن)</span>
+                </div>
+                <h3 class="fw-black text-white mb-0">د. @Model.DoctorName</h3>
+                <span class="badge bg-white text-primary mt-2 px-3 py-1 fw-bold" style="font-size:0.75rem;">@Model.DoctorSpecialization</span>
+            </div>
+
+            <!-- Body section -->
+            <div class="ticket-body">
+                <div class="row g-4 text-start">
+                    <!-- Column 1 -->
+                    <div class="col-6">
+                        <div class="ticket-details-item">
+                            <span class="ticket-details-label"><i class="far fa-calendar-alt"></i> تاريخ الموعد</span>
+                            <span class="ticket-details-value">@Model.Date.ToString("dd MMMM yyyy")</span>
+                        </div>
+                    </div>
+                    <!-- Column 2 -->
+                    <div class="col-6">
+                        <div class="ticket-details-item">
+                            <span class="ticket-details-label"><i class="far fa-clock"></i> وقت الاستشارة</span>
+                            <span class="ticket-details-value">@Model.StartTime.ToString(@"hh\:mm")</span>
+                        </div>
+                    </div>
+
+                    <!-- Column 3 -->
+                    <div class="col-6">
+                        <div class="ticket-details-item">
+                            <span class="ticket-details-label"><i class="fas fa-tag"></i> رمز الموعد</span>
+                            <span class="ticket-details-value">ETM-@Model.Id-@Model.DoctorId</span>
+                        </div>
+                    </div>
+                    <!-- Column 4 -->
+                    <div class="col-6">
+                        <div class="ticket-details-item">
+                            <span class="ticket-details-label"><i class="fas fa-info-circle"></i> حالة الحجز</span>
+                            <span class="badge-status @statusClass">@statusLabel</span>
+                        </div>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.Notes))
+                {
+                    <div class="ticket-divider"></div>
+                    <div class="text-start">
+                        <span class="ticket-details-label"><i class="far fa-comment-dots"></i> ملاحظات أو شكوى المريض</span>
+                        <p class="text-dark mb-0 small p-3 rounded-3" style="background: #F8FAFC; border: 1px solid var(--border); line-height:1.6;">@Model.Notes</p>
+                    </div>
+                }
+
+                <div class="ticket-divider"></div>
+
+                <!-- Guidelines Notice -->
+                <div class="text-start">
+                    <span class="ticket-details-label"><i class="fas fa-exclamation-circle text-primary"></i> تعليمات العيادة الهامة</span>
+                    <ul class="text-muted small ps-3 mt-2 mb-0" style="line-height: 1.8;">
+                        <li>يرجى الحضور إلى مقر العيادة قبل الموعد بـ 15 دقيقة على الأقل لتأكيد الحجز.</li>
+                        <li>إحضار بطاقة الهوية الوطنية أو الملف الطبي والتحاليل السابقة إن وجدت.</li>
+                        <li>في حال تعذر الحضور، يرجى إلغاء الموعد قبل 2 ساعة على الأقل لإفساح المجال لمرضى آخرين.</li>
+                    </ul>
+                </div>
+
+                <!-- Barcode decoration -->
+                <div class="barcode-section mt-5">
+                    <!-- Procedural fake barcode representation -->
+                    <svg class="barcode-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 40">
+                        <g fill="var(--dark)">
+                            <rect x="10" width="3" height="40"/>
+                            <rect x="15" width="1" height="40"/>
+                            <rect x="20" width="4" height="40"/>
+                            <rect x="28" width="2" height="40"/>
+                            <rect x="35" width="3" height="40"/>
+                            <rect x="42" width="1" height="40"/>
+                            <rect x="48" width="4" height="40"/>
+                            <rect x="58" width="2" height="40"/>
+                            <rect x="65" width="5" height="40"/>
+                            <rect x="75" width="2" height="40"/>
+                            <rect x="82" width="1" height="40"/>
+                            <rect x="88" width="4" height="40"/>
+                            <rect x="98" width="3" height="40"/>
+                            <rect x="105" width="1" height="40"/>
+                            <rect x="110" width="6" height="40"/>
+                            <rect x="122" width="2" height="40"/>
+                            <rect x="128" width="3" height="40"/>
+                            <rect x="136" width="1" height="40"/>
+                            <rect x="142" width="5" height="40"/>
+                            <rect x="152" width="2" height="40"/>
+                            <rect x="158" width="4" height="40"/>
+                            <rect x="168" width="1" height="40"/>
+                            <rect x="174" width="3" height="40"/>
+                            <rect x="182" width="2" height="40"/>
+                            <rect x="190" width="4" height="40"/>
+                            <rect x="198" width="1" height="40"/>
+                            <rect x="204" width="5" height="40"/>
+                            <rect x="214" width="2" height="40"/>
+                            <rect x="220" width="4" height="40"/>
+                            <rect x="230" width="1" height="40"/>
+                            <rect x="236" width="3" height="40"/>
+                            <rect x="244" width="2" height="40"/>
+                            <rect x="252" width="4" height="40"/>
+                            <rect x="260" width="1" height="40"/>
+                            <rect x="266" width="5" height="40"/>
+                            <rect x="276" width="2" height="40"/>
+                            <rect x="282" width="3" height="40"/>
+                            <rect x="290" width="1" height="40"/>
+                            <rect x="296" width="4" height="40"/>
+                            <rect x="306" width="2" height="40"/>
+                            <rect x="312" width="5" height="40"/>
+                            <rect x="322" width="2" height="40"/>
+                            <rect x="328" width="1" height="40"/>
+                            <rect x="334" width="4" height="40"/>
+                            <rect x="344" width="3" height="40"/>
+                            <rect x="352" width="1" height="40"/>
+                            <rect x="358" width="6" height="40"/>
+                            <rect x="370" width="2" height="40"/>
+                            <rect x="376" width="3" height="40"/>
+                            <rect x="384" width="1" height="40"/>
+                        </g>
+                    </svg>
+                    <div class="barcode-number">ETM @Model.Id @Model.DoctorId @Model.Date.ToString("yyyyMMdd")</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer control buttons -->
+        <div class="d-flex gap-2 mt-4 px-2">
+            <a href="/PatientAppointments" class="btn btn-outline-primary w-50 py-3 fw-bold" style="border-radius:12px;">
+                <i class="fas fa-chevron-right me-2"></i> العودة لقائمة المواعيد
+            </a>
+            
+            <a href="/PatientAppointments/DownloadConfirmation/@Model.Id" class="btn btn-primary w-50 py-3 fw-bold" style="border-radius:12px;">
+                <i class="fas fa-file-pdf"></i> تحميل التذكرة PDF
+            </a>
+        </div>
+    </div>
+</div>

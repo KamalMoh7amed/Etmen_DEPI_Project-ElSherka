@@ -1,8 +1,9 @@
-﻿namespace Etmen_BLL.DTOs.Lab
+namespace Etmen_BLL.DTOs.Lab
 {
     public class LabResultDto
     {
         public int Id { get; set; }
+        public int PatientId { get; set; }
         public string TestName { get; set; } = string.Empty;
         public DateTime TestDate { get; set; }
         public string? FilePath { get; set; }

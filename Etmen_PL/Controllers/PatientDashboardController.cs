@@ -57,6 +57,8 @@ namespace Etmen_PL.Controllers
                     UpcomingAppointmentsCount = result.Data.UpcomingAppointmentsCount,
                     LatestBmi = result.Data.LatestBmi,
                     LatestBmiCategory = result.Data.LatestBmiCategory,
+                    MedicalRecordsCount = result.Data.MedicalRecordsCount,
+                    LatestMedicalRecord = result.Data.LatestMedicalRecord,
                     UpcomingAppointments = result.Data.UpcomingAppointments,
                     RecentAlerts = result.Data.RecentAlerts
                 };

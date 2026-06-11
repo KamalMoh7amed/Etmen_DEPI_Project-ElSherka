@@ -1,0 +1,261 @@
+@model IEnumerable<Etmen_BLL.DTOs.Risk.RiskResultDto>
+@{
+    ViewData["Title"] = "سجل تقييمات المخاطر";
+    Layout = "~/Views/Shared/_PatientLayout.cshtml";
+}
+
+<style>
+    /* Timeline styling for history */
+    .history-timeline {
+        position: relative;
+        padding-right: 2.5rem;
+    }
+    .history-timeline::before {
+        content: '';
+        position: absolute;
+        right: 15px; top: 10px; bottom: 10px;
+        width: 3px;
+        background: var(--border);
+        z-index: 1;
+    }
+    .history-timeline-node {
+        position: relative;
+        margin-bottom: 2.5rem;
+    }
+    .history-timeline-dot {
+        position: absolute;
+        right: -32px; top: 10px;
+        width: 18px; height: 18px;
+        border-radius: 50%;
+        border: 4px solid white;
+        box-shadow: 0 0 0 3px var(--border);
+        z-index: 2;
+    }
+    .history-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(26,111,191,0.01);
+        transition: all 0.3s;
+    }
+    .history-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(26,111,191,0.05);
+    }
+</style>
+
+<div class="row g-4 justify-content-center">
+    <div class="col-lg-9 animate__animated animate__fadeInUp">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-black text-dark"><i class="fas fa-history text-primary"></i> سجل الفحوصات الطبية وتقييم المخاطر</h2>
+                <p class="text-muted mb-0">تاريخ فحوصاتك وتقييماتك السريرية السابقة مصنفة حسب التواريخ ومستويات الخطورة.</p>
+            </div>
+            <a href="/RiskAssessment" class="btn btn-primary fw-bold px-4 py-2.5" style="border-radius:10px;">
+                <i class="fas fa-plus"></i> تقييم جديد
+            </a>
+        </div>
+
+        @if (Model != null && Model.Any())
+        {
+            <div class="history-timeline">
+                @foreach (var item in Model)
+                {
+                    string color = item.RiskColor;
+                    if (string.IsNullOrEmpty(color))
+                    {
+                        color = item.RiskLevel.ToString() switch
+                        {
+                            "Safe" or "Low" => "#27AE60",
+                            "Medium" => "#F39C12",
+                            "High" => "#E67E22",
+                            "Emergency" => "#E74C3C",
+                            _ => "#1A6FBF"
+                        };
+                    }
+
+                    <div class="history-timeline-node">
+                        <!-- Colored timeline dot -->
+                        <div class="history-timeline-dot" style="background-color: @color; box-shadow: 0 0 0 3px @(color)33;"></div>
+                        
+                        <div class="history-card">
+                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                                <div>
+                                    <span class="badge px-3 py-1.5 fw-bold text-white mb-2" style="background-color: @color; border-radius:6px;">@item.RiskLabel</span>
+                                    <h5 class="fw-black text-dark mb-0">درجة الخطر السريرية: @Math.Round(item.RiskScore)%</h5>
+                                </div>
+                                <span class="text-muted fw-bold small"><i class="far fa-clock"></i> تم الفحص: @item.AssessmentDate.ToString("yyyy/MM/dd — hh:mm tt")</span>
+                            </div>
+
+                            <!-- Triggered Symptoms -->
+                            @if (item.TriggeredSymptoms.Any())
+                            {
+                                <div class="mb-3">
+                                    <span class="text-muted small d-block mb-1">الأعراض المرصودة:</span>
+                                    <div>
+                                        @foreach (var sym in item.TriggeredSymptoms)
+                                        {
+                                            <span class="badge bg-light text-dark border px-2.5 py-1.5 me-1" style="border-radius:6px; font-size:0.78rem;">
+                                                <i class="fas fa-check text-danger me-1"></i> @sym
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- Actions Row -->
+                            <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top flex-wrap gap-2">
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-outline-secondary fw-bold px-3" type="button" data-bs-toggle="collapse" data-bs-target="#recCollapse-@item.Id" aria-expanded="false" aria-controls="recCollapse-@item.Id">
+                                        عرض التوصيات الطبية <i class="fas fa-chevron-down ms-1"></i>
+                                    </button>
+
+                                    @if (item.Id > 0)
+                                    {
+                                        <button class="btn btn-sm btn-outline-primary fw-bold px-3" type="button" onclick="loadHistoryAiExplanation(@item.Id)">
+                                            <i class="fas fa-brain"></i> الشرح بالذكاء الاصطناعي
+                                        </button>
+                                    }
+                                </div>
+
+                                @if (item.Id > 0)
+                                {
+                                    <a href="@Url.Action("DownloadPdf", "RiskAssessment", new { id = item.Id })" class="btn btn-sm btn-light text-danger fw-bold px-3" style="border: 1px solid rgba(231,76,60,0.15); border-radius: 8px;">
+                                        <i class="fas fa-file-pdf"></i> تحميل PDF
+                                    </a>
+                                }
+                            </div>
+
+                            <!-- Recommendations Collapsible -->
+                            <div class="collapse mt-3" id="recCollapse-@item.Id">
+                                <div class="p-3 rounded-3" style="background: #FAFCFF; border: 1px dashed var(--border);">
+                                    <ul class="mb-0 ps-3">
+                                        @if (item.Recommendations.Any())
+                                        {
+                                            @foreach (var rec in item.Recommendations)
+                                            {
+                                                <li class="mb-2 fw-semibold text-dark">@rec</li>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <li class="fw-semibold text-success">لا توجد توصيات خاصة، حالتك الصحية ممتازة. استمر بالمتابعة اليومية.</li>
+                                        }
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- AI Explanation Collapse -->
+                            @if (item.Id > 0)
+                            {
+                                <div class="collapse mt-3" id="aiCollapse-@item.Id">
+                                    <div class="p-3 rounded-3" style="background: #FAFCFF; border: 1px solid rgba(26,111,191,0.15);">
+                                        <div class="ai-history-loading text-center py-2" style="display:none;">
+                                            <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                                            <span class="text-primary small fw-bold ms-2">جاري استشارة المساعد الذكي...</span>
+                                        </div>
+                                        <div class="ai-history-content" style="display:none;">
+                                            <div class="alert alert-light border-0 p-2.5 small text-secondary mb-3 ai-history-summary" style="line-height:1.6; background: white; border-radius: 8px; border-right:3px solid var(--primary) !important;"></div>
+                                            <div class="ai-history-contribs mb-3"></div>
+                                            <ul class="ai-history-actions ps-3 mb-0 small text-secondary" style="line-height:1.7; list-style:none;"></ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="med-card p-5 text-center">
+                <div class="mx-auto mb-4 text-muted" style="font-size: 5rem;">
+                    <i class="fas fa-heart-crack"></i>
+                </div>
+                <h4 class="fw-black text-dark mb-2">لا يوجد تاريخ فحوصات مسجل</h4>
+                <p class="text-muted max-width-500 mx-auto">لم تقم بإجراء أي تقييم مخاطر ذاتي حتى الآن. ابدأ فحصك السريري الأول للحصول على التقارير الطبية وتخزينها.</p>
+                <a href="/RiskAssessment" class="btn btn-primary fw-bold mt-3 px-5 py-3" style="border-radius:12px;">
+                    <i class="fas fa-notes-medical"></i> ابدأ التقييم الذاتي الأول الآن
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function loadHistoryAiExplanation(id) {
+            var collapseElement = $('#aiCollapse-' + id);
+            
+            // Toggle the collapse
+            var bsCollapse = bootstrap.Collapse.getInstance(collapseElement[0]);
+            if (!bsCollapse) {
+                bsCollapse = new bootstrap.Collapse(collapseElement[0], { toggle: false });
+            }
+            
+            // If already open, hide it
+            if (collapseElement.hasClass('show')) {
+                bsCollapse.hide();
+                return;
+            }
+            
+            // Close other collapses in this card if open (optional)
+            var recCollapse = $('#recCollapse-' + id);
+            var bsRec = bootstrap.Collapse.getInstance(recCollapse[0]);
+            if (bsRec && recCollapse.hasClass('show')) {
+                bsRec.hide();
+            }
+            
+            // Show collapse and display loading
+            bsCollapse.show();
+            var loading = collapseElement.find('.ai-history-loading');
+            var content = collapseElement.find('.ai-history-content');
+            
+            loading.show();
+            content.hide();
+            
+            $.get('/RiskAssessment/ExplainRisk/' + id, function(response) {
+                loading.hide();
+                if (response.success) {
+                    // Populate summary
+                    collapseElement.find('.ai-history-summary').text(response.summary);
+                    
+                    // Populate contributions
+                    var contribsDiv = collapseElement.find('.ai-history-contribs').empty();
+                    response.contributions.forEach(function(c) {
+                        var pct = Math.round(c.weight * 100);
+                        var barColor = pct > 50 ? 'bg-danger' : (pct > 25 ? 'bg-warning' : 'bg-success');
+                        contribsDiv.append(`
+                            <div class="mb-2 text-start">
+                                <div class="d-flex justify-content-between small fw-bold mb-1">
+                                    <span class="text-dark">${c.factor} (${c.description})</span>
+                                    <span class="text-muted">${pct}%</span>
+                                </div>
+                                <div class="progress" style="height: 6px; border-radius: 10px;">
+                                    <div class="progress-bar ${barColor}" style="width: ${pct}%"></div>
+                                </div>
+                            </div>
+                        `);
+                    });
+                    
+                    // Populate actions
+                    var actionsUl = collapseElement.find('.ai-history-actions').empty();
+                    response.actions.forEach(function(act) {
+                        actionsUl.append(`<li><i class="fas fa-check-circle text-success me-2"></i> ${act}</li>`);
+                    });
+                    
+                    content.fadeIn(300);
+                } else {
+                    collapseElement.find('.ai-history-summary').text(response.message || 'فشل تحميل التفسير').addClass('alert-danger');
+                    content.show();
+                }
+            }).fail(function() {
+                loading.hide();
+                collapseElement.find('.ai-history-summary').text('حدث خطأ في الاتصال بالخادم').addClass('alert-danger');
+                content.show();
+            });
+        }
+    </script>
+}

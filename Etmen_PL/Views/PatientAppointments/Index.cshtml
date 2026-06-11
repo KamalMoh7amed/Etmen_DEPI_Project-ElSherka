@@ -1,0 +1,348 @@
+@model IEnumerable<Etmen_BLL.DTOs.Nearby.AppointmentDto>
+@{
+    ViewData["Title"] = "مواعيدي الطبية";
+    Layout = "~/Views/Shared/_PatientLayout.cshtml";
+
+    var upcoming = Model.Where(a => a.Status == "Scheduled" || a.Status == "Confirmed").OrderBy(a => a.Date).ThenBy(a => a.StartTime);
+    var past = Model.Where(a => a.Status == "Completed" || a.Status == "Cancelled" || a.Status == "NoShow").OrderByDescending(a => a.Date).ThenByDescending(a => a.StartTime);
+}
+
+<style>
+    .appt-header {
+        background: linear-gradient(135deg, #1a6fbf 0%, #0d4c8a 100%);
+        border-radius: 24px;
+        padding: 2.5rem;
+        box-shadow: 0 10px 30px rgba(26, 111, 191, 0.15);
+        color: white;
+        margin-bottom: 2rem;
+        border: none;
+    }
+    .nav-tabs-premium {
+        border-bottom: 2px solid var(--border);
+        margin-bottom: 2rem;
+        gap: 1.5rem;
+    }
+    .nav-tabs-premium .nav-link {
+        border: none;
+        color: var(--text-muted);
+        font-weight: 700;
+        padding: 12px 20px;
+        position: relative;
+        background: transparent;
+        transition: all 0.3s;
+        font-size: 1rem;
+    }
+    .nav-tabs-premium .nav-link:hover {
+        color: var(--primary);
+    }
+    .nav-tabs-premium .nav-link.active {
+        color: var(--primary);
+        background: transparent;
+    }
+    .nav-tabs-premium .nav-link.active::after {
+        content: '';
+        position: absolute;
+        bottom: -2px; left: 0; right: 0;
+        height: 3px;
+        background: var(--primary);
+        border-radius: 3px;
+        animation: scaleWidth 0.3s ease;
+    }
+    @@keyframes scaleWidth {
+        from { transform: scaleX(0); }
+        to { transform: scaleX(1); }
+    }
+    .appt-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 10px 25px rgba(26,111,191,0.02);
+        transition: all 0.3s;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 250px;
+    }
+    .appt-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 15px 35px rgba(26,111,191,0.06);
+        border-color: rgba(26,111,191,0.15);
+    }
+    .doctor-avatar-box {
+        width: 54px; height: 54px;
+        border-radius: 14px;
+        background: var(--primary-light);
+        color: var(--primary);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+        font-weight: bold;
+    }
+    .badge-status {
+        padding: 6px 12px;
+        border-radius: 30px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        display: inline-block;
+    }
+    .status-scheduled { background: #E8F4FD; color: var(--primary); }
+    .status-confirmed { background: #E8F8F0; color: var(--success); }
+    .status-completed { background: #F1F5F9; color: var(--text-muted); }
+    .status-cancelled { background: #FDF2F2; color: var(--danger); }
+    .status-noshow { background: #FFF3E0; color: #E67E22; }
+
+    .appt-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-muted);
+        font-size: 0.88rem;
+        margin-bottom: 6px;
+    }
+    .appt-meta-item i {
+        color: var(--primary);
+        width: 16px;
+    }
+    .empty-state-appt {
+        padding: 4rem 2rem;
+        text-align: center;
+        background: white;
+        border: 1px dashed var(--border);
+        border-radius: 20px;
+    }
+</style>
+
+<div class="container py-3">
+    <!-- Header -->
+    <div class="appt-header animate__animated animate__fadeIn">
+        <span class="badge bg-white text-primary mb-2 px-3 py-2 fw-bold" style="font-size:0.8rem;">إدارة الحجوزات الطبية</span>
+        <h2 class="fw-black text-white mb-1">📅 مواعيدي واستشاراتي</h2>
+        <p class="text-white-50 mb-0">تتبع مواعيدك الطبية القادمة، استعرض المواعيد السابقة، وقم بتحميل إيصالات التأكيد أو الإلغاء بكل سهولة.</p>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-tabs nav-tabs-premium animate__animated animate__fadeInUp" id="apptTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="upcoming-tab" data-bs-toggle="tab" data-bs-target="#upcomingAppts" type="button" role="tab" aria-controls="upcomingAppts" aria-selected="true">
+                <i class="far fa-calendar-check me-2"></i> المواعيد القادمة (@upcoming.Count())
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="past-tab" data-bs-toggle="tab" data-bs-target="#pastAppts" type="button" role="tab" aria-controls="pastAppts" aria-selected="false">
+                <i class="far fa-calendar-times me-2"></i> الأرشيف الطبي للمواعيد (@past.Count())
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tabs Content -->
+    <div class="tab-content animate__animated animate__fadeInUp" id="apptTabsContent">
+        <!-- Tab 1: Upcoming appointments -->
+        <div class="tab-pane fade show active" id="upcomingAppts" role="tabpanel" aria-labelledby="upcoming-tab">
+            @if (upcoming.Any())
+            {
+                <div class="row g-4">
+                    @foreach (var appt in upcoming)
+                    {
+                        var statusClass = appt.Status.ToLower() switch
+                        {
+                            "scheduled" => "status-scheduled",
+                            "confirmed" => "status-confirmed",
+                            _ => "status-scheduled"
+                        };
+
+                        var statusLabel = appt.Status.ToLower() switch
+                        {
+                            "scheduled" => "مجدول",
+                            "confirmed" => "مؤكد",
+                            _ => "مجدول"
+                        };
+
+                        <div class="col-md-6 col-lg-4">
+                            <div class="appt-card">
+                                <div>
+                                    <!-- Doctor Header info -->
+                                    <div class="d-flex align-items-center gap-3 mb-4">
+                                        <div class="doctor-avatar-box">
+                                            <i class="fas fa-user-md"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="fw-bold mb-1 text-dark">د. @appt.DoctorName</h5>
+                                            <span class="badge bg-light text-primary fw-bold" style="font-size:0.75rem;">@appt.DoctorSpecialization</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Appointment Date/Time info -->
+                                    <div class="appt-meta-item">
+                                        <i class="far fa-calendar-alt"></i>
+                                        <span>التاريخ: <strong>@appt.Date.ToString("dd MMMM yyyy")</strong></span>
+                                    </div>
+                                    <div class="appt-meta-item">
+                                        <i class="far fa-clock"></i>
+                                        <span>الوقت: <strong>@appt.StartTime.ToString(@"hh\:mm")</strong></span>
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(appt.Notes))
+                                    {
+                                        <div class="appt-meta-item align-items-start mt-2">
+                                            <i class="far fa-comment-dots mt-1"></i>
+                                            <span class="small text-muted text-truncate" style="max-width: 200px;" title="@appt.Notes">ملاحظة: @appt.Notes</span>
+                                        </div>
+                                    }
+                                </div>
+
+                                <div class="mt-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span class="badge-status @statusClass">@statusLabel</span>
+                                    </div>
+                                    
+                                    <!-- Action Buttons -->
+                                    <div class="d-flex gap-2">
+                                        <a href="/PatientAppointments/Details/@appt.Id" class="btn btn-outline-primary btn-sm flex-fill fw-bold py-2" style="border-radius:10px;">
+                                            <i class="far fa-file-alt"></i> عرض التذكرة
+                                        </a>
+                                        <a href="/PatientAppointments/DownloadConfirmation/@appt.Id" class="btn btn-light btn-sm fw-bold py-2" style="border-radius:10px;" title="تحميل إيصال PDF">
+                                            <i class="fas fa-file-pdf text-danger"></i>
+                                        </a>
+                                        <button class="btn btn-outline-danger btn-sm fw-bold py-2" style="border-radius:10px;" onclick="confirmCancel(@appt.Id, 'د. @appt.DoctorName', '@appt.Date.ToString("yyyy-MM-dd")')">
+                                            <i class="fas fa-times"></i> إلغاء
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="empty-state-appt animate__animated animate__fadeIn">
+                    <div class="text-primary mb-3" style="font-size: 4rem;"><i class="far fa-calendar-plus animate__animated animate__pulse animate__infinite"></i></div>
+                    <h5 class="fw-bold text-dark">لا توجد مواعيد مجدولة حالياً</h5>
+                    <p class="text-muted small">احجز استشارتك القادمة الآن مع أفضل الأطباء ومقدمي خدمات الرعاية القريبين منك.</p>
+                    <a href="/NearbyProviders" class="btn btn-primary mt-3 px-4 py-2" style="border-radius:10px;"><i class="fas fa-search-location"></i> ابحث عن عيادات طوارئ واحجز موعداً</a>
+                </div>
+            }
+        </div>
+
+        <!-- Tab 2: Past appointments -->
+        <div class="tab-pane fade" id="pastAppts" role="tabpanel" aria-labelledby="past-tab">
+            @if (past.Any())
+            {
+                <div class="row g-4">
+                    @foreach (var appt in past)
+                    {
+                        var statusClass = appt.Status.ToLower() switch
+                        {
+                            "completed" => "status-completed",
+                            "cancelled" => "status-cancelled",
+                            "noshow" => "status-noshow",
+                            _ => "status-completed"
+                        };
+
+                        var statusLabel = appt.Status.ToLower() switch
+                        {
+                            "completed" => "مكتمل",
+                            "cancelled" => "ملغي",
+                            "noshow" => "لم يحضر",
+                            _ => "مكتمل"
+                        };
+
+                        <div class="col-md-6 col-lg-4">
+                            <div class="appt-card" style="min-height:220px; opacity:0.85;">
+                                <div>
+                                    <div class="d-flex align-items-center gap-3 mb-4">
+                                        <div class="doctor-avatar-box" style="background:#F1F5F9; color:#94A3B8;">
+                                            <i class="fas fa-user-md"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="fw-bold mb-1 text-dark">د. @appt.DoctorName</h5>
+                                            <span class="badge bg-light text-muted fw-bold" style="font-size:0.75rem;">@appt.DoctorSpecialization</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="appt-meta-item">
+                                        <i class="far fa-calendar-alt" style="color:#94A3B8;"></i>
+                                        <span>التاريخ: @appt.Date.ToString("dd MMMM yyyy")</span>
+                                    </div>
+                                    <div class="appt-meta-item">
+                                        <i class="far fa-clock" style="color:#94A3B8;"></i>
+                                        <span>الوقت: @appt.StartTime.ToString(@"hh\:mm")</span>
+                                    </div>
+                                </div>
+
+                                <div class="mt-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="badge-status @statusClass">@statusLabel</span>
+                                        
+                                        <!-- Only allow downloading PDF for completed ones -->
+                                        @if (appt.Status.ToLower() == "completed")
+                                        {
+                                            <a href="/PatientAppointments/DownloadConfirmation/@appt.Id" class="btn btn-link btn-sm text-decoration-none fw-bold p-0 text-danger">
+                                                <i class="fas fa-file-pdf"></i> تحميل التقرير
+                                            </a>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="empty-state-appt animate__animated animate__fadeIn">
+                    <div class="text-muted mb-3" style="font-size: 4rem;"><i class="far fa-folder-open"></i></div>
+                    <h5 class="fw-bold text-dark">الأرشيف الطبي فارغ</h5>
+                    <p class="text-muted small">لا توجد حركات سابقة للمواعيد الطبية المكتملة أو الملغاة في سجل الحساب.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- CANCEL APPOINTMENT CONFIRMATION MODAL -->
+<div class="modal fade" id="cancelApptModal" tabindex="-1" aria-labelledby="cancelApptModalLabel" aria-hidden="true" dir="rtl">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header bg-danger text-white border-0 py-3">
+                <h5 class="modal-title fw-bold" id="cancelApptModalLabel"><i class="fas fa-exclamation-triangle"></i> تأكيد إلغاء الحجز الطبي</h5>
+                <button type="button" class="btn-close btn-close-white ms-0 me-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <div class="text-danger mb-3" style="font-size: 3.5rem;">
+                    <i class="far fa-calendar-times animate__animated animate__bounce"></i>
+                </div>
+                <h5 class="fw-bold mb-2">هل أنت متأكد من رغبتك في إلغاء هذا الموعد؟</h5>
+                <p class="text-muted small">الموعد مع <strong id="cancelDoctorName" class="text-dark"></strong> بتاريخ <strong id="cancelApptDate" class="text-dark"></strong>.</p>
+                <p class="text-danger small fw-bold">تنبيه: سيتم إزالة هذا الموعد من جدول الطبيب نهائياً وإخطاره بالإلغاء، ويجب عليك إعادة الحجز عند الحاجة.</p>
+                
+                <form asp-controller="PatientAppointments" asp-action="Cancel" method="post" id="cancelApptForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="cancelApptId" value="" />
+                    
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-danger w-100 py-3 fw-bold" style="border-radius:12px;">
+                            نعم، إلغاء الحجز الآن
+                        </button>
+                        <button type="button" class="btn btn-light w-50 py-3 fw-bold" data-bs-dismiss="modal" style="border-radius:12px;">تراجع</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function confirmCancel(id, doctorName, date) {
+            $('#cancelApptId').val(id);
+            $('#cancelDoctorName').text(doctorName);
+            $('#cancelApptDate').text(date);
+            var myModal = new bootstrap.Modal(document.getElementById('cancelApptModal'));
+            myModal.show();
+        }
+    </script>
+}

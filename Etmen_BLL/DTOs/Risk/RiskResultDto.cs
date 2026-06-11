@@ -1,9 +1,10 @@
-﻿using Etmen_Domain.Enums;
+using Etmen_Domain.Enums;
 
 namespace Etmen_BLL.DTOs.Risk
 {
     public class RiskResultDto
     {
+        public int Id { get; set; }
         public decimal RiskScore { get; set; }
         public RiskLevel RiskLevel { get; set; }
         public string RiskColor { get; set; } = string.Empty;
@@ -15,5 +16,6 @@ namespace Etmen_BLL.DTOs.Risk
         public bool WasAutoEscalated { get; set; }
         public int? EmergencyRequestId { get; set; }
         public string? EscalationMessage { get; set; }
+        public DateTime AssessmentDate { get; set; } = DateTime.UtcNow;
     }
 }

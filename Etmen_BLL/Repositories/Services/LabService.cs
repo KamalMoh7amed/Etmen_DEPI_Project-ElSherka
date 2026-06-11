@@ -5,6 +5,12 @@ using Etmen_DAL.Repositories.Interfaces;
 using Etmen_Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+using System.Text;
+using System.Text.Json;
+using System.IO;
+using System.Net.Http;
 
 namespace Etmen_BLL.Repositories.Services
 {
@@ -14,17 +20,23 @@ namespace Etmen_BLL.Repositories.Services
         private readonly IEmailService _emailService;
         private readonly IPdfReportService _pdfService;
         private readonly ILogger<LabService> _logger;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly IConfiguration _configuration;
 
         public LabService(
             IUnitOfWork uow,
             IEmailService emailService,
             IPdfReportService pdfService,
-            ILogger<LabService> logger)
+            ILogger<LabService> logger,
+            IServiceProvider serviceProvider,
+            IConfiguration configuration)
         {
             _uow          = uow;
             _emailService = emailService;
             _pdfService   = pdfService;
             _logger       = logger;
+            _serviceProvider = serviceProvider;
+            _configuration   = configuration;
         }
 
         public async Task<ServiceResult<LabResultDto>> GetLabResultByIdAsync(int labResultId)
@@ -83,24 +95,169 @@ namespace Etmen_BLL.Repositories.Services
             {
                 try
                 {
-                    var patient      = await _uow.PatientProfiles.GetByIdAsync(lab.PatientProfileId);
-                    var patientEmail = patient?.ApplicationUser?.Email;
-                    var patientName  = patient?.FullName ?? "المريض";
+                    string? ocrData = null;
+                    string? resultsSummary = null;
 
-                    if (!string.IsNullOrWhiteSpace(patientEmail))
+                    if (dto.UseOcr && !string.IsNullOrEmpty(lab.FilePath))
                     {
-                        var pdfBytes = await _pdfService.GenerateLabReportPdfAsync(
-                            patientName, lab.TestName, lab.TestDate,
-                            lab.Results, lab.OcrExtractedData);
+                        try
+                        {
+                            var physicalPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", lab.FilePath.TrimStart('/'));
+                            if (System.IO.File.Exists(physicalPath))
+                            {
+                                var ext = Path.GetExtension(physicalPath).ToLowerInvariant();
+                                var mimeType = ext switch
+                                {
+                                    ".pdf" => "application/pdf",
+                                    ".jpg" or ".jpeg" => "image/jpeg",
+                                    ".png" => "image/png",
+                                    ".gif" => "image/gif",
+                                    ".bmp" => "image/bmp",
+                                    _ => "application/octet-stream"
+                                };
 
-                        await _emailService.SendLabResultEmailAsync(
-                            patientEmail, patientName,
-                            lab.TestName, lab.TestDate, pdfBytes);
+                                var fileBytes = await System.IO.File.ReadAllBytesAsync(physicalPath);
+                                var base64Data = Convert.ToBase64String(fileBytes);
+
+                                using var scope = _serviceProvider.CreateScope();
+                                var scopedUow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+                                var httpClient = scope.ServiceProvider.GetRequiredService<HttpClient>();
+
+                                var apiKey = _configuration["ChatbotApi:ApiKey"];
+                                var endpoint = _configuration["ChatbotApi:Endpoint"];
+
+                                if (!string.IsNullOrEmpty(apiKey) && !string.IsNullOrEmpty(endpoint))
+                                {
+                                    var requestBody = new
+                                    {
+                                        contents = new[]
+                                        {
+                                            new
+                                            {
+                                                parts = new object[]
+                                                {
+                                                    new
+                                                    {
+                                                        inlineData = new
+                                                        {
+                                                            mimeType = mimeType,
+                                                            data = base64Data
+                                                        }
+                                                    },
+                                                    new
+                                                    {
+                                                        text = "قم بتحليل تقرير المختبر الطبي المرفق بدقة. استخرج كافة أسماء الفحوصات الطبية، قيمها المقاسة، وحداتها، ومداها الطبيعي. حدد أي نتائج غير طبيعية (خارج المدى الطبيعي) بشكل واضح بكتابة (مرتفع) أو (منخفض) أو (غير طبيعي). صِغ التقرير النهائي باللغة العربية بشكل منسق ومنظم جداً للمريض."
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        generationConfig = new
+                                        {
+                                            temperature = 0.2,
+                                            maxOutputTokens = 2000
+                                        }
+                                    };
+
+                                    var url = $"{endpoint}?key={apiKey}";
+                                    var requestJson = JsonSerializer.Serialize(requestBody);
+
+                                    using var request = new HttpRequestMessage(HttpMethod.Post, url);
+                                    request.Content = new StringContent(requestJson, Encoding.UTF8, "application/json");
+
+                                    using var response = await httpClient.SendAsync(request);
+                                    if (response.IsSuccessStatusCode)
+                                    {
+                                        var responseText = await response.Content.ReadAsStringAsync();
+                                        using var doc = JsonDocument.Parse(responseText);
+                                        var root = doc.RootElement;
+                                        if (root.TryGetProperty("candidates", out var candidates) && candidates.GetArrayLength() > 0)
+                                        {
+                                            var firstCandidate = candidates[0];
+                                            if (firstCandidate.TryGetProperty("content", out var content) &&
+                                                content.TryGetProperty("parts", out var parts) && parts.GetArrayLength() > 0)
+                                            {
+                                                var extractedText = parts[0].GetProperty("text").GetString();
+                                                if (!string.IsNullOrEmpty(extractedText))
+                                                {
+                                                    ocrData = extractedText;
+                                                    resultsSummary = ocrData.Length > 990 ? ocrData.Substring(0, 990) + "..." : ocrData;
+
+                                                    // Update database record inside scope
+                                                    var dbLab = await scopedUow.LabResults.GetByIdAsync(lab.Id);
+                                                    if (dbLab != null)
+                                                    {
+                                                        dbLab.OcrExtractedData = ocrData;
+                                                        dbLab.Results = resultsSummary;
+                                                        scopedUow.LabResults.Update(dbLab);
+                                                        await scopedUow.CompleteAsync();
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        var errorContent = await response.Content.ReadAsStringAsync();
+                                        _logger.LogError("Gemini OCR API returned error {StatusCode}: {Error}", response.StatusCode, errorContent);
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error occurred during Gemini OCR extraction for lab {Id}", lab.Id);
+                        }
+
+                        // If OCR failed or didn't populate, update status to fail
+                        if (string.IsNullOrEmpty(ocrData))
+                        {
+                            try
+                            {
+                                using var scope = _serviceProvider.CreateScope();
+                                var scopedUow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+                                var dbLab = await scopedUow.LabResults.GetByIdAsync(lab.Id);
+                                if (dbLab != null)
+                                {
+                                    dbLab.OcrExtractedData = "فشل استخراج البيانات الطبية بالذكاء الاصطناعي. يرجى التأكد من وضوح الصورة المرفوعة.";
+                                    scopedUow.LabResults.Update(dbLab);
+                                    await scopedUow.CompleteAsync();
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, "Failed to update fallback OCR status for lab {Id}", lab.Id);
+                            }
+                        }
+                    }
+
+                    // Send lab result email with updated data
+                    using (var scope = _serviceProvider.CreateScope())
+                    {
+                        var scopedUow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+                        var patient = await scopedUow.PatientProfiles.GetByIdAsync(lab.PatientProfileId);
+                        var patientEmail = patient?.ApplicationUser?.Email;
+                        var patientName = patient?.FullName ?? "المريض";
+
+                        if (!string.IsNullOrWhiteSpace(patientEmail))
+                        {
+                            // Fetch the latest updated lab values from database to ensure we send the final PDF
+                            var dbLab = await scopedUow.LabResults.GetByIdAsync(lab.Id);
+                            if (dbLab != null)
+                            {
+                                var pdfBytes = await _pdfService.GenerateLabReportPdfAsync(
+                                    patientName, dbLab.TestName, dbLab.TestDate,
+                                    dbLab.Results, dbLab.OcrExtractedData);
+
+                                await _emailService.SendLabResultEmailAsync(
+                                    patientEmail, patientName,
+                                    dbLab.TestName, dbLab.TestDate, pdfBytes);
+                            }
+                        }
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to send lab result email for lab {Id}", lab.Id);
+                    _logger.LogError(ex, "Failed to complete background lab processing and email for lab {Id}", lab.Id);
                 }
             });
 
@@ -296,6 +453,7 @@ namespace Etmen_BLL.Repositories.Services
         private static LabResultDto Map(LabResult lab) => new()
         {
             Id = lab.Id,
+            PatientId = lab.PatientProfileId,
             TestName = lab.TestName,
             TestDate = lab.TestDate,
             FilePath = lab.FilePath,
@@ -308,8 +466,11 @@ namespace Etmen_BLL.Repositories.Services
         private static bool IsAbnormal(LabResult lab)
         {
             var text = $"{lab.Results} {lab.OcrExtractedData}".ToLowerInvariant();
-            return new[] { "abnormal", "positive", "critical", "high", "low", "elevated", "detected" }
-                .Any(token => text.Contains(token));
+            return new[] { 
+                "abnormal", "positive", "critical", "high", "low", "elevated", "detected",
+                "مرتفع", "منخفض", "حرج", "غير طبيعي", "إيجابي", "غير طبيعية"
+            }
+            .Any(token => text.Contains(token));
         }
 
         private static string? BuildFileUrl(string? filePath)

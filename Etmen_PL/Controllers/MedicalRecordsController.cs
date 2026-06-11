@@ -134,7 +134,7 @@ namespace Etmen_PL.Controllers
                 var recordDto = new Etmen_BLL.DTOs.Medical.MedicalRecordCreateDto
                 {
                     PatientId = 0,
-                    RecordDate = DateTime.UtcNow,
+                    RecordDate = viewModel.RecordDate,
                     SystolicBP = viewModel.SystolicBP,
                     DiastolicBP = viewModel.DiastolicBP,
                     BloodSugar = viewModel.BloodSugar,
@@ -142,6 +142,8 @@ namespace Etmen_PL.Controllers
                     Temperature = viewModel.Temperature,
                     OxygenSaturation = viewModel.OxygenSaturation,
                     Symptoms = viewModel.Symptoms,
+                    Diagnosis = viewModel.Diagnosis,
+                    Treatment = viewModel.Treatment,
                     Notes = viewModel.Notes
                 };
 
@@ -203,6 +205,7 @@ namespace Etmen_PL.Controllers
                     Temperature = recordResult.Data?.Temperature,
                     OxygenSaturation = recordResult.Data?.OxygenSaturation,
                     Symptoms = recordResult.Data?.Symptoms,
+                    RecordDate = recordResult.Data?.RecordDate ?? DateTime.Now,
                     Notes = recordResult.Data?.Notes
                 };
 
@@ -252,7 +255,7 @@ namespace Etmen_PL.Controllers
                 var recordDto = new Etmen_BLL.DTOs.Medical.MedicalRecordCreateDto
                 {
                     PatientId = 0,
-                    RecordDate = DateTime.UtcNow,
+                    RecordDate = viewModel.RecordDate,
                     SystolicBP = viewModel.SystolicBP,
                     DiastolicBP = viewModel.DiastolicBP,
                     BloodSugar = viewModel.BloodSugar,
@@ -260,6 +263,8 @@ namespace Etmen_PL.Controllers
                     Temperature = viewModel.Temperature,
                     OxygenSaturation = viewModel.OxygenSaturation,
                     Symptoms = viewModel.Symptoms,
+                    Diagnosis = viewModel.Diagnosis,
+                    Treatment = viewModel.Treatment,
                     Notes = viewModel.Notes
                 };
 

@@ -103,7 +103,9 @@ namespace Etmen_BLL.Mapping
                 .Map(dest => dest.Date,        src => src.AppointmentDate)
                 .Map(dest => dest.StartTime,   src => src.StartTime)
                 .Map(dest => dest.Status,      src => src.Status.ToString())
-                .Map(dest => dest.Notes,       src => src.Notes);
+                .Map(dest => dest.Notes,       src => src.Notes)
+                .Map(dest => dest.DoctorName,           src => src.DoctorProfile != null ? src.DoctorProfile.FullName ?? string.Empty : "غير محدد")
+                .Map(dest => dest.DoctorSpecialization, src => src.DoctorProfile != null ? src.DoctorProfile.Specialization ?? string.Empty : string.Empty);
 
             // Entity → DoctorAppointmentDto (requires eager-loaded navigation props)
             config.NewConfig<Appointment, DoctorAppointmentDto>()

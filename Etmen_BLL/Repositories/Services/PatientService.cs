@@ -131,7 +131,8 @@ namespace Etmen_BLL.Repositories.Services
                             : new List<string>(),
                         TriggeredSymptoms = latestRisk.Symptoms != null
                             ? latestRisk.Symptoms.Split(',').Select(s => s.Trim()).ToList()
-                            : new List<string>()
+                            : new List<string>(),
+                        AssessmentDate = latestRisk.AssessmentDate
                     };
                 }
 
@@ -159,8 +160,8 @@ namespace Etmen_BLL.Repositories.Services
                 decimal? latestBmi = null;
                 if (patient.Height.HasValue && patient.Weight.HasValue && patient.Height > 0)
                 {
-                    // Height in cm, Weight in kg
-                    latestBmi = patient.Weight.Value / (patient.Height.Value * patient.Height.Value / 100);
+                    // Height is stored in centimeters and weight in kilograms.
+                    latestBmi = patient.Weight.Value / ((patient.Height.Value / 100) * (patient.Height.Value / 100));
                 }
 
                 string? latestBmiCategory = null;
@@ -189,6 +190,12 @@ namespace Etmen_BLL.Repositories.Services
                     })
                     .ToList();
 
+                var medicalRecords = await _uow.MedicalRecords.GetByPatientIdAsync(patient.Id);
+                var orderedMedicalRecords = medicalRecords
+                    .OrderByDescending(r => r.RecordDate)
+                    .ToList();
+                var latestMedicalRecord = orderedMedicalRecords.FirstOrDefault();
+
                 var dashboard = new DashboardDto
                 {
                     PatientName = patient.FullName ?? "Unknown",
@@ -197,6 +204,20 @@ namespace Etmen_BLL.Repositories.Services
                     UpcomingAppointmentsCount = upcomingAppointmentsCount,
                     LatestBmi = latestBmi,
                     LatestBmiCategory = latestBmiCategory,
+                    MedicalRecordsCount = orderedMedicalRecords.Count,
+                    LatestMedicalRecord = latestMedicalRecord == null ? null : new MedicalRecordDto
+                    {
+                        Id = latestMedicalRecord.Id,
+                        RecordDate = latestMedicalRecord.RecordDate,
+                        SystolicBP = latestMedicalRecord.SystolicBP,
+                        DiastolicBP = latestMedicalRecord.DiastolicBP,
+                        BloodSugar = latestMedicalRecord.BloodSugar,
+                        HeartRate = latestMedicalRecord.HeartRate,
+                        Temperature = latestMedicalRecord.Temperature,
+                        OxygenSaturation = latestMedicalRecord.OxygenSaturation,
+                        Symptoms = latestMedicalRecord.Symptoms,
+                        Notes = latestMedicalRecord.Notes
+                    },
                     UpcomingAppointments = appointmentDtos,
                     RecentAlerts = alertDtos
                 };
@@ -360,7 +381,8 @@ namespace Etmen_BLL.Repositories.Services
                     TriggeredSymptoms = triggeredFactors,
                     EmergencyRequestId = escalationResult.Data?.EmergencyRequestId,
                     WasAutoEscalated = escalationResult.Data?.WasEscalated ?? false,
-                    EscalationMessage = escalationResult.Data?.Message
+                    EscalationMessage = escalationResult.Data?.Message,
+                    AssessmentDate = riskAssessment.AssessmentDate
                 };
 
                 return ServiceResult<RiskResultDto>.Success(result, 201);
@@ -398,7 +420,8 @@ namespace Etmen_BLL.Repositories.Services
                         : new List<string>(),
                     TriggeredSymptoms = assessment.Symptoms != null
                         ? assessment.Symptoms.Split(',').Select(s => s.Trim()).ToList()
-                        : new List<string>()
+                        : new List<string>(),
+                    AssessmentDate = assessment.AssessmentDate
                 };
 
                 return ServiceResult<RiskResultDto>.Success(result);
@@ -435,7 +458,8 @@ namespace Etmen_BLL.Repositories.Services
                             : new List<string>(),
                         TriggeredSymptoms = a.Symptoms != null
                             ? a.Symptoms.Split(',').Select(s => s.Trim()).ToList()
-                            : new List<string>()
+                            : new List<string>(),
+                        AssessmentDate = a.AssessmentDate
                     })
                     .ToList();
 

@@ -17,15 +17,21 @@ namespace Etmen_PL.Controllers
     {
         private readonly IRiskService _riskService;
         private readonly IPatientService _patientService;
+        private readonly IPdfReportService _pdfReportService;
+        private readonly ICriticalIntelligenceService _criticalIntelligenceService;
         private readonly ILogger<RiskAssessmentController> _logger;
 
         public RiskAssessmentController(
             IRiskService riskService,
             IPatientService patientService,
+            IPdfReportService pdfReportService,
+            ICriticalIntelligenceService criticalIntelligenceService,
             ILogger<RiskAssessmentController> logger)
         {
             _riskService    = riskService;
             _patientService = patientService;
+            _pdfReportService = pdfReportService;
+            _criticalIntelligenceService = criticalIntelligenceService;
             _logger         = logger;
         }
 
@@ -150,6 +156,120 @@ namespace Etmen_PL.Controllers
                 _logger.LogError(ex, "Error retrieving risk history");
                 TempData["Error"] = "خطأ في تحميل سجل المخاطر";
                 return RedirectToAction("Index", "PatientDashboard");
+            }
+        }
+
+        /// <summary>
+        /// GET: /RiskAssessment/DownloadPdf/{id}
+        /// Downloads a risk assessment report as PDF
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> DownloadPdf(int id)
+        {
+            try
+            {
+                if (id <= 0)
+                    return BadRequest("Invalid assessment ID");
+
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userId))
+                    return RedirectToAction("Login", "Account");
+
+                var profileResult = await _patientService.GetProfileAsync(userId);
+                if (!profileResult.IsSuccess || profileResult.Data == null)
+                {
+                    TempData["Error"] = "لم يتم العثور على ملفك الطبي.";
+                    return RedirectToAction("Index", "PatientDashboard");
+                }
+
+                // Verify ownership by checking history
+                var historyResult = await _riskService.GetPatientRiskHistoryAsync(profileResult.Data.Id);
+                if (!historyResult.IsSuccess || historyResult.Data == null)
+                {
+                    TempData["Error"] = "فشل التحقق من صلاحية الوصول لتقرير المخاطر.";
+                    return RedirectToAction(nameof(History));
+                }
+
+                var assessmentDto = historyResult.Data.FirstOrDefault(a => a.Id == id);
+                if (assessmentDto == null)
+                {
+                    _logger.LogWarning("User {UserId} unauthorized download attempt of risk assessment {AssessmentId}", userId, id);
+                    return Forbid();
+                }
+
+                // Generate PDF
+                var pdfBytes = await _pdfReportService.GenerateRiskReportPdfAsync(
+                    profileResult.Data.FullName ?? "المريض",
+                    assessmentDto.RiskLevel.ToString(),
+                    assessmentDto.RiskScore,
+                    assessmentDto.Recommendations,
+                    assessmentDto.TriggeredSymptoms,
+                    assessmentDto.AssessmentDate,
+                    assessmentDto.IsEmergency
+                );
+
+                var fileName = $"Risk_Report_{assessmentDto.AssessmentDate:yyyyMMdd}_{id}.pdf";
+                _logger.LogInformation("Risk assessment PDF download triggered for assessment {AssessmentId} by user {UserId}", id, userId);
+                return File(pdfBytes, "application/pdf", fileName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating risk assessment PDF for ID {AssessmentId}", id);
+                TempData["Error"] = "حدث خطأ أثناء تحميل ملف تقرير التقييم";
+                return RedirectToAction(nameof(History));
+            }
+        }
+
+        /// <summary>
+        /// GET: /RiskAssessment/ExplainRisk/{id}
+        /// Returns AI plain language explanation and metrics for a risk assessment
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> ExplainRisk(int id)
+        {
+            try
+            {
+                if (id <= 0)
+                    return Json(new { success = false, message = "Invalid ID" });
+
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userId))
+                    return Json(new { success = false, message = "Unauthorized" });
+
+                var profileResult = await _patientService.GetProfileAsync(userId);
+                if (!profileResult.IsSuccess || profileResult.Data == null)
+                    return Json(new { success = false, message = "Profile not found" });
+
+                // Verify ownership by checking history
+                var historyResult = await _riskService.GetPatientRiskHistoryAsync(profileResult.Data.Id);
+                if (!historyResult.IsSuccess || historyResult.Data == null || !historyResult.Data.Any(a => a.Id == id))
+                {
+                    _logger.LogWarning("User {UserId} unauthorized AI explanation attempt of risk assessment {AssessmentId}", userId, id);
+                    return Json(new { success = false, message = "Access denied" });
+                }
+
+                var explainResult = await _criticalIntelligenceService.ExplainRiskAssessmentAsync(id);
+                if (explainResult.IsSuccess && explainResult.Data != null)
+                {
+                    _logger.LogInformation("AI Risk explanation fetched successfully for assessment {AssessmentId} by user {UserId}", id, userId);
+                    return Json(new {
+                        success = true,
+                        summary = explainResult.Data.PlainLanguageSummary,
+                        contributions = explainResult.Data.Contributions.Select(c => new {
+                            factor = c.Factor,
+                            weight = c.ImpactPercent / 100.0,
+                            description = c.Explanation
+                        }),
+                        actions = explainResult.Data.ImmediateActions
+                    });
+                }
+
+                return Json(new { success = false, message = explainResult.ErrorMessage ?? "فشل توليد الشرح بالذكاء الاصطناعي" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting AI risk explanation for assessment ID {AssessmentId}", id);
+                return Json(new { success = false, message = "حدث خطأ أثناء الاتصال بالمساعد الذكي" });
             }
         }
     }

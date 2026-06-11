@@ -14,15 +14,18 @@ namespace Etmen_PL.Controllers
     {
         private readonly ILabService _labService;
         private readonly IPatientService _patientService;
+        private readonly IPdfReportService _pdfReportService;
         private readonly ILogger<LabResultsController> _logger;
 
         public LabResultsController(
             ILabService labService,
             IPatientService patientService,
+            IPdfReportService pdfReportService,
             ILogger<LabResultsController> logger)
         {
             _labService = labService;
             _patientService = patientService;
+            _pdfReportService = pdfReportService;
             _logger = logger;
         }
 
@@ -144,6 +147,65 @@ namespace Etmen_PL.Controllers
             {
                 _logger.LogError(ex, "Error uploading lab result");
                 TempData["Error"] = "خطأ في تحميل نتيجة الاختبار";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        /// <summary>
+        /// GET: /LabResults/DownloadPdf/{id}
+        /// Generates and downloads the PDF version of a lab result
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> DownloadPdf(int id)
+        {
+            try
+            {
+                if (id <= 0)
+                    return BadRequest("Invalid lab result ID");
+
+                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                    return RedirectToAction("Login", "Account");
+
+                var profileResult = await _patientService.GetProfileAsync(userId);
+                if (!profileResult.IsSuccess || profileResult.Data == null)
+                {
+                    TempData["Error"] = "ملف المريض غير موجود";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var labResult = await _labService.GetLabResultByIdAsync(id);
+                if (!labResult.IsSuccess || labResult.Data == null)
+                {
+                    TempData["Error"] = "نتيجة التحليل غير موجودة";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                if (labResult.Data.PatientId != profileResult.Data.Id)
+                {
+                    _logger.LogWarning("User {UserId} unauthorized download attempt of lab result {LabId}", userId, id);
+                    return Forbid();
+                }
+
+                var data = labResult.Data;
+                var pdfBytes = await _pdfReportService.GenerateLabReportPdfAsync(
+                    profileResult.Data.FullName ?? "المريض",
+                    data.TestName,
+                    data.TestDate,
+                    data.Results,
+                    data.OcrExtractedData
+                );
+
+                var cleanTestName = data.TestName.Replace(" ", "_");
+                var fileName = $"Lab_Result_{cleanTestName}_{id}.pdf";
+                
+                _logger.LogInformation("Lab result PDF download triggered for result {LabId} by user {UserId}", id, userId);
+                return File(pdfBytes, "application/pdf", fileName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating lab result PDF for ID {LabId}", id);
+                TempData["Error"] = "حدث خطأ أثناء تحميل ملف تقرير التحليل";
                 return RedirectToAction(nameof(Index));
             }
         }

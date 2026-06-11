@@ -1,0 +1,295 @@
+@model IEnumerable<Etmen_BLL.DTOs.Alert.AlertDto>
+@{
+    ViewData["Title"] = "مركز التنبيهات الصحية";
+    Layout = "~/Views/Shared/_PatientLayout.cshtml";
+}
+
+<style>
+    .alerts-header {
+        background: linear-gradient(135deg, #0f1923 0%, #1b2a38 100%);
+        border-radius: 24px;
+        padding: 2.5rem;
+        box-shadow: 0 10px 30px rgba(15, 25, 35, 0.1);
+        color: white;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.06);
+    }
+    .alerts-header::before {
+        content: '';
+        position: absolute;
+        width: 300px; height: 300px;
+        background: radial-gradient(circle, rgba(26,111,191,0.15) 0%, transparent 70%);
+        top: -100px; left: -100px;
+    }
+    .alert-card {
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        background: white;
+        padding: 1.5rem;
+        margin-bottom: 1.25rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        display: flex;
+        align-items: flex-start;
+        gap: 1.25rem;
+        overflow: hidden;
+    }
+    .alert-card::before {
+        content: '';
+        position: absolute;
+        top: 0; right: 0; bottom: 0;
+        width: 6px;
+    }
+    .alert-card.unread {
+        background: #F8FAFC;
+        border-color: rgba(26,111,191,0.2);
+        box-shadow: 0 4px 25px rgba(26,111,191,0.05);
+    }
+    .alert-card.unread::after {
+        content: '';
+        position: absolute;
+        top: 15px; left: 15px;
+        width: 8px; height: 8px;
+        background-color: var(--primary);
+        border-radius: 50%;
+        animation: pulseUnread 1.5s infinite;
+    }
+    @@keyframes pulseUnread {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.5); opacity: 0.5; }
+    }
+    .alert-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+    }
+    
+    /* Severity Styling */
+    .alert-card.severity-emergency::before { background: var(--danger); }
+    .alert-card.severity-high::before { background: #E67E22; }
+    .alert-card.severity-warning::before { background: var(--warning); }
+    .alert-card.severity-normal::before { background: var(--primary); }
+    .alert-card.severity-safe::before { background: var(--success); }
+
+    .alert-icon-wrapper {
+        width: 48px; height: 48px;
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+    .severity-emergency .alert-icon-wrapper { background: #FDE8E8; color: var(--danger); }
+    .severity-high .alert-icon-wrapper { background: #FFF3E0; color: #E67E22; }
+    .severity-warning .alert-icon-wrapper { background: #FFFDE7; color: var(--warning); }
+    .severity-normal .alert-icon-wrapper { background: #E8F4FD; color: var(--primary); }
+    .severity-safe .alert-icon-wrapper { background: #E8F8F0; color: var(--success); }
+
+    .btn-alert-action {
+        border: none;
+        background: transparent;
+        color: var(--text-muted);
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+    .btn-alert-action:hover {
+        background: #F1F5F9;
+        color: var(--dark);
+    }
+    .btn-alert-delete:hover {
+        background: #FDE8E8;
+        color: var(--danger);
+    }
+
+    .empty-state {
+        padding: 5rem 2rem;
+        text-align: center;
+        background: white;
+        border: 1px dashed var(--border);
+        border-radius: 24px;
+        margin-top: 2rem;
+    }
+    .empty-state-icon {
+        font-size: 5rem;
+        color: var(--border);
+        animation: rotateBell 3s infinite ease-in-out;
+        display: inline-block;
+        margin-bottom: 1.5rem;
+    }
+    @@keyframes rotateBell {
+        0%, 100% { transform: rotate(0); }
+        15% { transform: rotate(15deg); }
+        30% { transform: rotate(-15deg); }
+        45% { transform: rotate(10deg); }
+        60% { transform: rotate(-10deg); }
+        75% { transform: rotate(4deg); }
+        90% { transform: rotate(-4deg); }
+    }
+</style>
+
+<div class="container py-3">
+    <!-- Header banner -->
+    <div class="alerts-header animate__animated animate__fadeIn">
+        <div class="row align-items-center">
+            <div class="col-md-8 text-center text-md-start">
+                <span class="badge bg-primary mb-2 px-3 py-2" style="font-size: 0.8rem;">لوحة التنبيهات الصحية</span>
+                <h2 class="fw-black mb-1 text-white">🔔 مركز التنبيهات الفورية</h2>
+                <p class="text-white-50 mb-0">تابع التنبيهات الحيوية الصادرة من الفحوصات والذكاء الاصطناعي وإجراءات الطوارئ لحظة بلحظة.</p>
+            </div>
+            <div class="col-md-4 text-center text-md-end mt-3 mt-md-0">
+                @if (Model.Any(a => a.Status == Etmen_Domain.Enums.AlertStatus.Unread))
+                {
+                    <form asp-action="MarkAllAsRead" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-light px-4 py-3 fw-bold shadow-sm" style="border-radius: 12px; font-size: 0.95rem; color: var(--primary);">
+                            <i class="fas fa-check-double me-2"></i> تحديد الكل كمقروء
+                        </button>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts Queue -->
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            @if (Model != null && Model.Any())
+            {
+                <div id="alertsContainer">
+                    @foreach (var alert in Model)
+                    {
+                        var severityClass = alert.AlertType?.ToLower() switch
+                        {
+                            "emergency" => "severity-emergency",
+                            "high" => "severity-high",
+                            "warning" => "severity-warning",
+                            "normal" => "severity-normal",
+                            "safe" => "severity-safe",
+                            _ => "severity-normal"
+                        };
+
+                        var iconClass = alert.AlertType?.ToLower() switch
+                        {
+                            "emergency" => "fa-radiation-alt",
+                            "high" => "fa-exclamation-triangle",
+                            "warning" => "fa-bell",
+                            "normal" => "fa-info-circle",
+                            "safe" => "fa-check-circle",
+                            _ => "fa-bell"
+                        };
+
+                        <div class="alert-card @severityClass @(alert.Status == Etmen_Domain.Enums.AlertStatus.Unread ? "unread" : "") animate__animated animate__fadeInUp" id="alert-@alert.Id" style="animation-delay: 0.1s;">
+                            <!-- Alert Icon -->
+                            <div class="alert-icon-wrapper">
+                                <i class="fas @iconClass"></i>
+                            </div>
+
+                            <!-- Alert Body -->
+                            <div class="flex-grow-1 text-start">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <h5 class="fw-bold mb-0 text-dark" style="font-size: 1.05rem;">@alert.Title</h5>
+                                    <span class="text-muted small"><i class="far fa-clock"></i> @alert.CreatedAt.ToString("yyyy-MM-dd hh:mm tt")</span>
+                                </div>
+                                <p class="text-secondary mb-0 small" style="line-height: 1.6; font-size: 0.92rem;">@alert.Message</p>
+                            </div>
+
+                            <!-- Alert Actions (Mark read, Delete) -->
+                            <div class="d-flex flex-column gap-1 ms-2">
+                                @if (alert.Status == Etmen_Domain.Enums.AlertStatus.Unread)
+                                {
+                                    <button class="btn-alert-action btn-alert-read" title="تحديد كمقروء" onclick="markAsRead(@alert.Id)">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                }
+                                <button class="btn-alert-action btn-alert-delete" title="حذف التنبيه" onclick="deleteAlert(@alert.Id)">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="empty-state animate__animated animate__fadeIn">
+                    <div class="empty-state-icon"><i class="fas fa-bell-slash"></i></div>
+                    <h4 class="fw-bold text-dark">صندوق التنبيهات نظيف!</h4>
+                    <p class="text-muted mb-0">لا توجد لديك أي تنبيهات صحية أو إدارية في الوقت الحالي. حافظ على صحتك دائمًا!</p>
+                    <a href="/PatientDashboard" class="btn btn-primary mt-4 px-4 py-2" style="border-radius:10px;"><i class="fas fa-chevron-right me-2"></i> العودة للرئيسية</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Mark alert as read (AJAX)
+        function markAsRead(id) {
+            var token = $('input[name="__RequestVerificationToken"]').val();
+            $.ajax({
+                url: '/Alerts/MarkAsRead',
+                type: 'POST',
+                data: {
+                    id: id,
+                    __RequestVerificationToken: token
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Success: remove unread indicators
+                        var card = $('#alert-' + id);
+                        card.removeClass('unread');
+                        card.find('.btn-alert-read').fadeOut(200);
+                        
+                        // Update layout badge count
+                        updateNavbarAlertBadge();
+                    } else {
+                        alert(response.message || 'حدث خطأ أثناء تحديث التنبيه');
+                    }
+                },
+                error: function() {
+                    alert('تعذر الاتصال بالخادم. يرجى إعادة المحاولة.');
+                }
+            });
+        }
+
+        // Delete alert (AJAX with fadeout animation)
+        function deleteAlert(id) {
+            var token = $('input[name="__RequestVerificationToken"]').val();
+            if (confirm('هل أنت متأكد من رغبتك في حذف هذا التنبيه؟')) {
+                $.ajax({
+                    url: '/Alerts/Delete',
+                    type: 'POST',
+                    data: {
+                        id: id,
+                        __RequestVerificationToken: token
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            var card = $('#alert-' + id);
+                            card.addClass('animate__animated animate__fadeOutLeft');
+                            card.one('webkitAnimationEnd oanimationend msAnimationEnd animationend', function() {
+                                card.remove();
+                                if ($('.alert-card').length === 0) {
+                                    location.reload(); // Refresh to show empty state
+                                }
+                            });
+                            
+                            // Update layout badge count
+                            updateNavbarAlertBadge();
+                        } else {
+                            alert(response.message || 'فشل حذف التنبيه');
+                        }
+                    },
+                    error: function() {
+                        alert('تعذر الاتصال بالخادم.');
+                    }
+                });
+            }
+        }
+    </script>
+}

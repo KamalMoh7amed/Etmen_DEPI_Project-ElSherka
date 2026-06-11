@@ -1,0 +1,139 @@
+@model Etmen_PL.Models.ViewModels.Patient.MedicalRecordCreateViewModel
+@{
+    var formTitle = ViewData["FormTitle"] as string ?? "تسجيل قياس طبي";
+    var submitText = ViewData["SubmitText"] as string ?? "حفظ";
+}
+
+<style>
+    .record-form-shell {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 16px 38px rgba(15, 36, 55, .06);
+    }
+
+    .record-form-head {
+        background: linear-gradient(135deg, #0f2437, #156082);
+        color: #fff;
+        padding: 1.5rem 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .record-form-body {
+        padding: 2rem;
+    }
+
+    .form-section-label {
+        font-weight: 900;
+        color: #102a43;
+        margin: 1.25rem 0 .85rem;
+    }
+
+    .medical-input {
+        border-radius: 12px;
+        border: 1px solid #d8e3ed;
+        min-height: 46px;
+    }
+
+    .medical-input:focus {
+        border-color: #156082;
+        box-shadow: 0 0 0 .2rem rgba(21, 96, 130, .12);
+    }
+</style>
+
+<div class="record-form-shell animate__animated animate__fadeInUp">
+    <div class="record-form-head">
+        <div>
+            <h1 class="fw-black mb-1">@formTitle</h1>
+            <p class="mb-0 text-white-50">أدخل القياسات المتاحة فقط، واترك أي خانة غير متوفرة فارغة.</p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-light fw-bold">
+            <i class="fas fa-arrow-right"></i>
+            السجل الطبي
+        </a>
+    </div>
+
+    <form asp-action="@ViewContext.RouteData.Values["action"]" method="post" class="record-form-body">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label asp-for="RecordDate" class="form-label fw-bold">تاريخ القياس</label>
+                <input asp-for="RecordDate" class="form-control medical-input" type="date" />
+                <span asp-validation-for="RecordDate" class="text-danger small"></span>
+            </div>
+        </div>
+
+        <div class="form-section-label">المؤشرات الحيوية</div>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label asp-for="SystolicBP" class="form-label fw-bold">الضغط الانقباضي</label>
+                <input asp-for="SystolicBP" class="form-control medical-input" placeholder="مثال: 120" />
+                <span asp-validation-for="SystolicBP" class="text-danger small"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="DiastolicBP" class="form-label fw-bold">الضغط الانبساطي</label>
+                <input asp-for="DiastolicBP" class="form-control medical-input" placeholder="مثال: 80" />
+                <span asp-validation-for="DiastolicBP" class="text-danger small"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="HeartRate" class="form-label fw-bold">النبض</label>
+                <input asp-for="HeartRate" class="form-control medical-input" placeholder="نبضة/دقيقة" />
+                <span asp-validation-for="HeartRate" class="text-danger small"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="BloodSugar" class="form-label fw-bold">سكر الدم</label>
+                <input asp-for="BloodSugar" class="form-control medical-input" placeholder="mg/dL" />
+                <span asp-validation-for="BloodSugar" class="text-danger small"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="Temperature" class="form-label fw-bold">درجة الحرارة</label>
+                <input asp-for="Temperature" class="form-control medical-input" placeholder="مثال: 37.0" />
+                <span asp-validation-for="Temperature" class="text-danger small"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="OxygenSaturation" class="form-label fw-bold">نسبة الأكسجين</label>
+                <input asp-for="OxygenSaturation" class="form-control medical-input" placeholder="%" />
+                <span asp-validation-for="OxygenSaturation" class="text-danger small"></span>
+            </div>
+        </div>
+
+        <div class="form-section-label">الملاحظات الطبية</div>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label asp-for="Symptoms" class="form-label fw-bold">الأعراض</label>
+                <textarea asp-for="Symptoms" rows="4" class="form-control medical-input" placeholder="مثال: صداع، دوخة، ضيق تنفس"></textarea>
+                <span asp-validation-for="Symptoms" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Notes" class="form-label fw-bold">ملاحظات إضافية</label>
+                <textarea asp-for="Notes" rows="4" class="form-control medical-input" placeholder="أي تفاصيل تساعد في المتابعة"></textarea>
+                <span asp-validation-for="Notes" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Diagnosis" class="form-label fw-bold">تشخيص/انطباع طبي</label>
+                <textarea asp-for="Diagnosis" rows="3" class="form-control medical-input"></textarea>
+                <span asp-validation-for="Diagnosis" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Treatment" class="form-label fw-bold">إجراء أو علاج مقترح</label>
+                <textarea asp-for="Treatment" rows="3" class="form-control medical-input"></textarea>
+                <span asp-validation-for="Treatment" class="text-danger small"></span>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 mt-4 flex-wrap">
+            <a asp-action="Index" class="btn btn-light fw-bold px-4">إلغاء</a>
+            <button type="submit" class="btn btn-primary fw-bold px-4">
+                <i class="fas fa-check-circle"></i>
+                @submitText
+            </button>
+        </div>
+    </form>
+</div>

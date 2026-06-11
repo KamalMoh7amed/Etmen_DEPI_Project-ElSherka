@@ -1,0 +1,273 @@
+@model IEnumerable<Etmen_BLL.DTOs.Medical.MedicalRecordDto>
+@{
+    ViewData["Title"] = "السجل الطبي";
+    Layout = "~/Views/Shared/_PatientLayout.cshtml";
+    var records = Model?.OrderByDescending(r => r.RecordDate).ToList() ?? new List<Etmen_BLL.DTOs.Medical.MedicalRecordDto>();
+    var latest = records.FirstOrDefault();
+}
+
+<style>
+    .records-shell {
+        display: grid;
+        gap: 1.5rem;
+    }
+
+    .records-hero {
+        background: linear-gradient(135deg, #0f2437 0%, #156082 58%, #0b8f82 100%);
+        border-radius: 18px;
+        color: #fff;
+        padding: 2rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 18px 45px rgba(11, 60, 87, .18);
+    }
+
+    .records-hero::after {
+        content: "";
+        position: absolute;
+        inset: auto -8% -45% auto;
+        width: 360px;
+        height: 360px;
+        background: radial-gradient(circle, rgba(255,255,255,.2), transparent 68%);
+        pointer-events: none;
+    }
+
+    .records-hero-content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .records-title {
+        font-weight: 900;
+        margin: 0 0 .35rem;
+    }
+
+    .records-subtitle {
+        color: rgba(255,255,255,.76);
+        margin: 0;
+        max-width: 680px;
+    }
+
+    .records-actions {
+        display: flex;
+        gap: .75rem;
+        flex-wrap: wrap;
+    }
+
+    .records-toolbar {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+        box-shadow: 0 12px 30px rgba(15, 36, 55, .05);
+    }
+
+    .records-stat-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 1rem;
+    }
+
+    .vital-tile {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 1rem;
+        min-height: 112px;
+        transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+    }
+
+    .vital-tile:hover {
+        transform: translateY(-3px);
+        border-color: rgba(21, 96, 130, .38);
+        box-shadow: 0 14px 28px rgba(15, 36, 55, .08);
+    }
+
+    .vital-label {
+        color: var(--text-muted);
+        font-size: .84rem;
+        font-weight: 800;
+        margin-bottom: .45rem;
+    }
+
+    .vital-value {
+        color: #0f2437;
+        font-weight: 900;
+        font-size: 1.45rem;
+        line-height: 1.2;
+    }
+
+    .records-table-card {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 14px 34px rgba(15, 36, 55, .05);
+    }
+
+    .records-table-card .table {
+        margin: 0;
+        vertical-align: middle;
+    }
+
+    .record-row {
+        transition: background .2s ease;
+    }
+
+    .record-row:hover {
+        background: #f5fbff;
+    }
+
+    .empty-records {
+        background: #fff;
+        border: 1px dashed rgba(21, 96, 130, .35);
+        border-radius: 16px;
+        padding: 3rem 1rem;
+        text-align: center;
+    }
+
+    @@media (max-width: 992px) {
+        .records-stat-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .records-stat-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="records-shell animate__animated animate__fadeIn">
+    <section class="records-hero">
+        <div class="records-hero-content">
+            <div>
+                <h1 class="records-title">السجل الطبي والقياسات الحيوية</h1>
+                <p class="records-subtitle">تابع ضغط الدم، النبض، السكر، الحرارة، ونسبة الأكسجين في مكان واحد مرتب يساعد الطبيب على فهم تطور حالتك بسرعة.</p>
+            </div>
+            <div class="records-actions">
+                <a asp-action="Create" class="btn btn-light fw-bold px-4">
+                    <i class="fas fa-plus-circle"></i>
+                    تسجيل قياس جديد
+                </a>
+                <a asp-controller="RiskAssessment" asp-action="Index" class="btn btn-outline-light fw-bold px-4">
+                    <i class="fas fa-notes-medical"></i>
+                    تقييم المخاطر
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="records-stat-grid">
+        <div class="vital-tile">
+            <div class="vital-label"><i class="fas fa-heart-pulse text-danger"></i> ضغط الدم</div>
+            <div class="vital-value">@(latest?.SystolicBP?.ToString("0") ?? "--")/@(latest?.DiastolicBP?.ToString("0") ?? "--")</div>
+            <div class="text-muted small">mmHg</div>
+        </div>
+        <div class="vital-tile">
+            <div class="vital-label"><i class="fas fa-wave-square text-primary"></i> النبض</div>
+            <div class="vital-value">@(latest?.HeartRate?.ToString("0") ?? "--")</div>
+            <div class="text-muted small">نبضة/دقيقة</div>
+        </div>
+        <div class="vital-tile">
+            <div class="vital-label"><i class="fas fa-droplet text-info"></i> السكر</div>
+            <div class="vital-value">@(latest?.BloodSugar?.ToString("0") ?? "--")</div>
+            <div class="text-muted small">mg/dL</div>
+        </div>
+        <div class="vital-tile">
+            <div class="vital-label"><i class="fas fa-lungs text-success"></i> الأكسجين</div>
+            <div class="vital-value">@(latest?.OxygenSaturation?.ToString("0") ?? "--")%</div>
+            <div class="text-muted small">آخر قياس: @(latest?.RecordDate.ToString("yyyy/MM/dd") ?? "لا يوجد")</div>
+        </div>
+    </section>
+
+    <section class="records-toolbar">
+        <div>
+            <strong>كل القياسات</strong>
+            <span class="text-muted small d-block">@records.Count سجل طبي محفوظ</span>
+        </div>
+        <div class="records-actions">
+            <a asp-action="AbnormalValues" class="btn btn-outline-danger btn-sm fw-bold">
+                <i class="fas fa-triangle-exclamation"></i>
+                القياسات غير الطبيعية
+            </a>
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm fw-bold">
+                <i class="fas fa-rotate"></i>
+                عرض الكل
+            </a>
+        </div>
+    </section>
+
+    @if (records.Any())
+    {
+        <section class="records-table-card">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>ضغط الدم</th>
+                            <th>النبض</th>
+                            <th>السكر</th>
+                            <th>الحرارة</th>
+                            <th>الأكسجين</th>
+                            <th class="text-center">إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var record in records)
+                    {
+                        <tr class="record-row">
+                            <td class="fw-bold">@record.RecordDate.ToString("yyyy/MM/dd")</td>
+                            <td>@(record.SystolicBP?.ToString("0") ?? "--")/@(record.DiastolicBP?.ToString("0") ?? "--")</td>
+                            <td>@(record.HeartRate?.ToString("0") ?? "--")</td>
+                            <td>@(record.BloodSugar?.ToString("0") ?? "--")</td>
+                            <td>@(record.Temperature?.ToString("0.0") ?? "--")</td>
+                            <td>@(record.OxygenSaturation?.ToString("0") ?? "--")%</td>
+                            <td>
+                                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                                    <a asp-action="Details" asp-route-id="@record.Id" class="btn btn-sm btn-outline-primary" title="التفاصيل">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a asp-action="Edit" asp-route-id="@record.Id" class="btn btn-sm btn-outline-secondary" title="تعديل">
+                                        <i class="fas fa-pen"></i>
+                                    </a>
+                                    <form asp-action="Delete" asp-route-id="@record.Id" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="حذف" onclick="return confirm('هل تريد حذف هذا السجل؟');">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+    else
+    {
+        <section class="empty-records">
+            <i class="fas fa-clipboard-list text-primary mb-3" style="font-size: 3rem;"></i>
+            <h4 class="fw-black">لا توجد قياسات مسجلة بعد</h4>
+            <p class="text-muted mb-4">ابدأ بتسجيل أول قياس حتى تظهر مؤشرات المتابعة في لوحة التحكم.</p>
+            <a asp-action="Create" class="btn btn-primary fw-bold px-4">
+                <i class="fas fa-plus-circle"></i>
+                تسجيل أول قياس
+            </a>
+        </section>
+    }
+</div>

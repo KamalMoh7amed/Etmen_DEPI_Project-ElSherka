@@ -1,0 +1,91 @@
+@model Etmen_BLL.DTOs.Medical.MedicalRecordDto
+@{
+    ViewData["Title"] = "تفاصيل القياس";
+    Layout = "~/Views/Shared/_PatientLayout.cshtml";
+}
+
+<style>
+    .record-details {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 2rem;
+        box-shadow: 0 16px 38px rgba(15, 36, 55, .06);
+    }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1rem;
+    }
+
+    .detail-box {
+        background: #f8fbfd;
+        border: 1px solid #e3ebf2;
+        border-radius: 14px;
+        padding: 1rem;
+    }
+
+    .detail-box span {
+        color: var(--text-muted);
+        display: block;
+        font-size: .85rem;
+        font-weight: 800;
+        margin-bottom: .35rem;
+    }
+
+    .detail-box strong {
+        color: #102a43;
+        font-size: 1.35rem;
+        font-weight: 900;
+    }
+
+    @@media (max-width: 768px) {
+        .detail-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="record-details animate__animated animate__fadeInUp">
+    <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-4">
+        <div>
+            <h1 class="fw-black mb-1">تفاصيل القياس الطبي</h1>
+            <p class="text-muted mb-0">@Model.RecordDate.ToString("yyyy/MM/dd")</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary fw-bold">
+                <i class="fas fa-pen"></i>
+                تعديل
+            </a>
+            <a asp-action="Index" class="btn btn-light fw-bold">
+                <i class="fas fa-arrow-right"></i>
+                رجوع
+            </a>
+        </div>
+    </div>
+
+    <div class="detail-grid mb-4">
+        <div class="detail-box"><span>ضغط الدم</span><strong>@(Model.SystolicBP?.ToString("0") ?? "--")/@(Model.DiastolicBP?.ToString("0") ?? "--")</strong></div>
+        <div class="detail-box"><span>النبض</span><strong>@(Model.HeartRate?.ToString("0") ?? "--")</strong></div>
+        <div class="detail-box"><span>سكر الدم</span><strong>@(Model.BloodSugar?.ToString("0") ?? "--")</strong></div>
+        <div class="detail-box"><span>درجة الحرارة</span><strong>@(Model.Temperature?.ToString("0.0") ?? "--")</strong></div>
+        <div class="detail-box"><span>نسبة الأكسجين</span><strong>@(Model.OxygenSaturation?.ToString("0") ?? "--")%</strong></div>
+        <div class="detail-box"><span>رقم السجل</span><strong>#@Model.Id</strong></div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="detail-box h-100">
+                <span>الأعراض</span>
+                <p class="mb-0">@(string.IsNullOrWhiteSpace(Model.Symptoms) ? "لا توجد أعراض مسجلة" : Model.Symptoms)</p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="detail-box h-100">
+                <span>ملاحظات الطبيب/المريض</span>
+                <p class="mb-0" style="white-space: pre-line;">@(string.IsNullOrWhiteSpace(Model.Notes) ? "لا توجد ملاحظات" : Model.Notes)</p>
+            </div>
+        </div>
+    </div>
+</div>

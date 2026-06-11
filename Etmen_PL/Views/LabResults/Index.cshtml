@@ -1,362 +1,249 @@
 @model IEnumerable<Etmen_BLL.DTOs.Lab.LabResultDto>
 @{
-    ViewData["Title"] = "نتائج التحاليل والتقارير — إطمن";
-    Layout = null;
+    ViewData["Title"] = "نتائج التحاليل والتقارير الطبية";
+    Layout = "~/Views/Shared/_PatientLayout.cshtml";
     var uploadModel = ViewBag.LabUpload as Etmen_PL.Models.ViewModels.Patient.LabUploadViewModel ?? new Etmen_PL.Models.ViewModels.Patient.LabUploadViewModel();
 }
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"]</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.rtl.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
-    <style>
-        :root {
-            --primary:        #1A6FBF;
-            --primary-dark:   #0D4C8A;
-            --primary-light:  #E8F4FD;
-            --accent:         #00C9A7;
-            --success:        #27AE60;
-            --warning:        #F39C12;
-            --danger:         #E74C3C;
-            --dark:           #0F1923;
-            --dark-2:         #1B2A38;
-            --text:           #2C3E50;
-            --text-muted:     #7F8C8D;
-            --border:         #DDE3EC;
-            --white:          #FFFFFF;
-        }
+<style>
+    /* Premium file upload area */
+    .upload-zone-custom {
+        border: 2.5px dashed var(--border);
+        border-radius: 20px;
+        padding: 3rem 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        background: #FAFCFF;
+        position: relative;
+    }
+    .upload-zone-custom:hover, .upload-zone-custom.dragover {
+        border-color: var(--primary);
+        background: var(--primary-light);
+    }
+    .upload-zone-custom input[type="file"] {
+        position: absolute; inset: 0; width: 100%; height: 100%;
+        opacity: 0; cursor: pointer;
+    }
+    .upload-zone-icon-custom {
+        font-size: 3rem; color: var(--primary); margin-bottom: 1.2rem;
+        animation: pulseMini 2s infinite;
+    }
 
-        body {
-            font-family: 'Tajawal', sans-serif;
-            background-color: #F4F7FC;
-            color: var(--text);
-            min-height: 100vh;
-        }
+    /* Vertical timeline for labs */
+    .lab-timeline {
+        position: relative;
+        padding-right: 2.5rem;
+    }
+    .lab-timeline::before {
+        content: '';
+        position: absolute;
+        right: 15px; top: 10px; bottom: 10px;
+        width: 3px;
+        background: linear-gradient(to bottom, var(--primary), var(--accent));
+        border-radius: 3px;
+    }
+    .lab-timeline-item {
+        position: relative;
+        margin-bottom: 2.5rem;
+    }
+    .lab-timeline-dot {
+        position: absolute;
+        right: -32px; top: 12px;
+        width: 18px; height: 18px;
+        border-radius: 50%;
+        background-color: var(--primary);
+        border: 4px solid white;
+        box-shadow: 0 0 0 3px var(--primary-light);
+        z-index: 2;
+    }
+    .lab-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 1.5rem;
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(26,111,191,0.01);
+    }
+    .lab-card:hover {
+        transform: translateX(-3px);
+        box-shadow: 0 10px 25px rgba(26,111,191,0.05);
+        border-color: var(--primary);
+    }
 
-        .dashboard-nav {
-            background: var(--dark);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding: 0.75rem 2rem;
-            position: sticky; top: 0; z-index: 100;
-        }
-        .nav-logo { display:flex; align-items:center; gap:10px; text-decoration:none; }
-        .nav-logo-icon {
-            width:40px; height:40px;
-            background: linear-gradient(135deg,var(--primary),var(--accent));
-            border-radius:10px; display:flex; align-items:center; justify-content:center;
-            font-size:1.1rem; color:white;
-        }
-        .nav-logo-text { font-size:1.4rem; font-weight:800; color:white; }
-        .nav-logo-text span { color:var(--accent); }
-        .btn-logout {
-            background:transparent; border:1px solid rgba(255,255,255,0.2);
-            color:rgba(255,255,255,0.8); padding:6px 14px; border-radius:8px;
-            font-size:0.85rem; font-weight:600; transition:all 0.2s; text-decoration:none;
-        }
-        .btn-logout:hover { background:rgba(231,76,60,0.1); border-color:var(--danger); color:var(--danger); }
+    .lab-file-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--primary-light);
+        color: var(--primary);
+        border-radius: 50px;
+        padding: 6px 16px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    .lab-file-badge:hover {
+        background: var(--primary);
+        color: white;
+    }
+</style>
 
-        .sidebar {
-            background:white; border-left:1px solid var(--border);
-            min-height:calc(100vh - 65px); padding:2rem 1rem;
-        }
-        .sidebar-link {
-            display:flex; align-items:center; gap:12px; padding:12px 16px;
-            border-radius:10px; color:var(--text-muted); text-decoration:none;
-            font-weight:600; margin-bottom:0.5rem; transition:all 0.2s;
-        }
-        .sidebar-link:hover, .sidebar-link.active { background:var(--primary-light); color:var(--primary); }
-        .sidebar-link i { font-size:1.1rem; width:24px; text-align:center; }
+<div class="row g-4 mb-4">
+    <div class="col-12 animate__animated animate__fadeInUp">
+        <h2 class="fw-black text-dark"><i class="fas fa-flask text-primary"></i> نتائج التحاليل والتقارير الطبية (OCR)</h2>
+        <p class="text-muted">ارفع مستندات تقاريرك الطبية والتحاليل المخبرية. سيقوم المساعد الطبي بقراءتها تلقائياً بالذكاء الاصطناعي وتلخيصها لك.</p>
+    </div>
+</div>
 
-        .content-area { padding: 2rem; }
-
-        .premium-card {
-            background:white; border:1px solid var(--border);
-            border-radius:20px; padding:2rem;
-            box-shadow:0 4px 20px rgba(0,0,0,0.02);
-        }
-
-        .form-label { font-weight:700; font-size:0.9rem; }
-        .form-control, .form-select {
-            border:1.5px solid var(--border); border-radius:12px;
-            padding:12px 16px; font-family:'Tajawal',sans-serif; font-size:0.95rem;
-            transition:all 0.2s;
-        }
-        .form-control:focus, .form-select:focus {
-            border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-light);
-        }
-
-        .btn-submit {
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            color:white; border:none; padding:12px 24px; border-radius:12px;
-            font-weight:700; font-size:0.95rem;
-            box-shadow:0 4px 15px rgba(26,111,191,0.25); transition:all 0.25s;
-        }
-        .btn-submit:hover { transform:translateY(-2px); box-shadow:0 8px 25px rgba(26,111,191,0.4); }
-
-        /* ── Upload Drop Zone ── */
-        .upload-zone {
-            border: 2.5px dashed var(--border);
-            border-radius: 16px;
-            padding: 2.5rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            background: #FAFCFF;
-            position: relative;
-        }
-        .upload-zone:hover, .upload-zone.dragover {
-            border-color: var(--primary);
-            background: var(--primary-light);
-        }
-        .upload-zone input[type="file"] {
-            position: absolute; inset: 0; width: 100%; height: 100%;
-            opacity: 0; cursor: pointer;
-        }
-        .upload-zone-icon {
-            font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;
-        }
-
-        /* ── Timeline ── */
-        .timeline { position: relative; padding-right: 30px; }
-        .timeline::before {
-            content: '';
-            position: absolute;
-            right: 12px; top: 0; bottom: 0;
-            width: 3px;
-            background: linear-gradient(to bottom, var(--primary), var(--accent));
-            border-radius: 3px;
-        }
-        .timeline-item {
-            position: relative;
-            margin-bottom: 2rem;
-            padding-right: 30px;
-        }
-        .timeline-dot {
-            position: absolute;
-            right: -24px;
-            top: 6px;
-            width: 16px; height: 16px;
-            border-radius: 50%;
-            background: var(--primary);
-            border: 3px solid white;
-            box-shadow: 0 0 0 3px var(--primary-light);
-            z-index: 2;
-        }
-        .timeline-card {
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 1.2rem 1.5rem;
-            transition: all 0.2s;
-        }
-        .timeline-card:hover {
-            box-shadow: 0 6px 18px rgba(0,0,0,0.04);
-            transform: translateX(-3px);
-        }
-
-        .file-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: var(--primary-light);
-            color: var(--primary);
-            border-radius: 50px;
-            padding: 5px 14px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            text-decoration: none;
-            transition: all 0.2s;
-        }
-        .file-badge:hover { background: var(--primary); color: white; }
-    </style>
-</head>
-<body>
-
-    <nav class="dashboard-nav d-flex align-items-center justify-content-between">
-        <a href="/" class="nav-logo">
-            <div class="nav-logo-icon"><i class="fas fa-heartbeat"></i></div>
-            <span class="nav-logo-text">إط<span>من</span></span>
-        </a>
-        <div class="d-flex align-items-center gap-3">
-            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+<div class="row g-4">
+    <!-- Right side: Upload Box -->
+    <div class="col-lg-5 animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
+        <div class="med-card">
+            <h4 class="fw-black text-primary mb-4"><i class="fas fa-cloud-upload-alt"></i> تسجيل تحليل جديد</h4>
+            
+            <form method="post" asp-controller="LabResults" asp-action="Upload" enctype="multipart/form-data">
                 @Html.AntiForgeryToken()
-                <button type="submit" class="btn-logout"><i class="fas fa-sign-out-alt"></i> خروج</button>
-            </form>
-        </div>
-    </nav>
+                <input type="hidden" name="PatientId" value="@uploadModel.PatientId" />
 
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-lg-2 col-md-3 d-none d-md-block sidebar">
-                <a href="/PatientDashboard" class="sidebar-link"><i class="fas fa-chart-pie"></i> لوحة التحكم</a>
-                <a href="/PatientProfile" class="sidebar-link"><i class="fas fa-user-md"></i> الملف الشخصي والحيوي</a>
-                <a href="/LabResults" class="sidebar-link active"><i class="fas fa-file-medical-alt"></i> رفع التحاليل (OCR)</a>
-                <a href="/FamilyLinking" class="sidebar-link"><i class="fas fa-users"></i> الارتباط العائلي</a>
-                <a href="/Chatbot" class="sidebar-link"><i class="fas fa-robot"></i> استشارة الذكاء الاصطناعي</a>
-                <a href="/" class="sidebar-link"><i class="fas fa-home"></i> الرئيسية العامة</a>
-            </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">اسم التحليل أو الفحص</label>
+                    <input type="text" name="TestName" class="form-control" placeholder="مثال: تحليل CBC أو فحص السكر التراكمي" required />
+                </div>
 
-            <div class="col-lg-10 col-md-9 content-area">
-                <h2 class="fw-bold mb-4">نتائج التحاليل والتقارير الطبية</h2>
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">تاريخ إجراء الفحص</label>
+                    <input type="date" name="TestDate" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+                </div>
 
-                @if (TempData["Success"] != null)
-                {
-                    <div class="alert alert-success border-0 shadow-sm mb-4" style="border-radius:12px;">
-                        <i class="fas fa-check-circle me-2"></i> @TempData["Success"]
-                    </div>
-                }
-                @if (TempData["Error"] != null)
-                {
-                    <div class="alert alert-danger border-0 shadow-sm mb-4" style="border-radius:12px;">
-                        <i class="fas fa-exclamation-circle me-2"></i> @TempData["Error"]
-                    </div>
-                }
-
-                <div class="row g-4">
-                    <!-- Upload Section -->
-                    <div class="col-lg-5">
-                        <div class="premium-card">
-                            <h4 class="fw-bold mb-4 text-primary"><i class="fas fa-cloud-upload-alt"></i> رفع تحليل جديد</h4>
-
-                            <form method="post" asp-controller="LabResults" asp-action="Upload" enctype="multipart/form-data">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="PatientId" value="@uploadModel.PatientId" />
-
-                                <div class="mb-3">
-                                    <label class="form-label">اسم التحليل أو الاختبار</label>
-                                    <input type="text" name="TestName" class="form-control" placeholder="مثال: صورة دم كاملة CBC" required />
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label">تاريخ إجراء التحليل</label>
-                                    <input type="date" name="TestDate" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" required />
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label">ملف التحليل (PDF أو صورة)</label>
-                                    <div class="upload-zone" id="uploadZone">
-                                        <input type="file" name="LabFile" accept=".pdf,.jpg,.jpeg,.png" id="fileInput" required />
-                                        <div class="upload-zone-icon"><i class="fas fa-file-medical"></i></div>
-                                        <p class="fw-bold mb-1">اسحب الملف هنا أو اضغط للاختيار</p>
-                                        <p class="text-muted small mb-0" id="fileNameDisplay">PDF, JPG, PNG — حد أقصى 10 ميجابايت</p>
-                                    </div>
-                                </div>
-
-                                <div class="form-check form-switch mb-4">
-                                    <input class="form-check-input" type="checkbox" id="UseOcr" name="UseOcr" value="true" checked>
-                                    <label class="form-check-label fw-semibold" for="UseOcr">
-                                        <i class="fas fa-brain text-primary"></i> تفعيل القراءة الذكية بالذكاء الاصطناعي (OCR)
-                                    </label>
-                                    <div class="text-muted small mt-1">سيتم تحليل الملف واستخراج بيانات التحاليل تلقائياً بالذكاء الاصطناعي.</div>
-                                </div>
-
-                                <button type="submit" class="btn-submit w-100"><i class="fas fa-upload"></i> رفع التحليل وتسجيله</button>
-                            </form>
-                        </div>
-                    </div>
-
-                    <!-- Timeline Section -->
-                    <div class="col-lg-7">
-                        <div class="premium-card">
-                            <div class="d-flex align-items-center justify-content-between mb-4">
-                                <h4 class="fw-bold text-primary mb-0"><i class="fas fa-history"></i> سجل التحاليل السابقة</h4>
-                                @if (Model != null && Model.Any())
-                                {
-                                    <span class="badge bg-primary px-3 py-2" style="border-radius:8px;">@Model.Count() تحليل</span>
-                                }
-                            </div>
-
-                            @if (Model != null && Model.Any())
-                            {
-                                <div class="timeline">
-                                    @foreach (var lab in Model)
-                                    {
-                                        string ext = "";
-                                        if (!string.IsNullOrEmpty(lab.FilePath))
-                                        {
-                                            ext = System.IO.Path.GetExtension(lab.FilePath).ToUpper().TrimStart('.');
-                                        }
-
-                                        <div class="timeline-item">
-                                            <div class="timeline-dot"></div>
-                                            <div class="timeline-card">
-                                                <div class="d-flex align-items-start justify-content-between mb-2">
-                                                    <div>
-                                                        <h6 class="fw-bold mb-1">@lab.TestName</h6>
-                                                        <span class="text-muted small">
-                                                            <i class="far fa-calendar-alt"></i> @lab.TestDate.ToString("yyyy/MM/dd")
-                                                        </span>
-                                                    </div>
-                                                    @if (!string.IsNullOrEmpty(lab.FilePath))
-                                                    {
-                                                        <a href="@lab.FilePath" target="_blank" class="file-badge">
-                                                            <i class="fas fa-file-download"></i> @ext
-                                                        </a>
-                                                    }
-                                                </div>
-
-                                                @if (!string.IsNullOrEmpty(lab.OcrExtractedData))
-                                                {
-                                                    <div class="mt-2 p-2 rounded-3" style="background:#F0FDF4; border:1px solid #BBF7D0;">
-                                                        <span class="small fw-bold text-success"><i class="fas fa-brain"></i> استخراج ذكي:</span>
-                                                        <p class="mb-0 small text-dark mt-1">@lab.OcrExtractedData</p>
-                                                    </div>
-                                                }
-
-                                                @if (!string.IsNullOrEmpty(lab.Results))
-                                                {
-                                                    <div class="mt-2 p-2 rounded-3" style="background:#E8F4FD;">
-                                                        <span class="small fw-bold text-primary"><i class="fas fa-notes-medical"></i> النتائج:</span>
-                                                        <p class="mb-0 small">@lab.Results</p>
-                                                    </div>
-                                                }
-                                            </div>
-                                        </div>
-                                    }
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="text-center py-5 text-muted">
-                                    <i class="fas fa-flask mb-3 fs-1 text-black-50"></i>
-                                    <p class="fw-semibold mb-1">لم يتم رفع أي تحاليل بعد</p>
-                                    <p class="small text-muted mb-0">ارفع أول تحليل من النموذج الجانبي لتبدأ تكوين سجلك المخبري الإلكتروني.</p>
-                                </div>
-                            }
-                        </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">الملف الطبي (صورة أو PDF)</label>
+                    <div class="upload-zone-custom" id="labUploadZone">
+                        <input type="file" name="LabFile" accept=".pdf,.jpg,.jpeg,.png" id="labFileInput" required />
+                        <div class="upload-zone-icon-custom"><i class="fas fa-file-medical"></i></div>
+                        <p class="fw-bold mb-1 text-dark">اسحب الملف هنا أو انقر للاستعراض</p>
+                        <p class="text-muted small mb-0" id="labFileNameDisplay">تنسيقات مدعومة: PDF, JPG, PNG (بحد أقصى 10 ميجا)</p>
                     </div>
                 </div>
-            </div>
+
+                <div class="form-check form-switch p-0 pe-4 mb-4">
+                    <input class="form-check-input float-end" type="checkbox" id="UseOcr" name="UseOcr" value="true" checked>
+                    <label class="form-check-label fw-bold me-4" for="UseOcr">
+                        <i class="fas fa-brain text-accent"></i> تفعيل التعرف الضوئي بالذكاء الاصطناعي (OCR)
+                    </label>
+                    <div class="text-muted small mt-1">سيقوم النظام بمسح النص واستخراجه آلياً لتخزينه في ملفك الموحد.</div>
+                </div>
+
+                <button type="submit" class="btn btn-submit w-100 py-3"><i class="fas fa-upload"></i> رفع وتخزين التقرير</button>
+            </form>
         </div>
     </div>
 
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Left side: Timeline list -->
+    <div class="col-lg-7 animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+        <div class="med-card">
+            <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                <h4 class="fw-black text-primary mb-0"><i class="fas fa-history"></i> الخط الزمني للتحاليل السابقة</h4>
+                @if (Model != null && Model.Any())
+                {
+                    <span class="badge bg-primary px-3 py-2 fw-bold" style="border-radius:8px;">@Model.Count() تحاليل مسجلة</span>
+                }
+            </div>
+
+            @if (Model != null && Model.Any())
+            {
+                <div class="lab-timeline">
+                    @foreach (var lab in Model)
+                    {
+                        string ext = string.Empty;
+                        if (!string.IsNullOrEmpty(lab.FilePath))
+                        {
+                            ext = System.IO.Path.GetExtension(lab.FilePath).ToUpper().TrimStart('.');
+                        }
+
+                        <div class="lab-timeline-item">
+                            <div class="lab-timeline-dot"></div>
+                            <div class="lab-card">
+                                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                                    <div>
+                                        <h6 class="fw-bold mb-1 text-dark">@lab.TestName</h6>
+                                        <span class="text-muted small"><i class="far fa-calendar-alt"></i> تم الفحص: @lab.TestDate.ToString("yyyy/MM/dd")</span>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        @if (!string.IsNullOrEmpty(lab.FilePath))
+                                        {
+                                            <a href="@lab.FilePath" target="_blank" class="lab-file-badge">
+                                                <i class="fas fa-file-download"></i> مستند @ext
+                                            </a>
+                                        }
+                                        @if (lab.Id > 0)
+                                        {
+                                            <a href="@Url.Action("DownloadPdf", "LabResults", new { id = lab.Id })" class="lab-file-badge" style="background: #FDF2F2; color: var(--danger); border: 1px solid rgba(231,76,60,0.15);" title="تحميل التقرير الموحد PDF">
+                                                <i class="fas fa-file-pdf"></i> تقرير PDF
+                                            </a>
+                                        }
+                                    </div>
+                                </div>
+
+                                @if (!string.IsNullOrEmpty(lab.OcrExtractedData))
+                                {
+                                    <div class="p-3 mb-2 rounded-3" style="background:#F0FDF4; border:1px solid #BBF7D0;">
+                                        <span class="small fw-bold text-success d-block mb-1"><i class="fas fa-brain"></i> البيانات المستخرجة بالـ OCR:</span>
+                                        <p class="mb-0 small text-dark">@lab.OcrExtractedData</p>
+                                    </div>
+                                }
+
+                                @if (!string.IsNullOrEmpty(lab.Results))
+                                {
+                                    <div class="p-3 rounded-3" style="background:#E8F4FD; border:1px solid #C4DDF2;">
+                                        <span class="small fw-bold text-primary d-block mb-1"><i class="fas fa-notes-medical"></i> ملخص النتيجة الطبية:</span>
+                                        <p class="mb-0 small text-dark">@lab.Results</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="fas fa-flask mb-3 fs-1 text-black-50" style="animation: pulseMini 2s infinite;"></i>
+                    <p class="fw-bold mb-1">لا توجد سجلات تحاليل سابقة</p>
+                    <p class="small text-muted max-width-350 mx-auto">ارفع أول فحص مخبري من النموذج الأيمن لتبدأ بتكوين خطك الزمني الطبي الموحد.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
     <script>
-        // Drag & drop and file name display
-        const zone = document.getElementById('uploadZone');
-        const fileInput = document.getElementById('fileInput');
-        const display = document.getElementById('fileNameDisplay');
+        // Setup Drag and Drop
+        const zone = document.getElementById('labUploadZone');
+        const input = document.getElementById('labFileInput');
+        const display = document.getElementById('labFileNameDisplay');
 
-        ['dragenter', 'dragover'].forEach(ev => {
-            zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.add('dragover'); });
+        ['dragenter', 'dragover'].forEach(name => {
+            zone.addEventListener(name, e => {
+                e.preventDefault();
+                zone.classList.add('dragover');
+            });
         });
-        ['dragleave', 'drop'].forEach(ev => {
-            zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.remove('dragover'); });
+        ['dragleave', 'drop'].forEach(name => {
+            zone.addEventListener(name, e => {
+                e.preventDefault();
+                zone.classList.remove('dragover');
+            });
         });
 
-        fileInput.addEventListener('change', function () {
+        input.addEventListener('change', function() {
             if (this.files.length > 0) {
                 const file = this.files[0];
                 const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
-                display.innerHTML = '<i class="fas fa-file-check text-success"></i> <strong>' + file.name + '</strong> (' + sizeMB + ' MB)';
+                display.innerHTML = `<i class="fas fa-check-circle text-success"></i> <strong>${file.name}</strong> (${sizeMB} ميجا)`;
             }
         });
     </script>
-</body>
-</html>
+}

@@ -1,0 +1,293 @@
+@model Etmen_BLL.DTOs.Risk.RiskResultDto
+@{
+    ViewData["Title"] = "نتائج تقييم المخاطر";
+    Layout = "~/Views/Shared/_PatientLayout.cshtml";
+
+    // Determine matching colors
+    string hexColor = Model.RiskColor;
+    if (string.IsNullOrEmpty(hexColor)) {
+        hexColor = Model.RiskLevel.ToString() switch {
+            "Safe" or "Low" => "#27AE60",
+            "Medium" => "#F39C12",
+            "High" => "#E67E22",
+            "Emergency" => "#E74C3C",
+            _ => "#1A6FBF"
+        };
+    }
+}
+
+<style>
+    /* Circular Gauge Animation */
+    .gauge-container {
+        position: relative;
+        width: 200px;
+        height: 200px;
+        margin: 0 auto 2rem;
+    }
+    .gauge-svg {
+        transform: rotate(-90deg);
+        width: 100%;
+        height: 100%;
+    }
+    .gauge-track {
+        fill: none;
+        stroke: #E2E8F0;
+        stroke-width: 14;
+    }
+    .gauge-fill {
+        fill: none;
+        stroke: @hexColor;
+        stroke-width: 14;
+        stroke-linecap: round;
+        stroke-dasharray: 565.48; /* 2 * PI * r (r=90) */
+        stroke-dashoffset: 565.48;
+        transition: stroke-dashoffset 1.5s ease-in-out;
+    }
+    .gauge-text {
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+    }
+
+    .symptom-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #F1F5F9;
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 6px 14px;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        margin: 4px;
+    }
+
+    .recommendation-box {
+        background: #F8FAFC;
+        border-right: 5px solid @hexColor;
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.01);
+    }
+</style>
+
+<div class="row g-4 justify-content-center">
+    <div class="col-lg-8 animate__animated animate__fadeInUp">
+        <div class="med-card p-5 text-center">
+            
+            <!-- Result Gauge -->
+            <div class="gauge-container">
+                <svg class="gauge-svg">
+                    <circle class="gauge-track" cx="100" cy="100" r="90" />
+                    <circle class="gauge-fill" id="riskGaugeFill" cx="100" cy="100" r="90" />
+                </svg>
+                <div class="gauge-text">
+                    <span class="fs-4 text-muted fw-bold">النتيجة</span>
+                    <h1 class="fw-black mb-0 display-4" style="color: @hexColor">@Math.Round(Model.RiskScore)%</h1>
+                </div>
+            </div>
+
+            <!-- Risk Label Banner -->
+            <div class="p-3 mb-4 rounded-4 text-white d-inline-block px-5" style="background-color: @hexColor; box-shadow: 0 8px 25px rgba(0,0,0,0.1);">
+                <h4 class="fw-black mb-0"><i class="fas fa-notes-medical"></i> مستوى الخطر: @Model.RiskLabel</h4>
+            </div>
+
+            <!-- Outbreak / System Alert Notice -->
+            @if (Model.IsEmergency)
+            {
+                <div class="alert alert-danger d-flex align-items-center gap-3 py-3 px-4 text-start mb-5 animate__animated animate__flash animate__infinite" style="animation-duration: 3s; border-radius: 16px;">
+                    <span class="fs-2 text-danger"><i class="fas fa-exclamation-triangle"></i></span>
+                    <div>
+                        <h6 class="fw-bold mb-1 text-danger">تحذير طبي عاجل!</h6>
+                        <p class="mb-0 small">تتطلب مؤشراتك الحيوية تدخلاً إسعافياً فورياً. تم تسجيل طلب استدعاء سيارة إسعاف لإنقاذك.</p>
+                        @if (Model.EmergencyRequestId.HasValue)
+                        {
+                            <a href="@Url.Action("Track", "Emergency", new { id = Model.EmergencyRequestId.Value })" class="btn btn-danger btn-sm mt-2 fw-bold px-4 py-2" style="border-radius:8px;">
+                                <i class="fas fa-map-marker-alt"></i> تتبع سيارة الإسعاف الآن
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+
+            @if (Model.WasAutoEscalated)
+            {
+                <div class="alert alert-warning py-3 px-4 text-start mb-4" style="border-radius:12px;">
+                    <i class="fas fa-share-square"></i> <strong>تصعيد آلي للحالة:</strong> @Model.EscalationMessage
+                </div>
+            }
+
+            <!-- Triggered Symptoms List -->
+            @if (Model.TriggeredSymptoms.Any())
+            {
+                <div class="text-start mb-5">
+                    <h5 class="fw-bold text-dark mb-3"><i class="fas fa-viruses text-secondary"></i> الأعراض التي تم رصدها:</h5>
+                    <div class="d-flex flex-wrap">
+                        @foreach (var symptom in Model.TriggeredSymptoms)
+                        {
+                            <span class="symptom-tag"><i class="fas fa-check text-danger"></i> @symptom</span>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- Clinical Recommendations -->
+            <div class="text-start mb-5">
+                <h5 class="fw-bold text-dark mb-3"><i class="fas fa-file-invoice-dollar text-primary"></i> التوصيات الطبية والنصائح الوقائية:</h5>
+                @if (Model.Recommendations.Any())
+                {
+                    @foreach (var rec in Model.Recommendations)
+                    {
+                        <div class="recommendation-box">
+                            <p class="mb-0 fw-bold text-dark"><i class="fas fa-info-circle text-primary me-2"></i> @rec</p>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="recommendation-box">
+                        <p class="mb-0 fw-bold text-dark"><i class="fas fa-info-circle text-success me-2"></i> حالتك مستقرة ولا تتطلب أي إجراءات استثنائية، يرجى الاستمرار في المتابعة الدورية.</p>
+                    </div>
+                }
+            </div>
+
+            <!-- Nearest Emergency Center suggestion -->
+            @if (!string.IsNullOrEmpty(Model.NearestEmergencyCenter))
+            {
+                <div class="alert alert-info py-3 px-4 text-start mb-5 d-flex align-items-center gap-3" style="border-radius: 12px;">
+                    <div class="fs-3 text-primary"><i class="fas fa-hospital-user"></i></div>
+                    <div>
+                        <span class="fw-bold d-block">أقرب مركز طوارئ متاح لك:</span>
+                        <span class="small text-muted">المستشفى المقترح: <strong>@Model.NearestEmergencyCenter</strong></span>
+                    </div>
+                </div>
+            }
+
+            <!-- AI Explanation Panel -->
+            @if (Model.Id > 0)
+            {
+                <div class="med-card text-start p-4 mb-5 border-primary-light animate__animated animate__fadeInUp" style="background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%); border: 1px solid rgba(26,111,191,0.15); animation-delay: 0.2s;">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="bg-primary text-white d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; border-radius: 12px; font-size: 1.35rem; flex-shrink: 0;">
+                            <i class="fas fa-brain animate__animated animate__pulse animate__infinite"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-1 text-dark">🧠 التفسير الذكي للحالة (AI Analysis)</h5>
+                            <p class="text-muted small mb-0">احصل على شرح تفصيلي وعلمي دقيق لمؤشراتك الحيوية ومسببات درجة الخطر الحالية.</p>
+                        </div>
+                    </div>
+                    
+                    <div id="aiExplanationWrapper">
+                        <button id="btnFetchAiExplain" class="btn btn-primary fw-bold px-4 py-2" style="border-radius: 10px; font-size: 0.9rem;" onclick="loadAiExplanation(@Model.Id)">
+                            <i class="fas fa-magic"></i> تفسير النتيجة بالذكاء الاصطناعي
+                        </button>
+                        
+                        <!-- Loading Indicator -->
+                        <div id="aiLoading" class="text-center py-3" style="display: none;">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="text-primary fw-bold mt-2 small">جاري تحليل بياناتك الحيوية عبر مساعد اطمئن الذكي...</p>
+                        </div>
+                        
+                        <!-- AI Explanation Content -->
+                        <div id="aiContent" style="display: none;" class="animate__animated animate__fadeIn">
+                            <div class="alert alert-light border-0 p-3 mb-3 text-secondary" id="aiSummary" style="font-size: 0.95rem; line-height: 1.7; background: white; border-radius: 12px; border-right: 4px solid var(--primary) !important;"></div>
+                            
+                            <!-- Contributions -->
+                            <h6 class="fw-bold text-dark mb-2"><i class="fas fa-chart-bar text-primary"></i> العوامل الأكثر تأثيراً على النتيجة:</h6>
+                            <div id="aiContributions" class="mb-3"></div>
+
+                            <!-- Actions -->
+                            <h6 class="fw-bold text-dark mb-2"><i class="fas fa-heartbeat text-danger"></i> إجراءات وقائية فورية مقترحة:</h6>
+                            <ul id="aiActions" class="ps-3 mb-0 text-secondary small" style="line-height: 1.8; list-style: none;"></ul>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Action Buttons -->
+            <div class="d-flex gap-2">
+                <a href="/PatientDashboard" class="btn btn-outline-primary flex-fill py-3 fw-bold" style="border-radius:12px;">
+                    <i class="fas fa-chart-pie"></i> لوحة التحكم
+                </a>
+                @if (Model.Id > 0)
+                {
+                    <a href="@Url.Action("DownloadPdf", "RiskAssessment", new { id = Model.Id })" class="btn btn-danger flex-fill py-3 fw-bold" style="border-radius:12px;">
+                        <i class="fas fa-file-pdf"></i> تحميل تقرير PDF
+                    </a>
+                }
+                <a href="/RiskAssessment/History" class="btn btn-primary flex-fill py-3 fw-bold" style="border-radius:12px;">
+                    <i class="fas fa-history"></i> عرض سجل التقييمات
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            var score = @Model.RiskScore;
+            var maxOffset = 565.48; // Circumference
+            // Calculate progress offset
+            var offset = maxOffset - (score / 100 * maxOffset);
+            
+            // Set dashoffset dynamically with delay to trigger animation
+            setTimeout(function() {
+                $('#riskGaugeFill').css('stroke-dashoffset', offset);
+            }, 100);
+        });
+
+        function loadAiExplanation(id) {
+            $('#btnFetchAiExplain').hide();
+            $('#aiLoading').show();
+            
+            $.get('/RiskAssessment/ExplainRisk/' + id, function(response) {
+                $('#aiLoading').hide();
+                if (response.success) {
+                    // Render summary
+                    $('#aiSummary').text(response.summary);
+                    
+                    // Render contributions
+                    var contribContainer = $('#aiContributions');
+                    contribContainer.empty();
+                    response.contributions.forEach(function(c) {
+                        var percent = Math.round(c.weight * 100);
+                        var barColor = percent > 50 ? 'bg-danger' : (percent > 25 ? 'bg-warning' : 'bg-success');
+                        var itemHtml = `
+                            <div class="mb-2">
+                                <div class="d-flex justify-content-between small fw-bold mb-1">
+                                    <span class="text-dark">${c.factor} (${c.description})</span>
+                                    <span class="text-muted">${percent}%</span>
+                                </div>
+                                <div class="progress" style="height: 8px; border-radius: 10px;">
+                                    <div class="progress-bar ${barColor}" role="progressbar" style="width: ${percent}%" aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>`;
+                        contribContainer.append(itemHtml);
+                    });
+                    
+                    // Render actions
+                    var actionsContainer = $('#aiActions');
+                    actionsContainer.empty();
+                    response.actions.forEach(function(act) {
+                        actionsContainer.append(`<li><i class="fas fa-check-circle text-success me-2"></i> ${act}</li>`);
+                    });
+                    
+                    $('#aiContent').slideDown(400);
+                } else {
+                    alert(response.message || 'تعذر جلب التفسير من المساعد الذكي');
+                    $('#btnFetchAiExplain').show();
+                }
+            }).fail(function() {
+                $('#aiLoading').hide();
+                alert('حدث خطأ في الاتصال بالخادم');
+                $('#btnFetchAiExplain').show();
+            });
+        }
+    </script>
+}

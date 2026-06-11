@@ -1,0 +1,13 @@
+@model Etmen_PL.Models.ViewModels.Patient.MedicalRecordCreateViewModel
+@{
+    ViewData["Title"] = "تعديل قياس طبي";
+    Layout = "~/Views/Shared/_PatientLayout.cshtml";
+    ViewData["FormTitle"] = "تعديل القياس الطبي";
+    ViewData["SubmitText"] = "حفظ التعديلات";
+}
+
+<partial name="_MedicalRecordForm" model="Model" />
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

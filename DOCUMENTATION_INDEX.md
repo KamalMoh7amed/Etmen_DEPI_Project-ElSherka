@@ -40,6 +40,13 @@
 - **المحتوى**: الهيكل، المميزات، خارطة الطريق
 - **متى تقرأه**: لفهم البنية الكاملة
 
+### 6. **SERVICES_GUIDE.md** 🛠️ SERVICES & ROLES GUIDE
+- **ماذا يتضمن**: شرح تفصيلي لـ 24 خدمة برمجية والربط مع المستخدمين
+- **الجمهور**: فريق التطوير، معماريو البرمجيات، والـ QA
+- **الطول**: متوسط (شامل)
+- **المحتوى**: تفاصيل كل خدمة، العمليات الأساسية، والربط مع أدوار المستخدمين
+- **متى تقرأه**: لفهم المنطق البرمجي وكيف تخدم كل فئة من المستخدمين
+
 ---
 
 ## 🎯 Quick Navigation
@@ -73,6 +80,7 @@ Root Directory/
 ├── DETAILED_USER_STORIES_MAPPING.md    📋 Developer Reference
 ├── REQUIREMENTS_COVERAGE.md            📊 Stakeholder Report
 ├── IMPLEMENTATION_STATUS.md            🏗️ Architecture Guide
+├── SERVICES_GUIDE.md                   🛠️ Services & Roles Guide
 ├── DOCUMENTATION_INDEX.md              📚 This File
 │
 ├── Etmen_PL/
@@ -260,6 +268,7 @@ Result: Sign off on delivery
 | DETAILED_USER_STORIES_MAPPING.md | 1.0 | 2025 | ✅ Current |
 | REQUIREMENTS_COVERAGE.md | 1.0 | 2025 | ✅ Current |
 | IMPLEMENTATION_STATUS.md | 1.0 | 2025 | ✅ Current |
+| SERVICES_GUIDE.md | 1.0 | 2026 | ✅ Current |
 
 ---
 

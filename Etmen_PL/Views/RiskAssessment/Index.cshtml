@@ -1,0 +1,292 @@
+@model Etmen_PL.Models.ViewModels.Patient.RiskAssessmentInputViewModel
+@{
+    ViewData["Title"] = "تقييم المخاطر الصحية الذاتي";
+    Layout = "~/Views/Shared/_PatientLayout.cshtml";
+}
+
+<style>
+    /* Wizard Steps styling */
+    .wizard-step-indicator {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 3rem;
+        position: relative;
+    }
+    .wizard-step-indicator::before {
+        content: '';
+        position: absolute;
+        top: 24px; left: 0; right: 0;
+        height: 3px;
+        background-color: var(--border);
+        z-index: 1;
+    }
+    .wizard-progress-bar {
+        position: absolute;
+        top: 24px; right: 0;
+        height: 3px;
+        background-color: var(--primary);
+        z-index: 2;
+        width: 0%;
+        transition: width 0.4s ease;
+    }
+    .step-node {
+        width: 50px; height: 50px;
+        border-radius: 50%;
+        background-color: white;
+        border: 3px solid var(--border);
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 800;
+        color: var(--text-muted);
+        position: relative;
+        z-index: 3;
+        transition: all 0.4s;
+    }
+    .step-node.active {
+        border-color: var(--primary);
+        color: var(--primary);
+        box-shadow: 0 0 15px rgba(26,111,191,0.25);
+    }
+    .step-node.complete {
+        background-color: var(--primary);
+        border-color: var(--primary);
+        color: white;
+    }
+    .step-node-label {
+        position: absolute;
+        top: 55px;
+        white-space: nowrap;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--text-muted);
+    }
+    .step-node.active .step-node-label {
+        color: var(--primary-dark);
+    }
+
+    .form-group-medical {
+        background: #F8FAFC;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.25rem;
+        transition: all 0.25s;
+    }
+    .form-group-medical:focus-within {
+        background: white;
+        border-color: var(--primary);
+        box-shadow: 0 0 10px rgba(26,111,191,0.08);
+    }
+    .input-unit-badge {
+        background: var(--border);
+        color: var(--text);
+        font-weight: 700;
+        border-radius: 0 8px 8px 0;
+        display: flex; align-items: center; padding: 0 12px;
+    }
+</style>
+
+<div class="row g-4 justify-content-center">
+    <div class="col-lg-9 animate__animated animate__fadeInUp">
+        <div class="med-card p-5">
+            <div class="text-center mb-5">
+                <span class="badge bg-primary-light text-primary px-3 py-2 fw-bold mb-3" style="border-radius:8px;">
+                    <i class="fas fa-brain"></i> فحص سريري ذكي بالذكاء الاصطناعي
+                </span>
+                <h2 class="fw-black text-dark">تقييم المخاطر الصحية والذعر</h2>
+                <p class="text-muted max-width-600 mx-auto">قم بإدخال علاماتك الحيوية وأعراضك الحالية لحساب مؤشر الخطر وحالة الطوارئ.</p>
+            </div>
+
+            <!-- Steps Indicator -->
+            <div class="wizard-step-indicator">
+                <div class="wizard-progress-bar" id="wizardProgress"></div>
+                <div class="step-node complete" id="node-1">
+                    1 <span class="step-node-label">المؤشرات الحيوية</span>
+                </div>
+                <div class="step-node" id="node-2">
+                    2 <span class="step-node-label">الأعراض والموقع</span>
+                </div>
+            </div>
+
+            <!-- Main Form -->
+            <form method="post" asp-controller="RiskAssessment" asp-action="Index" id="assessmentForm">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-4"></div>
+
+                <!-- STEP 1: Vitals -->
+                <div id="step-1-content">
+                    <h5 class="fw-bold mb-4 text-primary"><i class="fas fa-heartbeat"></i> الخطوة 1: أدخل علاماتك الحيوية الحالية</h5>
+                    
+                    <div class="row g-4 mb-4">
+                        <!-- Pulse -->
+                        <div class="col-md-6">
+                            <div class="form-group-medical">
+                                <label asp-for="HeartRate" class="form-label fw-bold">معدل نبضات القلب</label>
+                                <div class="input-group">
+                                    <input asp-for="HeartRate" type="number" class="form-control" placeholder="مثال: 72" required />
+                                    <span class="input-unit-badge">نبضة/دقيقة</span>
+                                </div>
+                                <span asp-validation-for="HeartRate" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <!-- Temperature -->
+                        <div class="col-md-6">
+                            <div class="form-group-medical">
+                                <label asp-for="Temperature" class="form-label fw-bold">درجة حرارة الجسم</label>
+                                <div class="input-group">
+                                    <input asp-for="Temperature" type="number" step="0.1" class="form-control" placeholder="مثال: 37.0" required />
+                                    <span class="input-unit-badge">مئوية °C</span>
+                                </div>
+                                <span asp-validation-for="Temperature" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <!-- BP Systolic -->
+                        <div class="col-md-6">
+                            <div class="form-group-medical">
+                                <label asp-for="SystolicBP" class="form-label fw-bold">ضغط الدم الانقباضي (العالي)</label>
+                                <div class="input-group">
+                                    <input asp-for="SystolicBP" type="number" class="form-control" placeholder="مثال: 120" required />
+                                    <span class="input-unit-badge">mmHg</span>
+                                </div>
+                                <span asp-validation-for="SystolicBP" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <!-- BP Diastolic -->
+                        <div class="col-md-6">
+                            <div class="form-group-medical">
+                                <label asp-for="DiastolicBP" class="form-label fw-bold">ضغط الدم الانبساطي (المنخفض)</label>
+                                <div class="input-group">
+                                    <input asp-for="DiastolicBP" type="number" class="form-control" placeholder="مثال: 80" required />
+                                    <span class="input-unit-badge">mmHg</span>
+                                </div>
+                                <span asp-validation-for="DiastolicBP" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <!-- Oxygen -->
+                        <div class="col-md-6">
+                            <div class="form-group-medical">
+                                <label asp-for="OxygenSaturation" class="form-label fw-bold">تشبع الأكسجين في الدم</label>
+                                <div class="input-group">
+                                    <input asp-for="OxygenSaturation" type="number" class="form-control" placeholder="مثال: 98" required />
+                                    <span class="input-unit-badge">% SpO2</span>
+                                </div>
+                                <span asp-validation-for="OxygenSaturation" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <!-- Blood Sugar -->
+                        <div class="col-md-6">
+                            <div class="form-group-medical">
+                                <label asp-for="BloodSugar" class="form-label fw-bold">مستوى السكر في الدم</label>
+                                <div class="input-group">
+                                    <input asp-for="BloodSugar" type="number" class="form-control" placeholder="مثال: 100" />
+                                    <span class="input-unit-badge">mg/dL</span>
+                                </div>
+                                <span asp-validation-for="BloodSugar" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-primary px-5 py-3 fw-bold" style="border-radius:12px;" onclick="goToStep(2)">
+                            التالي: الأعراض والموقع <i class="fas fa-arrow-left"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STEP 2: Symptoms & Location -->
+                <div id="step-2-content" style="display:none;">
+                    <h5 class="fw-bold mb-4 text-primary"><i class="fas fa-virus"></i> الخطوة 2: الأعراض الحالية وموقعك الجغرافي</h5>
+                    
+                    <div class="mb-4">
+                        <label asp-for="Symptoms" class="form-label fw-bold">اكتب الأعراض التي تشعر بها حالياً بالتفصيل</label>
+                        <textarea asp-for="Symptoms" class="form-control" rows="4" style="border-radius:12px;" placeholder="اكتب الأعراض مثل: سعال جاف، ضيق تنفس، إرهاق شديد، ألم بالمفاصل..."></textarea>
+                        <span asp-validation-for="Symptoms" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Hidden location fields -->
+                    <input type="hidden" asp-for="Latitude" id="gpsLat" value="30.0444" />
+                    <input type="hidden" asp-for="Longitude" id="gpsLng" value="31.2357" />
+
+                    <div class="alert alert-info d-flex align-items-center gap-3 py-3 px-4 mb-4" style="border-radius:12px;">
+                        <div class="fs-3 text-primary"><i class="fas fa-map-marker-alt"></i></div>
+                        <div>
+                            <span class="fw-bold d-block small">تحديد البؤر الجغرافية الموبوءة</span>
+                            <span class="small text-muted" id="gpsStatus">جاري استدعاء إحداثيات موقعك لتقييم مدى قربك من مناطق تفشي الأوبئة...</span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-light px-4 py-3 fw-bold" style="border-radius:12px;" onclick="goToStep(1)">
+                            <i class="fas fa-arrow-right"></i> السابق
+                        </button>
+                        <button type="submit" class="btn btn-submit w-100 py-3"><i class="fas fa-calculator"></i> حساب مؤشر الخطورة السريرية</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function goToStep(stepNum) {
+            if (stepNum === 2) {
+                // Perform simple validation on Step 1 fields
+                var step1Fields = $('#step-1-content').find('input[required]');
+                var valid = true;
+                step1Fields.each(function() {
+                    if ($(this).val().trim() === '') {
+                        $(this).addClass('is-invalid');
+                        valid = false;
+                    } else {
+                        $(this).removeClass('is-invalid');
+                    }
+                });
+
+                if (!valid) {
+                    TempData = { Error: "يرجى ملء جميع الحقول الإلزامية للمؤشرات الحيوية" };
+                    return;
+                }
+
+                // Show step 2
+                $('#step-1-content').hide();
+                $('#step-2-content').fadeIn(300);
+                
+                // Update Indicators
+                $('#node-2').addClass('active');
+                $('#wizardProgress').css('width', '50%');
+
+                // Trigger location fetch
+                fetchGpsCoords();
+            } else if (stepNum === 1) {
+                // Show step 1
+                $('#step-2-content').hide();
+                $('#step-1-content').fadeIn(300);
+                
+                // Update Indicators
+                $('#node-2').removeClass('active');
+                $('#wizardProgress').css('width', '0%');
+            }
+        }
+
+        function fetchGpsCoords() {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        $('#gpsLat').val(position.coords.latitude.toFixed(6));
+                        $('#gpsLng').val(position.coords.longitude.toFixed(6));
+                        $('#gpsStatus').html('<i class="fas fa-check text-success"></i> تم تحديد الإحداثيات بنجاح، سيتم حساب معامل تفشي الأوبئة بناءً عليها.');
+                    },
+                    function(error) {
+                        console.warn("Location error:", error.message);
+                        $('#gpsStatus').html('<i class="fas fa-exclamation-triangle text-warning"></i> لم نتمكن من تحديد موقعك بدقة، سيتم حساب التقييم بالطريقة القياسية.');
+                    },
+                    { enableHighAccuracy: true, timeout: 8000 }
+                );
+            }
+        }
+    </script>
+}
