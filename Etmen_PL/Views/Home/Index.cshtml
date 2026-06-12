@@ -1,4 +1,4 @@
-﻿@model Etmen_PL.Models.Home.LandingPageViewModel
+@model Etmen_PL.Models.Home.LandingPageViewModel
 @{
     ViewData["Title"] = "إطمن — منصة الرعاية الصحية الرقمية المتكاملة";
     Layout = null; /* Standalone page — owns its own full HTML */
@@ -233,11 +233,11 @@ font-family: 'Tajawal', sans-serif;
         }
 
         /* ═══════════════════════════════════════════════════
-           HERO SECTION (ALTIBBI DOUBLE CARDS)
-        ═══════════════════════════════════════════════════ */
+           HERO SECTION (UPGRADED WITH ANIMATIONS & VISUALS)
+         ═══════════════════════════════════════════════════ */
         .hero {
-            padding: 150px 0 100px;
-            background: radial-gradient(circle at 10% 20%, rgba(240, 253, 250, 0.6) 0%, rgba(240, 249, 255, 0.4) 90%);
+            padding: 160px 0 100px;
+            background: radial-gradient(circle at 10% 20%, rgba(240, 253, 250, 0.65) 0%, rgba(240, 249, 255, 0.45) 90%);
             position: relative;
             overflow: hidden;
         }
@@ -255,9 +255,30 @@ font-family: 'Tajawal', sans-serif;
             position: relative;
             z-index: 2;
         }
+        
+        /* background decoration */
+        .hero-glow-blob {
+            position: absolute;
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, rgba(16, 118, 110, 0.12) 0%, rgba(2, 132, 199, 0.08) 50%, transparent 100%);
+            filter: blur(40px);
+            border-radius: 50%;
+            z-index: 1;
+            pointer-events: none;
+            animation: pulseBlob 8s infinite alternate ease-in-out;
+        }
+        .hero-glow-blob-1 { top: 5%; left: 5%; }
+        .hero-glow-blob-2 { bottom: 5%; right: 5%; animation-delay: -4s; }
+
+        @@keyframes pulseBlob {
+            0% { transform: scale(1) translate(0, 0); opacity: 0.8; }
+            50% { transform: scale(1.15) translate(15px, -15px); opacity: 1; }
+            100% { transform: scale(0.9) translate(-10px, 10px); opacity: 0.7; }
+        }
+
         .hero-tagline {
-            display: inline
--flex;
+            display: inline-flex;
             align-items: center;
             gap: 8px;
             background: var(--primary-light);
@@ -268,13 +289,24 @@ font-family: 'Tajawal', sans-serif;
             font-size: 0.9rem;
             font-weight: 700;
             margin-bottom: 1.5rem;
+            box-shadow: 0 4px 12px rgba(16, 118, 110, 0.03);
+            animation: taglineEntrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
+        @@keyframes taglineEntrance {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .hero-title-main {
-            font-size: clamp(2rem, 5vw, 3.8rem);
+            font-size: clamp(2.2rem, 5vw, 3.8rem);
             font-weight: 900;
             color: var(--dark);
             line-height: 1.25;
             margin-bottom: 1.5rem;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUpIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation-delay: 0.15s;
         }
         .hero-title-main span {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
@@ -284,16 +316,22 @@ font-family: 'Tajawal', sans-serif;
         .hero-description {
             font-size: 1.15rem;
             color: var(--text-muted);
-            margin-bottom: 3rem;
+            margin-bottom: 2.5rem;
             max-width: 650px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUpIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation-delay: 0.3s;
+        }
+        @@keyframes fadeUpIn {
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* Interactive Mode Badges */
-        .mode
--badge-card {
+        .mode-badge-card {
             background: var(--white);
-            border: 1px solid var(--border);
-            border-radius: 16px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            border-radius: 18px;
             padding: 16px;
             display: flex;
             align-items: flex-start;
@@ -301,6 +339,22 @@ font-family: 'Tajawal', sans-serif;
             height: 100%;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+        }
+        .mode-badge-card::before {
+            content: '';
+            position: absolute;
+            bottom: 0; right: 0; left: 0;
+            height: 3px;
+            background: var(--primary);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+            transform-origin: right;
+            border-radius: 2px;
+        }
+        .mode-badge-card:hover::before {
+            transform: scaleX(1);
         }
         .mode-badge-card:hover {
             transform: translateY(-4px);
@@ -322,19 +376,308 @@ font-family: 'Tajawal', sans-serif;
             color: var(--dark);
             margin: 0 0 4px 0;
         }
-        .mode-badge-card p 
-{
+        .mode-badge-card p {
             font-size: 0.8rem;
             color: var(--text-muted);
             margin: 0;
+            line-height: 1.45;
+        }
+
+        /* Upgraded Visual Mockups Container */
+        .hero-visual-wrapper {
+            position: relative;
+            width: 100%;
+            height: 440px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: auto;
+        }
+
+        /* Glassmorphism Panel */
+        .dashboard-main-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 24px;
+            width: 320px;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.06), 
+                        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            position: relative;
+            z-index: 3;
+            transition: all 0.3s ease;
+        }
+        .dashboard-main-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 25px 50px rgba(15, 23, 42, 0.1);
+        }
+        .dashboard-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            border-bottom: 1px dashed var(--border);
+            padding-bottom: 15px;
+        }
+        .dashboard-user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .dashboard-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary-light), #ccfbf1);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.05rem;
+            border: 2px solid var(--white);
+            box-shadow: var(--shadow-sm);
+        }
+        .dashboard-user-info h6 {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--dark);
+            margin: 0;
+        }
+        .dashboard-user-info span {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+            animation: statusPulse 2s infinite;
+        }
+        @@keyframes statusPulse {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+            70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        .vital-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .vital-item {
+            background: var(--white);
+            border: 1px solid rgba(226, 232, 240, 0.7);
+            border-radius: 14px;
+            padding: 12px 14px;
+            transition: all 0.25s ease;
+        }
+        .vital-item:hover {
+            border-color: rgba(16, 118, 110, 0.2);
+            transform: translateY(-2px);
+        }
+        .vital-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .vital-value {
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: var(--dark);
+            line-height: 1.1;
+        }
+        .vital-value span {
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-right: 2px;
+        }
+
+        /* Floating Widgets */
+        .floating-card {
+            position: absolute;
+            background: var(--white);
+            border-radius: 18px;
+            padding: 14px;
+            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            z-index: 4;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .floating-card:hover {
+            transform: scale(1.05) translateY(-5px) !important;
+            box-shadow: 0 18px 32px rgba(15, 23, 42, 0.12);
+        }
+        .float-1 {
+            top: 15%;
+            left: -8%;
+            width: 175px;
+            animation: floatSlow 6s infinite ease-in-out;
+        }
+        .float-2 {
+            bottom: 8%;
+            right: -8%;
+            width: 215px;
+            animation: floatMedium 5.5s infinite ease-in-out;
+            animation-delay: -1.5s;
+        }
+        .float-3 {
+            bottom: 68%;
+            right: -2%;
+            animation: floatFast 5s infinite ease-in-out;
+            animation-delay: -3s;
+        }
+
+        @@keyframes floatSlow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
+        }
+        @@keyframes floatMedium {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(12px); }
+        }
+        @@keyframes floatFast {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        /* Float 1 details: ECG Pulse Graph */
+        .ecg-card {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .ecg-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .ecg-header span {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+        .ecg-icon {
+            color: var(--danger);
+            animation: heartBeat 1.2s infinite;
+        }
+        @@keyframes heartBeat {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.18); }
+            40% { transform: scale(1.05); }
+            55% { transform: scale(1.22); }
+        }
+        .ecg-value {
+            font-size: 1.35rem;
+            font-weight: 900;
+            color: var(--dark);
+        }
+        .ecg-value span {
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+        .ecg-svg-container {
+            width: 100%;
+            height: 32px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        .ecg-path {
+            stroke-dasharray: 400;
+            stroke-dashoffset: 400;
+            animation: drawLine 3.5s linear infinite;
+        }
+        @@keyframes drawLine {
+            to { stroke-dashoffset: 0; }
+        }
+
+        /* Float 2 details: Bot/Doctor Chat Bubble */
+        .chat-bubble-widget {
+            display: flex;
+            gap: 8px;
+        }
+        .chat-bubble-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            color: var(--white);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+            box-shadow: 0 4px 8px rgba(2, 132, 199, 0.15);
+        }
+        .chat-bubble-content {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .chat-bubble-name {
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: var(--secondary);
+        }
+        .chat-bubble-text {
+            font-size: 0.75rem;
+            color: var(--dark-2);
+            background: var(--secondary-light);
+            border-radius: 12px 0 12px 12px;
+            padding: 6px 10px;
             line-height: 1.4;
+            border: 1px solid rgba(2, 132, 199, 0.05);
+        }
+
+        /* Float 3 details: Active Crisis Monitor badge */
+        .crisis-badge-widget {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #fff8f6;
+            border: 1px solid rgba(234, 88, 12, 0.12);
+            padding: 8px 14px;
+            border-radius: 50px;
+        }
+        .crisis-badge-widget i {
+            color: var(--crisis);
+            font-size: 1rem;
+            animation: crisisRotate 2.5s infinite ease-in-out;
+        }
+        @@keyframes crisisRotate {
+            0%, 100% { transform: rotate(0); }
+            50% { transform: rotate(15deg); }
+        }
+        .crisis-badge-widget div h7 {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--crisis);
+            display: block;
+            margin: 0;
+            line-height: 1.1;
+        }
+        .crisis-badge-widget div span {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            display: block;
         }
 
         /* Split Cards Layout */
         .hero-cards-row {
             display: flex;
             gap: 2rem;
-            margin-top: 1rem;
+            margin-top: 2rem;
         }
         .hero-promo-card {
             flex: 1;
@@ -346,21 +689,25 @@ font-family: 'Tajawal', sans-serif;
             flex-direction: column;
             justify-content: space-between;
             min-height: 290px;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background-size: 200% 200%;
+            animation: gradientShift 6s ease infinite alternate;
             box-shadow: var(--shadow-lg);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .hero-promo-card:hover {
-            transform: translateY(-8px);
+            transform: translateY(-6px);
             box-shadow: var(--shadow-xl);
         }
         .hero-promo-card-1 {
-            background: linear-gradient(135deg, var(--primary), #0f766e);
-            color: white;
+            background-image: linear-gradient(135deg, var(--primary) 0%, #0d5c56 60%, #115e59 100%);
         }
         .hero-promo-card-2 {
-            background:
- linear-gradient(135deg, var(--secondary), #0369a1);
-            color: white;
+            background-image: linear-gradient(135deg, var(--secondary) 0%, #0369a1 60%, #075985 100%);
+        }
+        @@keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
         }
         .hero-promo-icon {
             position: absolute;
@@ -392,10 +739,9 @@ font-family: 'Tajawal', sans-serif;
         .hero-promo-desc {
             font-size: 1.05rem;
             opacity: 0.9;
-       
-     max-width: 320px;
+            max-width: 340px;
             margin-bottom: 2rem;
-            line-height: 1.6;
+            line-height: 1.65;
         }
         .hero-promo-actions {
             display: flex;
@@ -417,11 +763,13 @@ font-family: 'Tajawal', sans-serif;
         .btn-promo-white {
             background: white;
             color: var(--primary);
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.25);
         }
         .btn-promo-white:hover {
             background: rgba(255, 255, 255, 0.9);
             transform: translateY(-2px);
             color: var(--primary-dark);
+            box-shadow: 0 6px 20px rgba(255, 255, 255, 0.4);
         }
         .btn-promo-outline {
             background: transparent;
@@ -1483,24 +1831,27 @@ NIMATIONS & RESPONSIVE
 
     <!-- ═══ HERO SECTION (ALTIBBI STYLE) ════════════════════ -->
     <section class="hero">
+        <!-- Glowing background blobs for ambient lighting -->
+        <div class="hero-glow-blob hero-glow-blob-1"></div>
+        <div class="hero-glow-blob hero-glow-blob-2"></div>
+
         <div class="container hero-container">
             <div class="row align-items-center mb-5">
-                <div class="col-lg-8">
+                <div class="col-lg-7">
                     <div class="hero-tagline">
                         <i class="fas fa-shield-halved"></i> صحتك في أمان مع إطمن
                     </div>
                     <h1 class="hero-title-main">
                         طبيبك اليومي.. وسندك في الطوارئ..<br />ودرعك في <span>الأزمات الصحية</span>
                     </h1>
-                    <p class="hero-description" style="margin-bottom: 2rem;">
+                    <p class="hero-description">
                         إطمن ليست مجرد منصة استشارات؛ بل هي منظومة صحية ذكية متكاملة تتكيف معك في ثلاثة مستويات رئيسية: تنظيم رعايتك اليومية، التدخل الفوري لإنقاذ الطوارئ، وتأمين المجتمع عند تفشي الأوبئة والأزمات الكبرى.
                     </p>
 
                     <!-- شريط الأنماط التفاعلي المبتكر -->
-                    <div class="row g-3 mb-4 mt-2"
->
+                    <div class="row g-3 mb-4 mt-2">
                         <div class="col-md-4">
-                            <div class="mode-badge-card">
+                            <div class="mode-badge-card" data-animate>
                                 <i class="fas fa-heartbeat text-success"></i>
                                 <div>
                                     <h5>الرعاية اليومية</h5>
@@ -1509,7 +1860,7 @@ NIMATIONS & RESPONSIVE
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <div class="mode-badge-card">
+                            <div class="mode-badge-card" data-animate data-animate-delay="1">
                                 <i class="fas fa-truck-medical text-primary-color"></i>
                                 <div>
                                     <h5>طوارئ فورية</h5>
@@ -1518,13 +1869,106 @@ NIMATIONS & RESPONSIVE
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <div class="mode
--badge-card">
+                            <div class="mode-badge-card" data-animate data-animate-delay="2">
                                 <i class="fas fa-shield-virus text-warning"></i>
                                 <div>
                                     <h5>رصد الأزمات والأوبئة</h5>
                                     <p>خرائط حرارية ونظام فرز ذكي للأوبئة</p>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-5 col-12 position-relative">
+                    <div class="hero-visual-wrapper">
+                        <!-- Main Patient Vitals Panel -->
+                        <div class="dashboard-main-card" data-animate>
+                            <div class="dashboard-header">
+                                <div class="dashboard-user">
+                                    <div class="dashboard-avatar">أ م</div>
+                                    <div class="dashboard-user-info">
+                                        <h6>أحمد محمد</h6>
+                                        <span><span class="status-dot"></span> ملف طبي نشط</span>
+                                    </div>
+                                </div>
+                                <i class="fas fa-ellipsis-v text-muted" style="font-size: 0.8rem; cursor: pointer;"></i>
+                            </div>
+                            
+                            <div class="vital-grid">
+                                <div class="vital-item">
+                                    <div class="vital-title">
+                                        <i class="fas fa-droplet text-danger"></i>
+                                        <span>ضغط الدم</span>
+                                    </div>
+                                    <div class="vital-value">120/80 <span>mmHg</span></div>
+                                </div>
+                                <div class="vital-item">
+                                    <div class="vital-title">
+                                        <i class="fas fa-lungs text-primary"></i>
+                                        <span>الأكسجين</span>
+                                    </div>
+                                    <div class="vital-value">98%</div>
+                                </div>
+                                <div class="vital-item">
+                                    <div class="vital-title">
+                                        <i class="fas fa-temperature-half text-warning"></i>
+                                        <span>الحرارة</span>
+                                    </div>
+                                    <div class="vital-value">36.7 <span>°C</span></div>
+                                </div>
+                                <div class="vital-item">
+                                    <div class="vital-title">
+                                        <i class="fas fa-weight-scale text-success"></i>
+                                        <span>الوزن</span>
+                                    </div>
+                                    <div class="vital-value">76 <span>كجم</span></div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-3 pt-2 border-top text-center" style="font-size: 0.75rem; color: var(--text-muted);">
+                                <i class="fas fa-circle-check text-success me-1"></i> قياس المؤشرات: مستقر ومؤمن
+                            </div>
+                        </div>
+                        
+                        <!-- Floating Widget 1: Animated ECG Pulse -->
+                        <div class="floating-card float-1 ecg-card" data-animate data-animate-delay="1">
+                            <div class="ecg-header">
+                                <span>معدل النبض</span>
+                                <i class="fas fa-heart ecg-icon"></i>
+                            </div>
+                            <div class="ecg-value">72 <span>نبضة/د</span></div>
+                            <div class="ecg-svg-container">
+                                <svg viewBox="0 0 100 30" width="100%" height="100%" preserveAspectRatio="none">
+                                    <path class="ecg-path" d="M 0,15 L 15,15 L 20,15 L 25,5 L 30,25 L 35,15 L 50,15 L 55,15 L 58,10 L 61,20 L 64,15 L 75,15 L 80,5 L 85,25 L 90,15 L 100,15" 
+                                          fill="none" stroke="url(#ecgGradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <defs>
+                                        <linearGradient id="ecgGradient" x1="0" y1="0" x2="1" y2="0">
+                                            <stop offset="0%" stop-color="#ef4444" />
+                                            <stop offset="100%" stop-color="#f87171" />
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                            </div>
+                        </div>
+                        
+                        <!-- Floating Widget 2: AI Doctor Chat Response -->
+                        <div class="floating-card float-2 chat-bubble-widget" data-animate data-animate-delay="2">
+                            <div class="chat-bubble-avatar">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <div class="chat-bubble-content">
+                                <span class="chat-bubble-name">مساعد إطمن الذكي</span>
+                                <p class="chat-bubble-text">مؤشراتك اليوم مستقرة جداً. هل تريد تتبع الأعراض؟</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Floating Widget 3: Epidemic Crisis Status Tracker -->
+                        <div class="floating-card float-3 crisis-badge-widget" data-animate data-animate-delay="3">
+                            <i class="fas fa-triangle-exclamation"></i>
+                            <div>
+                                <h7>نظام رصد الأزمات</h7>
+                                <span>آمن ومستقر حالياً</span>
                             </div>
                         </div>
                     </div>
@@ -1540,8 +1984,7 @@ NIMATIONS & RESPONSIVE
                         <span class="hero-promo-badge">للمرضى والرعاية اليومية</span>
                         <h2 class="hero-promo-title">طبيبك معك</h2>
                         <p class="hero-promo-desc">
-                            احجز موعدك، تابع ملفك الطبي و
-عائلتك، واحصل على تشخيصات وملاحظات فورية من عيادة طبيبك المعتمدة.
+                            احجز موعدك، تابع ملفك الطبي وعائلتك، واحصل على تشخيصات وملاحظات فورية من عيادة طبيبك المعتمدة.
                         </p>
                     </div>
                     <div class="hero-promo-actions">
@@ -1559,8 +2002,7 @@ NIMATIONS & RESPONSIVE
                         <span class="hero-promo-badge">الاستشارات الفورية والذكاء الاصطناعي</span>
                         <h2 class="hero-promo-title">تواصل مع طبيب</h2>
                         <p class="hero-promo-desc">
-                  
-          اطرح استفساراتك على مساعد إطمن الذكي أو ابدأ دردشة فورية للحصول على نصائح وتوجيهات صحية موثوقة.
+                            اطرح استفساراتك على مساعد إطمن الذكي أو ابدأ دردشة فورية للحصول على نصائح وتوجيهات صحية موثوقة.
                         </p>
                     </div>
                     <div class="hero-promo-actions">
