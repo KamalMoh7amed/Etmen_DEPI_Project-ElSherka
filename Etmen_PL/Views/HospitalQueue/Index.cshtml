@@ -2,6 +2,16 @@
 @{
     ViewData["Title"] = "لوحة فرز الحالات وغرفة العمليات";
     Layout = "~/Views/Shared/_HospitalStaffLayout.cshtml";
+
+    // Separate items by status
+    var pendingItems = Model.Items.Where(i => i.Status == "Pending").ToList();
+    var acceptedItems = Model.Items.Where(i => i.Status == "Accepted").ToList();
+    var escalatedItems = Model.Items.Where(i => i.Status == "Escalated").ToList();
+
+    // Priority statistics
+    var criticalCount = Model.Items.Count(i => i.PriorityScore >= 80);
+    var mediumCount = Model.Items.Count(i => i.PriorityScore >= 55 && i.PriorityScore < 80);
+    var lowCount = Model.Items.Count(i => i.PriorityScore < 55);
 }
 
 <style>
@@ -40,7 +50,7 @@
     }
     .stat-box {
         flex: 1;
-        min-width: 200px;
+        min-width: 220px;
         background: #FFFFFF;
         border: 1px solid var(--card-border);
         border-radius: 20px;
@@ -84,6 +94,7 @@
     }
     .trend-up { background: #E8F8F5; color: #27AE60; }
     .trend-down { background: #FDE8E8; color: #E74C3C; }
+    .trend-warning { background: #FEF9E7; color: #F39C12; }
 
     /* Custom Triage Table styled like WellNest Appointments */
     .triage-table {
@@ -156,66 +167,56 @@
     .status-accepted { background: #E8F8F5; color: #27AE60; }
     .status-escalated { background: #FDE8E8; color: #C0392B; animation: heartBeat 1.5s infinite; }
 
-    /* Calendar Widget style */
-    .calendar-container {
-        border-top: 1px solid var(--card-border);
-        padding-top: 15px;
-    }
-    .calendar-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-weight: 800;
-        font-size: 0.95rem;
-        color: var(--text-dark);
-        margin-bottom: 12px;
-    }
-    .calendar-grid {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        gap: 6px;
-        text-align: center;
-        font-size: 0.8rem;
-    }
-    .calendar-day-label {
-        font-weight: 800;
-        color: var(--text-muted);
-        padding: 4px 0;
-    }
-    .calendar-day {
-        padding: 6px 0;
-        border-radius: 8px;
-        color: var(--text-dark);
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-    .calendar-day:hover {
-        background: var(--primary-light);
-    }
-    .calendar-day.active {
-        background: var(--primary);
+    /* Support trigger button style */
+    .btn-emergency-support {
+        background: linear-gradient(135deg, #E74C3C 0%, #C0392B 100%);
+        border: none;
         color: white;
         font-weight: 800;
+        box-shadow: 0 4px 15px rgba(231, 76, 60, 0.35);
+        transition: all 0.3s;
+        border-radius: 30px;
+        position: relative;
+        overflow: hidden;
     }
-    .calendar-day.muted {
-        color: #BDC3C7;
+    .btn-emergency-support:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(231, 76, 60, 0.5);
+        color: white;
+    }
+    .btn-emergency-support::after {
+        content: '';
+        position: absolute;
+        top: 0; left: -50%;
+        width: 200%; height: 100%;
+        background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%);
+        transform: skewX(-25deg);
+        animation: support-shine 3s infinite;
+    }
+    @@keyframes support-shine {
+        0% { left: -150%; }
+        50% { left: 150%; }
+        100% { left: 150%; }
     }
 
-    /* Bed Slider Widget */
-    .bed-slider-label {
-        display: flex;
-        justify-content: justify;
+    /* Tabs Styling */
+    .triage-tabs .nav-link {
+        border: none;
+        border-bottom: 3px solid transparent;
+        color: var(--text-muted);
         font-weight: 800;
-        font-size: 0.9rem;
-        color: var(--text-dark);
-        margin-bottom: 8px;
+        padding: 12px 20px;
+        border-radius: 0;
+        transition: all 0.3s;
     }
-    .bed-slider-val {
-        font-size: 1.4rem;
-        font-weight: 900;
+    .triage-tabs .nav-link.active {
+        background: transparent;
         color: var(--primary);
-        font-family: sans-serif;
+        border-bottom-color: var(--primary);
+    }
+    .triage-tabs .nav-link:hover:not(.active) {
+        color: var(--primary-dark);
+        border-bottom-color: var(--primary-light);
     }
 </style>
 
@@ -226,8 +227,11 @@
     <div class="col-12 d-flex align-items-center justify-content-between flex-wrap gap-3 mb-2">
         <div>
             <h2 class="fw-900 m-0" style="font-weight: 900;">لوحة الفرز والانتظار - @Model.ProviderName</h2>
-            <p class="text-muted small mb-0"><i class="fas fa-stethoscope me-1"></i> غرفة عمليات فرز وتوجيه عربات الإسعاف وتتبع السعة الاستيعابية للمستشفى</p>
+            <p class="text-muted small mb-0"><i class="fas fa-stethoscope me-1"></i> غرفة عمليات فرز وتوجيه عربات الإسعاف وتتبع السعة الاستيعابية والمواقع للمستشفى</p>
         </div>
+        <a href="/HospitalQueue/ExportReport?providerId=@Model.ProviderId" class="btn btn-outline-success rounded-pill px-4 py-2.5 fw-800 shadow-sm">
+            <i class="fas fa-file-excel me-1"></i> تصدير تقرير الطوارئ اليومي
+        </a>
     </div>
 
     <!-- Stats Boxes Grid -->
@@ -239,7 +243,7 @@
                     <span>الأسرة المتاحة حالياً</span>
                     <i class="fas fa-bed text-primary fs-5"></i>
                 </div>
-                <div class="stat-box-val">@(Model.AvailableBeds.HasValue ? Model.AvailableBeds.Value.ToString() : "0")</div>
+                <div class="stat-box-val" id="telemetryBeds">@(Model.AvailableBeds.HasValue ? Model.AvailableBeds.Value.ToString() : "0")</div>
                 <div class="stat-trend trend-up">
                     <i class="fas fa-check"></i> جاهز للاستقبال
                 </div>
@@ -252,7 +256,7 @@
                     <i class="fas fa-ambulance text-warning fs-5 animate__animated animate__flash animate__infinite animate__slower"></i>
                 </div>
                 <div class="stat-box-val">@Model.PendingCount</div>
-                <div class="stat-trend trend-down">
+                <div class="stat-trend trend-warning">
                     <i class="fas fa-clock"></i> انتظار تأكيد الفرز
                 </div>
             </div>
@@ -283,95 +287,293 @@
         </div>
     </div>
 
-    <!-- Left side: Triage Table -->
+    <!-- Left side: Charts and Cases -->
     <div class="col-lg-8">
+        
+        <!-- Professional Analytics Row -->
         <div class="dashboard-card">
-            <h3 class="card-title-lg">
-                <i class="fas fa-clock-rotate-left text-primary"></i>
-                قائمة انتظار عربات الإسعاف الواردة
+            <h3 class="card-title-lg mb-4">
+                <i class="fas fa-chart-pie text-primary"></i>
+                التحليلات والمؤشرات الإحصائية الفورية
             </h3>
-
-            @if (Model.Items.Count == 0)
-            {
-                <div class="text-center py-5 text-muted opacity-75">
-                    <i class="fas fa-heart-circle-check fs-1 text-success mb-3 animate__animated animate__pulse animate__infinite"></i>
-                    <h5>لا توجد أي حالات إسعاف في قائمة الانتظار حالياً.</h5>
-                    <p class="small mb-0">جميع طلبات الإسعاف المحالة للمستشفى تم فرزها والتعامل معها بنجاح.</p>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div style="position: relative; height: 220px; width: 100%;">
+                        <canvas id="bedStatusChart"></canvas>
+                    </div>
                 </div>
-            }
-            else
-            {
-                <div class="table-responsive">
-                    <table class="triage-table">
-                        <thead>
-                            <tr>
-                                <th>اسم المريض</th>
-                                <th>نوع الطوارئ</th>
-                                <th>الأولوية</th>
-                                <th>الانتظار</th>
-                                <th>الحالة</th>
-                                <th class="text-center">الإجراء</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in Model.Items)
-                            {
-                                var prioClass = item.PriorityScore >= 80 ? "prio-high" : (item.PriorityScore >= 55 ? "prio-med" : "prio-low");
-                                var prioText = item.PriorityScore >= 80 ? "خطرة جداً" : (item.PriorityScore >= 55 ? "متوسطة" : "مستقرة");
-                                var statusClass = item.Status == "Pending" ? "status-pending" : (item.Status == "Accepted" ? "status-accepted" : "status-escalated");
-                                var statusText = item.Status == "Pending" ? "انتظار" : (item.Status == "Accepted" ? "مقبول" : "متدهور!");
-
-                                <tr class="triage-row animate__animated animate__fadeIn">
-                                    <td>
-                                        <div class="fw-800 text-dark">@item.PatientName</div>
-                                        <div class="text-muted small font-monospace">@item.PatientPhone</div>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-light text-dark p-2 rounded-3 border">
-                                            <i class="fas fa-crutch me-1"></i> @item.EmergencyType
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span class="priority-badge @prioClass">@prioText (@item.PriorityScore%)</span>
-                                    </td>
-                                    <td>
-                                        <div class="text-danger font-monospace fw-700">
-                                            <i class="far fa-hourglass me-1"></i> @item.WaitingMinutes د
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge @statusClass">
-                                            <i class="fas @(item.Status == "Pending" ? "fa-clock" : (item.Status == "Accepted" ? "fa-circle-check" : "fa-triangle-exclamation"))"></i>
-                                            @statusText
-                                        </span>
-                                    </td>
-                                    <td class="text-center">
-                                        <a href="/HospitalQueue/Details/@item.RequestId?providerId=@Model.ProviderId" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-700">
-                                            <i class="fas fa-notes-medical"></i> فحص الطبي
-                                        </a>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+                <div class="col-md-6 mb-3">
+                    <div style="position: relative; height: 220px; width: 100%;">
+                        <canvas id="priorityChart"></canvas>
+                    </div>
                 </div>
-            }
+            </div>
         </div>
+
+        <!-- Cases segmented lists -->
+        <div class="dashboard-card">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                <h3 class="card-title-lg m-0" style="font-size: 1.2rem;">
+                    <i class="fas fa-list-ol text-primary"></i>
+                    تصنيفات وقوائم فرز الحالات الطارئة
+                </h3>
+            </div>
+
+            <ul class="nav nav-tabs triage-tabs mb-3" id="triageTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending-pane" type="button" role="tab">
+                        <i class="fas fa-clock text-warning"></i> الحالات المعلقة 
+                        <span class="badge bg-warning text-dark ms-1 rounded-pill">@pendingItems.Count</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="accepted-tab" data-bs-toggle="tab" data-bs-target="#accepted-pane" type="button" role="tab">
+                        <i class="fas fa-check-circle text-success"></i> المقبولة والنشطة
+                        <span class="badge bg-success ms-1 rounded-pill">@acceptedItems.Count</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="escalated-tab" data-bs-toggle="tab" data-bs-target="#escalated-pane" type="button" role="tab">
+                        <i class="fas fa-triangle-exclamation text-danger"></i> المتدهورة/الحرجة
+                        <span class="badge bg-danger ms-1 rounded-pill animate__animated animate__flash animate__infinite">@escalatedItems.Count</span>
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="triageTabsContent">
+                
+                <!-- Pending Tab Pane -->
+                <div class="tab-pane fade show active" id="pending-pane" role="tabpanel">
+                    @if (pendingItems.Count == 0)
+                    {
+                        <div class="text-center py-5 text-muted opacity-75">
+                            <i class="fas fa-heart-circle-check fs-1 text-success mb-3"></i>
+                            <h5>لا توجد حالات معلقة في قائمة الانتظار.</h5>
+                            <p class="small mb-0">جميع طلبات الإسعاف الواردة تم قبولها أو فرزها بنجاح.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="triage-table">
+                                <thead>
+                                    <tr>
+                                        <th>اسم المريض</th>
+                                        <th>نوع الطوارئ</th>
+                                        <th>الأولوية والخطورة</th>
+                                        <th>المسافة والوصول (ETA)</th>
+                                        <th>زمن الانتظار</th>
+                                        <th class="text-center">الإجراء</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in pendingItems)
+                                    {
+                                        var prioClass = item.PriorityScore >= 80 ? "prio-high" : (item.PriorityScore >= 55 ? "prio-med" : "prio-low");
+                                        var prioText = item.PriorityScore >= 80 ? "خطرة جداً" : (item.PriorityScore >= 55 ? "متوسطة" : "مستقرة");
+                                        <tr class="triage-row">
+                                            <td>
+                                                <div class="fw-800 text-dark">@item.PatientName</div>
+                                                <div class="text-muted small font-monospace">@item.PatientPhone</div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-light text-dark p-2 rounded-3 border">
+                                                    <i class="fas fa-crutch me-1"></i> @item.EmergencyType
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="priority-badge @prioClass">@prioText (@item.PriorityScore%)</span>
+                                            </td>
+                                            <td>
+                                                <div class="small fw-700 text-info eta-calc-cell" data-lat="@item.Latitude" data-lng="@item.Longitude">
+                                                    <i class="fas fa-spinner fa-spin"></i>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="text-danger font-monospace fw-700">
+                                                    <i class="far fa-hourglass me-1"></i> @item.WaitingMinutes د
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <a href="/HospitalQueue/Details/@item.RequestId?providerId=@Model.ProviderId" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-700">
+                                                    <i class="fas fa-notes-medical"></i> فحص واتخاذ قرار
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+
+                <!-- Accepted Tab Pane -->
+                <div class="tab-pane fade" id="accepted-pane" role="tabpanel">
+                    @if (acceptedItems.Count == 0)
+                    {
+                        <div class="text-center py-5 text-muted opacity-75">
+                            <i class="fas fa-bed-pulse fs-1 text-secondary mb-3"></i>
+                            <h5>لا توجد حالات نشطة حالياً.</h5>
+                            <p class="small mb-0">المستشفى لا يأوي أي حالات طارئة نشطة من سيارات الإسعاف حالياً.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="triage-table">
+                                <thead>
+                                    <tr>
+                                        <th>اسم المريض</th>
+                                        <th>نوع الطوارئ</th>
+                                        <th>الأولوية والخطورة</th>
+                                        <th>المسافة والوصول (ETA)</th>
+                                        <th>تاريخ القبول</th>
+                                        <th class="text-center">الملف الطبي</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in acceptedItems)
+                                    {
+                                        var prioClass = item.PriorityScore >= 80 ? "prio-high" : (item.PriorityScore >= 55 ? "prio-med" : "prio-low");
+                                        var prioText = item.PriorityScore >= 80 ? "خطرة جداً" : (item.PriorityScore >= 55 ? "متوسطة" : "مستقرة");
+                                        <tr class="triage-row">
+                                            <td>
+                                                <div class="fw-800 text-dark">@item.PatientName</div>
+                                                <div class="text-muted small font-monospace">@item.PatientPhone</div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-light text-dark p-2 rounded-3 border">
+                                                    <i class="fas fa-truck-medical me-1"></i> @item.EmergencyType
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="priority-badge @prioClass">@prioText (@item.PriorityScore%)</span>
+                                            </td>
+                                            <td>
+                                                <div class="small fw-700 text-info eta-calc-cell" data-lat="@item.Latitude" data-lng="@item.Longitude">
+                                                    <i class="fas fa-spinner fa-spin"></i>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="text-success small fw-700">
+                                                    <i class="fas fa-check-double me-1"></i> @item.RequestedAt.ToString("g")
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <a href="/HospitalQueue/Details/@item.RequestId?providerId=@Model.ProviderId" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-700">
+                                                    <i class="fas fa-notes-medical"></i> عرض التفاصيل
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+
+                <!-- Escalated Tab Pane -->
+                <div class="tab-pane fade" id="escalated-pane" role="tabpanel">
+                    @if (escalatedItems.Count == 0)
+                    {
+                        <div class="text-center py-5 text-muted opacity-75">
+                            <i class="fas fa-circle-check fs-1 text-success mb-3"></i>
+                            <h5>لا توجد أي حالات متدهورة أو حرجة.</h5>
+                            <p class="small mb-0">جميع الحالات المصنفة كحرجة تم التعامل معها وتوجيه الأطباء لها.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="triage-table">
+                                <thead>
+                                    <tr>
+                                        <th>اسم المريض</th>
+                                        <th>نوع الطوارئ</th>
+                                        <th>الأولوية والخطورة</th>
+                                        <th>المسافة والوصول (ETA)</th>
+                                        <th>تاريخ التصعيد</th>
+                                        <th class="text-center">فحص عاجل</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in escalatedItems)
+                                    {
+                                        var prioClass = item.PriorityScore >= 80 ? "prio-high" : (item.PriorityScore >= 55 ? "prio-med" : "prio-low");
+                                        var prioText = item.PriorityScore >= 80 ? "خطرة جداً" : (item.PriorityScore >= 55 ? "متوسطة" : "مستقرة");
+                                        <tr class="triage-row" style="box-shadow: 0 0 10px rgba(231,76,60,0.1) inset;">
+                                            <td>
+                                                <div class="fw-800 text-danger"><i class="fas fa-triangle-exclamation animate__animated animate__flash animate__infinite"></i> @item.PatientName</div>
+                                                <div class="text-muted small font-monospace">@item.PatientPhone</div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-danger text-white p-2 rounded-3">
+                                                    <i class="fas fa-biohazard me-1"></i> @item.EmergencyType
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="priority-badge @prioClass">@prioText (@item.PriorityScore%)</span>
+                                            </td>
+                                            <td>
+                                                <div class="small fw-700 text-info eta-calc-cell" data-lat="@item.Latitude" data-lng="@item.Longitude">
+                                                    <i class="fas fa-spinner fa-spin"></i>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="text-danger small fw-800">
+                                                    <i class="fas fa-fire-flame-curved me-1"></i> @item.RequestedAt.ToString("g")
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <a href="/HospitalQueue/Details/@item.RequestId?providerId=@Model.ProviderId" class="btn btn-sm btn-danger rounded-pill px-3 fw-800 animate__animated animate__pulse animate__infinite">
+                                                    <i class="fas fa-kit-medical"></i> فحص فوري
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+
+            </div>
+        </div>
+
     </div>
 
     <!-- Right side: Sidebar Widgets -->
     <div class="col-lg-4">
         
-        <!-- Bed update card -->
+        <!-- Hospital Profile Control Card (Full Control) -->
         <div class="dashboard-card animate__animated animate__fadeInRight">
             <h3 class="card-title-lg">
-                <i class="fas fa-bed text-success"></i>
-                تحديث الأسرة المتاحة
+                <i class="fas fa-sliders text-primary"></i>
+                التحكم الكامل في بيانات المستشفى
             </h3>
             
-            <form asp-controller="HospitalQueue" asp-action="UpdateBeds" method="post" class="mt-2">
+            <form asp-controller="HospitalQueue" asp-action="UpdateProfile" method="post" class="mt-2">
                 <input type="hidden" name="ProviderId" value="@Model.ProviderId" />
                 
+                <!-- Hospital Name -->
+                <div class="mb-3">
+                    <label class="form-label small fw-800 text-muted">اسم المنشأة الطبية/المستشفى:</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="fas fa-hospital text-muted"></i></span>
+                        <input type="text" class="form-control" name="ProviderName" value="@Model.ProviderName" required placeholder="مثال: مستشفى الشفاء التخصصي" />
+                    </div>
+                </div>
+
+                <!-- Hospital Region/Address -->
+                <div class="mb-3">
+                    <label class="form-label small fw-800 text-muted">منطقة التغطية/العنوان:</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="fas fa-map-marker-alt text-muted"></i></span>
+                        <input type="text" class="form-control" name="ProviderAddress" value="@Model.ProviderAddress" placeholder="مثال: القاهرة - التجمع الخامس" />
+                    </div>
+                </div>
+
+                <!-- Available Beds -->
                 <div class="mb-4">
                     <div class="bed-slider-label">
                         <span>سعة الأسرة الشاغرة بالاستقبال:</span>
@@ -384,75 +586,44 @@
                 </div>
 
                 <button type="submit" class="btn btn-primary w-100 rounded-pill py-2.5 fw-800">
-                    <i class="fas fa-sync-alt me-1"></i> تحديث السعة الآن
+                    <i class="fas fa-sync-alt me-1"></i> حفظ وتحديث البيانات الآن
                 </button>
             </form>
         </div>
 
-        <!-- Styled Calendar widget -->
+        <!-- Central Administration Communications (Communicate with Admin) -->
         <div class="dashboard-card animate__animated animate__fadeInRight" style="animation-delay: 0.1s;">
-            <div class="calendar-container">
-                <div class="calendar-header">
-                    <span>يوليو ٢٠٢٨</span>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-xs btn-light rounded-circle"><i class="fas fa-chevron-right text-muted" style="font-size:0.75rem;"></i></button>
-                        <button class="btn btn-xs btn-light rounded-circle"><i class="fas fa-chevron-left text-muted" style="font-size:0.75rem;"></i></button>
-                    </div>
-                </div>
-                <div class="calendar-grid">
-                    <div class="calendar-day-label">ح</div>
-                    <div class="calendar-day-label">ن</div>
-                    <div class="calendar-day-label">ث</div>
-                    <div class="calendar-day-label">ر</div>
-                    <div class="calendar-day-label">خ</div>
-                    <div class="calendar-day-label">ج</div>
-                    <div class="calendar-day-label">س</div>
+            <h3 class="card-title-lg">
+                <i class="fas fa-tower-broadcast text-danger"></i>
+                التواصل مع الإدارة المركزية للأزمات
+            </h3>
+            <p class="small text-muted mb-3">يمكنك طلب دعم لوجستي عاجل من الأدمن أو بدء محادثة حية مع غرفة إدارة الكوارث المركزية.</p>
+            
+            <div class="d-flex flex-column gap-3">
+                <!-- Direct Support Alert Request Form -->
+                <form asp-controller="HospitalQueue" asp-action="RequestSupport" method="post" onsubmit="return confirm('هل أنت متأكد من رغبتك في إرسال طلب دعم عاجل للأدمن لزيادة الإمدادات والأسرة؟');">
+                    <input type="hidden" name="ProviderId" value="@Model.ProviderId" />
+                    <button type="submit" class="btn btn-emergency-support w-100 py-3 text-center">
+                        <i class="fas fa-triangle-exclamation me-1 animate__animated animate__pulse animate__infinite"></i>
+                        طلب دعم وإمداد طبي عاجل
+                    </button>
+                </form>
 
-                    <!-- Row 1 -->
-                    <div class="calendar-day muted">٢٦</div>
-                    <div class="calendar-day muted">٢٧</div>
-                    <div class="calendar-day muted">٢٨</div>
-                    <div class="calendar-day muted">٢٩</div>
-                    <div class="calendar-day muted">٣٠</div>
-                    <div class="calendar-day muted">١</div>
-                    <div class="calendar-day">٢</div>
-                    
-                    <!-- Row 2 -->
-                    <div class="calendar-day">٣</div>
-                    <div class="calendar-day">٤</div>
-                    <div class="calendar-day">٥</div>
-                    <div class="calendar-day">٦</div>
-                    <div class="calendar-day">٧</div>
-                    <div class="calendar-day">٨</div>
-                    <div class="calendar-day">٩</div>
-
-                    <!-- Row 3 -->
-                    <div class="calendar-day">١٠</div>
-                    <div class="calendar-day">١١</div>
-                    <div class="calendar-day active">١٢</div>
-                    <div class="calendar-day">١٣</div>
-                    <div class="calendar-day">١٤</div>
-                    <div class="calendar-day">١٥</div>
-                    <div class="calendar-day">١٦</div>
-
-                    <!-- Row 4 -->
-                    <div class="calendar-day">١٧</div>
-                    <div class="calendar-day">١٨</div>
-                    <div class="calendar-day">١٩</div>
-                    <div class="calendar-day">٢٠</div>
-                    <div class="calendar-day">٢١</div>
-                    <div class="calendar-day">٢٢</div>
-                    <div class="calendar-day">٢٣</div>
-
-                    <!-- Row 5 -->
-                    <div class="calendar-day">٢٤</div>
-                    <div class="calendar-day">٢٥</div>
-                    <div class="calendar-day">٢٦</div>
-                    <div class="calendar-day">٢٧</div>
-                    <div class="calendar-day">٢٨</div>
-                    <div class="calendar-day">٢٩</div>
-                    <div class="calendar-day">٣٠</div>
-                </div>
+                <!-- Direct Live Chat with Admin -->
+                @if (!string.IsNullOrEmpty(Model.AdminUserId))
+                {
+                    <a href="/Chat/Thread?otherUserId=@Model.AdminUserId" class="btn btn-outline-primary w-100 rounded-pill py-2.5 fw-800">
+                        <i class="fas fa-comments me-1"></i>
+                        فتح محادثة مباشرة مع الأدمن
+                    </a>
+                }
+                else
+                {
+                    <button class="btn btn-outline-secondary w-100 rounded-pill py-2.5 fw-800" disabled>
+                        <i class="fas fa-comments-slash me-1"></i>
+                        الدردشة غير متاحة (الأدمن غير مسجل)
+                    </button>
+                }
             </div>
         </div>
 
@@ -479,13 +650,229 @@
                 </div>
             </div>
         </div>
+
+    </div>
+</div>
+
+<!-- Alert Toast Container for Live Alerts -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1050;">
+    <div id="newAmbulanceToast" class="toast align-items-center text-white bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body fw-800">
+                <i class="fas fa-bell animate__animated animate__swing animate__infinite me-2"></i>
+                تنبيه عاجل: تم رصد حالة طارئة معلقة واردة جديدة! يرجى الفرز فوراً.
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
     </div>
 </div>
 
 @section Scripts {
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         function updateBedLabel(val) {
             document.getElementById('bedVal').innerText = val;
+            
+            // Proactively update bed status chart values if exists
+            if (window.bedChart) {
+                const totalBeds = 150; // Mock Max Beds Capacity
+                const available = parseInt(val);
+                const occupied = Math.max(0, totalBeds - available);
+                window.bedChart.data.datasets[0].data = [available, occupied];
+                window.bedChart.update();
+            }
         }
+
+        // Web Audio API medical warning synthesizer
+        function playMedicalAlertSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                function beep(freq, duration, delay) {
+                    setTimeout(() => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.frequency.value = freq;
+                        osc.type = 'sine';
+                        gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+                        osc.start();
+                        osc.stop(audioCtx.currentTime + duration);
+                    }, delay);
+                }
+                
+                beep(880, 0.15, 0);
+                beep(880, 0.15, 200);
+            } catch (e) {
+                console.error("Audio Context initialization failed: ", e);
+            }
+        }
+
+        // Haversine Distance Calculator (km)
+        function getHaversineDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Radius of the earth in km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c; // Distance in km
+        }
+
+        $(document).ready(function() {
+            // 1. Bed Status Chart Configuration
+            const ctxBed = document.getElementById('bedStatusChart').getContext('2d');
+            const availBeds = parseInt('@(Model.AvailableBeds ?? 0)');
+            const totalMaxBeds = 150;
+            const occupiedBeds = Math.max(0, totalMaxBeds - availBeds);
+
+            window.bedChart = new Chart(ctxBed, {
+                type: 'doughnut',
+                data: {
+                    labels: ['الأسرة الشاغرة', 'الأسرة المشغولة'],
+                    datasets: [{
+                        data: [availBeds, occupiedBeds],
+                        backgroundColor: ['#1A6FBF', '#E2E8F0'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: {
+                                    family: 'Tajawal',
+                                    size: 11,
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'سعة الأسرة والاشغال المتاحة',
+                            font: {
+                                family: 'Tajawal',
+                                size: 14,
+                                weight: '900'
+                            }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+
+            // 2. Case Priority distribution chart
+            const ctxPriority = document.getElementById('priorityChart').getContext('2d');
+            window.priorityChartObj = new Chart(ctxPriority, {
+                type: 'bar',
+                data: {
+                    labels: ['حرجة جداً', 'متوسطة الخطورة', 'مستقرة'],
+                    datasets: [{
+                        label: 'عدد الحالات',
+                        data: [parseInt('@criticalCount'), parseInt('@mediumCount'), parseInt('@lowCount')],
+                        backgroundColor: ['#E74C3C', '#F39C12', '#27AE60'],
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: 'تصنيف الحالات المتواجدة حسب درجة الخطورة',
+                            font: {
+                                family: 'Tajawal',
+                                size: 14,
+                                weight: '900'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    family: 'Tajawal',
+                                    weight: 'bold'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 3. Dynamic Haversine ETA calculations for all table cells
+            const hospLat = parseFloat('@Model.ProviderLatitude');
+            const hospLng = parseFloat('@Model.ProviderLongitude');
+
+            if (!isNaN(hospLat) && !isNaN(hospLng)) {
+                $('.eta-calc-cell').each(function() {
+                    const lat = parseFloat($(this).attr('data-lat'));
+                    const lng = parseFloat($(this).attr('data-lng'));
+
+                    if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+                        const dist = getHaversineDistance(hospLat, hospLng, lat, lng);
+                        const eta = Math.round((dist / 50) * 60 + 2); // 50 km/h avg speed + 2 min overhead
+                        $(this).html(`<i class="fas fa-truck-medical text-danger"></i> ${dist.toFixed(1)} كم (${eta} دقيقة)`);
+                    } else {
+                        $(this).html('<span class="text-muted small">غير متوفر</span>');
+                    }
+                });
+            } else {
+                $('.eta-calc-cell').html('<span class="text-muted small">غير متوفر</span>');
+            }
+
+            // 4. Live AJAX polling for incoming pending requests
+            let lastPendingCount = parseInt('@pendingItems.Count');
+            const providerId = '@Model.ProviderId';
+
+            setInterval(function() {
+                $.ajax({
+                    url: '/HospitalQueue/GetPendingCount',
+                    type: 'GET',
+                    data: { providerId: providerId },
+                    success: function(res) {
+                        if (res.success && res.count > lastPendingCount) {
+                            // New case received! Play alarm and show toast
+                            playMedicalAlertSound();
+                            const toastEl = document.getElementById('newAmbulanceToast');
+                            const toast = new bootstrap.Toast(toastEl);
+                            toast.show();
+                            
+                            // Update the counter to prevent multiple triggers
+                            lastPendingCount = res.count;
+
+                            // Reload view after 3 seconds to show new rows in the table
+                            setTimeout(function() {
+                                location.reload();
+                            }, 3000);
+                        } else if (res.success) {
+                            lastPendingCount = res.count;
+                        }
+                    },
+                    error: function(err) {
+                        console.warn("Telemetry polling failed: ", err);
+                    }
+                });
+            }, 12000); // Poll every 12 seconds
+        });
     </script>
 }

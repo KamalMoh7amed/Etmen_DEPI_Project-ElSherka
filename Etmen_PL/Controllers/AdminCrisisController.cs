@@ -12,7 +12,7 @@ namespace Etmen_PL.Controllers
     /// Admin Crisis Controller
     /// Configures epidemics, symptom weights, outbreak maps, and approves escalations
     /// </summary>
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,CrisisAdmin,HospitalStaff")]
     public class AdminCrisisController : Controller
     {
         private readonly ICrisisService _crisisService;
@@ -32,11 +32,23 @@ namespace Etmen_PL.Controllers
             _logger = logger;
         }
 
+        public override void OnActionExecuting(Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext context)
+        {
+            var actionName = context.RouteData.Values["action"]?.ToString();
+            if (actionName != "Heatmap" && User.IsInRole("HospitalStaff"))
+            {
+                context.Result = Forbid();
+                return;
+            }
+            base.OnActionExecuting(context);
+        }
+
         /// <summary>
         /// GET: /AdminCrisis/Index
         /// Lists all configured crises (active/inactive)
         /// </summary>
         [HttpGet]
+        [Authorize(Roles = "Admin,CrisisAdmin")]
         public async Task<IActionResult> Index()
         {
             try
@@ -447,6 +459,8 @@ namespace Etmen_PL.Controllers
                 if (!result.IsSuccess || result.Data is null)
                 {
                     TempData["Error"] = result.ErrorMessage ?? "Error loading heatmap";
+                    if (User.IsInRole("HospitalStaff"))
+                        return RedirectToAction("Index", "HospitalQueue");
                     return RedirectToAction("Index", "AdminDashboard");
                 }
 
@@ -464,6 +478,8 @@ namespace Etmen_PL.Controllers
             {
                 _logger.LogError(ex, "Error retrieving heatmap");
                 TempData["Error"] = "خطأ في تحميل الخريطة";
+                if (User.IsInRole("HospitalStaff"))
+                    return RedirectToAction("Index", "HospitalQueue");
                 return RedirectToAction("Index", "AdminDashboard");
             }
         }

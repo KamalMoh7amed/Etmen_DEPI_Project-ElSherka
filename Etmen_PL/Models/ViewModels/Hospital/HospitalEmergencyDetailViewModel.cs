@@ -27,5 +27,9 @@ namespace Etmen_PL.Models.ViewModels.Hospital
 
         // Hospital Information
         public int? AssignedProviderAvailableBeds { get; set; }
+
+        // Doctor Assignment
+        public string? AssignedDoctorUserId { get; set; }
+        public List<Etmen_Domain.Entities.DoctorProfile> AvailableDoctors { get; set; } = new();
     }
 }

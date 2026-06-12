@@ -27,8 +27,11 @@
             --light-text-muted: #7F8C8D;
             --light-accent: #3cd5cb;
             --light-primary: #1A6FBF;
+            --light-primary-dark: #125393;
             --light-primary-light: #E8F4FD;
             --light-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
+            --light-gradient: linear-gradient(135deg, #1A6FBF 0%, #3cd5cb 100%);
+
 
             /* Dark Theme Palette (Crisis Analytical tools) */
             --dark-bg: #0B0E14;
@@ -56,7 +59,8 @@
 
         /* ═══ THEME APPLIERS ═══════════════════════════════════ */
         body.theme-light {
-            background-color: var(--light-bg);
+            background-color: #f5f8fa;
+            background-image: radial-gradient(circle at 0% 0%, rgba(26, 111, 191, 0.04) 0%, transparent 50%), radial-gradient(circle at 100% 100%, rgba(60, 213, 203, 0.04) 0%, transparent 50%);
             color: var(--light-text);
         }
         body.theme-dark {
@@ -156,13 +160,15 @@
             overflow: hidden;
         }
         body.theme-light .dashboard-card {
-            background: var(--light-card-bg);
-            border-color: var(--light-border);
-            box-shadow: var(--light-shadow);
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border-color: rgba(226, 232, 240, 0.8);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
         }
         body.theme-light .dashboard-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 15px 35px rgba(26, 111, 191, 0.06);
+            border-color: rgba(26, 111, 191, 0.15);
         }
         body.theme-dark .dashboard-card {
             background: var(--dark-card-bg);
@@ -203,9 +209,14 @@
             transition: all 0.3s;
         }
         body.theme-light .stat-card {
-            background: var(--light-card-bg);
-            border-color: var(--light-border);
-            box-shadow: var(--light-shadow);
+            background: rgba(255, 255, 255, 0.9);
+            border-color: rgba(226, 232, 240, 0.8);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.02);
+        }
+        body.theme-light .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 28px rgba(26, 111, 191, 0.08);
+            border-color: rgba(26, 111, 191, 0.2);
         }
         body.theme-dark .stat-card {
             background: var(--dark-card-bg);
@@ -621,23 +632,38 @@
                     }
                     else
                     {
-                        <!-- Soft Light Clinical Chart (from WellNest image) -->
-                        <div class="text-center py-2">
-                            <span class="badge bg-light text-dark border rounded-pill px-3 py-1 mb-3">مخطط المتابعة الدورية</span>
-                            <svg viewBox="0 0 600 200" width="100%" height="100%" style="background:transparent; border-radius:12px;">
-                                <defs>
-                                    <linearGradient id="lightBlueGrad" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stop-color="#1A6FBF" stop-opacity="0.15"/>
-                                        <stop offset="100%" stop-color="#1A6FBF" stop-opacity="0"/>
-                                    </linearGradient>
-                                </defs>
-                                <line x1="0" y1="50" x2="600" y2="50" stroke="#F1F5F9" />
-                                <line x1="0" y1="100" x2="600" y2="100" stroke="#F1F5F9" />
-                                <line x1="0" y1="150" x2="600" y2="150" stroke="#F1F5F9" />
-                                
-                                <path d="M 0 120 C 100 80, 200 150, 300 90 C 400 30, 500 130, 600 80 L 600 200 L 0 200 Z" fill="url(#lightBlueGrad)" stroke="#1A6FBF" stroke-width="3" />
-                                <circle cx="300" cy="90" r="6" fill="#3cd5cb" stroke="#FFFFFF" stroke-width="2" />
-                            </svg>
+                        <!-- Complex Normal Mode Charts Grid -->
+                        <div class="row g-3 py-2">
+                            <div class="col-md-4">
+                                <div class="chart-container-wrapper p-3 border rounded-3 bg-white shadow-sm">
+                                    <h4 class="h6 text-center mb-3 fw-bold text-dark" style="font-size: 0.82rem;">
+                                        <i class="fas fa-chart-pie text-primary me-1"></i> توزيع الموارد الطبية
+                                    </h4>
+                                    <div style="position: relative; height: 160px; width: 100%;">
+                                        <canvas id="resourceChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="chart-container-wrapper p-3 border rounded-3 bg-white shadow-sm">
+                                    <h4 class="h6 text-center mb-3 fw-bold text-dark" style="font-size: 0.82rem;">
+                                        <i class="fas fa-chart-bar text-success me-1"></i> سعة الأسرة بالمحافظات
+                                    </h4>
+                                    <div style="position: relative; height: 160px; width: 100%;">
+                                        <canvas id="bedsGovChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="chart-container-wrapper p-3 border rounded-3 bg-white shadow-sm">
+                                    <h4 class="h6 text-center mb-3 fw-bold text-dark" style="font-size: 0.82rem;">
+                                        <i class="fas fa-chart-line text-warning me-1"></i> حجز المواعيد الأسبوعي
+                                    </h4>
+                                    <div style="position: relative; height: 160px; width: 100%;">
+                                        <canvas id="appointmentsTrendChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     }
                 </div>
@@ -650,71 +676,87 @@
                     </h3>
                     
                     <div class="launchpad-grid">
-                        <!-- Outbreak Heatmap -->
-                        <a href="/AdminCrisis/Heatmap" class="launchpad-card">
-                            <div class="launch-icon">
-                                <i class="fas fa-map-location-dot"></i>
-                            </div>
-                            <div>
-                                <h4 class="launch-title">خريطة البؤر الوبائية التفاعلية</h4>
-                                <p class="launch-desc">عرض ورصد جغرافي حي لمدن انتشار الفيروس ومعدلات انتقال العدوى ومواقع المرضى.</p>
-                            </div>
-                        </a>
+                        @if (Model.IsCrisisModeActive)
+                        {
+                            <!-- Outbreak Heatmap -->
+                            <a href="/AdminCrisis/Heatmap" class="launchpad-card">
+                                <div class="launch-icon bg-danger">
+                                    <i class="fas fa-map-location-dot"></i>
+                                </div>
+                                <div>
+                                    <h4 class="launch-title text-danger">خريطة البؤر الوبائية التفاعلية</h4>
+                                    <p class="launch-desc">عرض ورصد جغرافي حي لمدن انتشار الفيروس ومعدلات انتقال العدوى ومواقع المرضى.</p>
+                                </div>
+                            </a>
 
-                        <!-- Command Center -->
-                        <a href="/AdminCrisis/CommandCenter" class="launchpad-card">
-                            <div class="launch-icon">
-                                <i class="fas fa-tower-observation"></i>
-                            </div>
-                            <div>
-                                <h4 class="launch-title">مركز العمليات وإدارة الأزمات</h4>
-                                <p class="launch-desc">مراقبة الـ Telemetry، حساب أوقات انتظار عربات الإسعاف ومعدل استجابة المستشفيات.</p>
-                            </div>
-                        </a>
+                            <!-- Command Center -->
+                            <a href="/AdminCrisis/CommandCenter" class="launchpad-card">
+                                <div class="launch-icon bg-danger">
+                                    <i class="fas fa-tower-observation"></i>
+                                </div>
+                                <div>
+                                    <h4 class="launch-title text-danger">مركز العمليات وإدارة الأزمات</h4>
+                                    <p class="launch-desc">مراقبة الـ Telemetry، حساب أوقات انتظار عربات الإسعاف ومعدل استجابة المستشفيات.</p>
+                                </div>
+                            </a>
 
-                        <!-- Crisis Settings -->
-                        <a href="/AdminCrisis" class="launchpad-card">
-                            <div class="launch-icon">
-                                <i class="fas fa-viruses"></i>
-                            </div>
-                            <div>
-                                <h4 class="launch-title">إعدادات الأوبئة والأعراض</h4>
-                                <p class="launch-desc">تعديل أوزان الأعراض (Symptom Weights)، تعيين عتبات المخاطر والتحكم بتفعيل الأزمات.</p>
-                            </div>
-                        </a>
+                            <!-- Crisis Settings -->
+                            <a href="/AdminCrisis" class="launchpad-card">
+                                <div class="launch-icon bg-danger">
+                                    <i class="fas fa-viruses"></i>
+                                </div>
+                                <div>
+                                    <h4 class="launch-title text-danger">إعدادات الأوبئة والأعراض</h4>
+                                    <p class="launch-desc">تعديل أوزان الأعراض (Symptom Weights)، تعيين عتبات المخاطر والتحكم بتفعيل الأزمات.</p>
+                                </div>
+                            </a>
+                        }
+                        else
+                        {
+                            <!-- Normal Mode Map Link -->
+                            <a href="/AdminDashboard/NormalMap" class="launchpad-card">
+                                <div class="launch-icon bg-primary">
+                                    <i class="fas fa-map-location-dot"></i>
+                                </div>
+                                <div>
+                                    <h4 class="launch-title text-primary">خريطة المراكز الطبية والموارد الشاملة</h4>
+                                    <p class="launch-desc">عرض تفاعلي متكامل لجميع المستشفيات، العيادات، الأطباء، وحالات الطوارئ الميدانية.</p>
+                                </div>
+                            </a>
 
-                        <!-- Providers manager -->
-                        <a href="/AdminProviders" class="launchpad-card">
-                            <div class="launch-icon">
-                                <i class="fas fa-hospital"></i>
-                            </div>
-                            <div>
-                                <h4 class="launch-title">مقدمي الخدمات والمستشفيات</h4>
-                                <p class="launch-desc">مراجعة المستشفيات والعيادات، واعتماد تراخيصهم ومراقبة سعة الأسرة الشاغرة لديهم.</p>
-                            </div>
-                        </a>
+                            <!-- Providers manager -->
+                            <a href="/AdminProviders" class="launchpad-card">
+                                <div class="launch-icon bg-primary">
+                                    <i class="fas fa-hospital"></i>
+                                </div>
+                                <div>
+                                    <h4 class="launch-title text-primary">مقدمي الخدمات والمستشفيات</h4>
+                                    <p class="launch-desc">مراجعة المستشفيات والعيادات، واعتماد تراخيصهم ومراقبة سعة الأسرة الشاغرة لديهم.</p>
+                                </div>
+                            </a>
 
-                        <!-- Users manager -->
-                        <a href="/AdminUsers" class="launchpad-card">
-                            <div class="launch-icon">
-                                <i class="fas fa-users-gear"></i>
-                            </div>
-                            <div>
-                                <h4 class="launch-title">الحسابات والكوادر الطبية</h4>
-                                <p class="launch-desc">تأكيد هويات الأطباء، مراجعة تصاريح مزاولة المهنة وتوزيع صلاحيات طواقم المستشفيات.</p>
-                            </div>
-                        </a>
+                            <!-- Users manager -->
+                            <a href="/AdminUsers" class="launchpad-card">
+                                <div class="launch-icon bg-primary">
+                                    <i class="fas fa-users-gear"></i>
+                                </div>
+                                <div>
+                                    <h4 class="launch-title text-primary">الحسابات والكوادر الطبية</h4>
+                                    <p class="launch-desc">تأكيد هويات الأطباء، مراجعة تصاريح مزاولة المهنة وتوزيع صلاحيات طواقم المستشفيات.</p>
+                                </div>
+                            </a>
 
-                        <!-- Reports manager -->
-                        <a href="/AdminReports" class="launchpad-card">
-                            <div class="launch-icon">
-                                <i class="fas fa-chart-pie"></i>
-                            </div>
-                            <div>
-                                <h4 class="launch-title">سجلات النظام والتقارير الذكية</h4>
-                                <p class="launch-desc">توليد تقارير أداء الكادر الطبي، إحصائيات العدوى وسجلات الاستجابة للحالات الحرجة.</p>
-                            </div>
-                        </a>
+                            <!-- Reports manager -->
+                            <a href="/AdminReports" class="launchpad-card">
+                                <div class="launch-icon bg-primary">
+                                    <i class="fas fa-chart-pie"></i>
+                                </div>
+                                <div>
+                                    <h4 class="launch-title text-primary">سجلات النظام والتقارير الذكية</h4>
+                                    <p class="launch-desc">توليد تقارير أداء الكادر الطبي، إحصائيات العدوى وسجلات الاستجابة للحالات الحرجة.</p>
+                                </div>
+                            </a>
+                        }
                     </div>
                 </div>
 
@@ -746,40 +788,73 @@
                         <div class="calendar-day muted">٢٨</div>
                         <div class="calendar-day muted">٢٩</div>
                         <div class="calendar-day muted">٣٠</div>
-                        <div class="calendar-day">١</div>
-                        <div class="calendar-day">٢</div>
+                        <div class="calendar-day clickable-day" data-day="1">١</div>
+                        <div class="calendar-day clickable-day" data-day="2">٢</div>
                         
-                        <div class="calendar-day">٣</div>
-                        <div class="calendar-day">٤</div>
-                        <div class="calendar-day">٥</div>
-                        <div class="calendar-day">٦</div>
-                        <div class="calendar-day">٧</div>
-                        <div class="calendar-day">٨</div>
-                        <div class="calendar-day">٩</div>
+                        <div class="calendar-day clickable-day" data-day="3">٣</div>
+                        <div class="calendar-day clickable-day" data-day="4">٤</div>
+                        <div class="calendar-day clickable-day" data-day="5">٥</div>
+                        <div class="calendar-day clickable-day" data-day="6">٦</div>
+                        <div class="calendar-day clickable-day" data-day="7">٧</div>
+                        <div class="calendar-day clickable-day" data-day="8">٨</div>
+                        <div class="calendar-day clickable-day" data-day="9">٩</div>
 
-                        <div class="calendar-day">١٠</div>
-                        <div class="calendar-day">١١</div>
-                        <div class="calendar-day active">١٢</div>
-                        <div class="calendar-day">١٣</div>
-                        <div class="calendar-day">١٤</div>
-                        <div class="calendar-day">١٥</div>
-                        <div class="calendar-day">١٦</div>
+                        <div class="calendar-day clickable-day" data-day="10">١٠</div>
+                        <div class="calendar-day clickable-day" data-day="11">١١</div>
+                        <div class="calendar-day active clickable-day" data-day="12">١٢</div>
+                        <div class="calendar-day clickable-day" data-day="13">١٣</div>
+                        <div class="calendar-day clickable-day" data-day="14">١٤</div>
+                        <div class="calendar-day clickable-day" data-day="15">١٥</div>
+                        <div class="calendar-day clickable-day" data-day="16">١٦</div>
 
-                        <div class="calendar-day">١٧</div>
-                        <div class="calendar-day">١٨</div>
-                        <div class="calendar-day">١٩</div>
-                        <div class="calendar-day">٢٠</div>
-                        <div class="calendar-day">٢١</div>
-                        <div class="calendar-day">٢٢</div>
-                        <div class="calendar-day">٢٣</div>
+                        <div class="calendar-day clickable-day" data-day="17">١٧</div>
+                        <div class="calendar-day clickable-day" data-day="18">١٨</div>
+                        <div class="calendar-day clickable-day" data-day="19">١٩</div>
+                        <div class="calendar-day clickable-day" data-day="20">٢٠</div>
+                        <div class="calendar-day clickable-day" data-day="21">٢١</div>
+                        <div class="calendar-day clickable-day" data-day="22">٢٢</div>
+                        <div class="calendar-day clickable-day" data-day="23">٢٣</div>
 
-                        <div class="calendar-day">٢٤</div>
-                        <div class="calendar-day">٢٥</div>
-                        <div class="calendar-day">٢٦</div>
-                        <div class="calendar-day">٢٧</div>
-                        <div class="calendar-day">٢٨</div>
-                        <div class="calendar-day">٢٩</div>
-                        <div class="calendar-day">٣٠</div>
+                        <div class="calendar-day clickable-day" data-day="24">٢٤</div>
+                        <div class="calendar-day clickable-day" data-day="25">٢٥</div>
+                        <div class="calendar-day clickable-day" data-day="26">٢٦</div>
+                        <div class="calendar-day clickable-day" data-day="27">٢٧</div>
+                        <div class="calendar-day clickable-day" data-day="28">٢٨</div>
+                        <div class="calendar-day clickable-day" data-day="29">٢٩</div>
+                        <div class="calendar-day clickable-day" data-day="30">٣٠</div>
+                    </div>
+                </div>
+
+                <!-- Interactive Calendar Daily Stats Panel -->
+                <div id="dailyStatsPanel" class="dashboard-card animate__animated animate__fadeInRight mt-3" style="display:none; border-color: var(--light-primary); background: linear-gradient(135deg, #ffffff, #f7fafc);">
+                    <h4 class="card-header-sm mb-3 text-primary" style="font-size: 0.92rem;">
+                        <i class="fas fa-calendar-check me-1"></i> إحصائيات نشاط اليوم المختار (<span id="statsSelectedDay">12</span> يوليو)
+                    </h4>
+                    <div class="row g-2 text-center" style="font-size: 0.82rem;">
+                        <div class="col-6">
+                            <div class="p-2 border rounded bg-white">
+                                <small class="text-muted d-block">حالات الطوارئ</small>
+                                <strong id="statsEmergencies" class="text-danger h5 m-0 d-block font-monospace mt-1">0</strong>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2 border rounded bg-white">
+                                <small class="text-muted d-block">المواعيد المحجوزة</small>
+                                <strong id="statsAppointments" class="text-primary h5 m-0 d-block font-monospace mt-1">0</strong>
+                            </div>
+                        </div>
+                        <div class="col-6 mt-2">
+                            <div class="p-2 border rounded bg-white">
+                                <small class="text-muted d-block">الأطباء النشطين</small>
+                                <strong id="statsDoctors" class="text-success h5 m-0 d-block font-monospace mt-1">0</strong>
+                            </div>
+                        </div>
+                        <div class="col-6 mt-2">
+                            <div class="p-2 border rounded bg-white">
+                                <small class="text-muted d-block">الأسرة المشغولة</small>
+                                <strong id="statsBeds" class="text-warning h5 m-0 d-block font-monospace mt-1">0</strong>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -865,6 +940,93 @@
 
         </div>
 
+        @if (!Model.IsCrisisModeActive)
+        {
+            <!-- Normal Mode Telemetry Read-out & Governorate Risks -->
+            <div class="row g-4 mb-4 animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+                <div class="col-lg-6">
+                    <div class="dashboard-card h-100">
+                        <h3 class="card-header-sm">
+                            <i class="fas fa-database text-primary me-2"></i>
+                            قراءة تفصيلية لمؤشرات بيانات النظام
+                        </h3>
+                        <div class="p-2">
+                            <p class="text-muted small mb-4">تلخيص لسلامة تدفق البيانات وتوافر الكادر الطبي واستغلال الأصول في الوقت الفعلي.</p>
+                            
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1 small fw-bold">
+                                    <span>معدل توفر الأطباء العامين والمتخصصين</span>
+                                    <span class="text-primary">88%</span>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: 88%" aria-valuenow="88" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1 small fw-bold">
+                                    <span>نسبة إشغال الأسرة الكلية بالمستشفيات</span>
+                                    <span class="text-warning">64%</span>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-warning" role="progressbar" style="width: 64%" aria-valuenow="64" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1 small fw-bold">
+                                    <span>نسبة الاستجابة لحالات الطوارئ خلال 15 دقيقة</span>
+                                    <span class="text-success">92%</span>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: 92%" aria-valuenow="92" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+
+                            <div class="mb-2">
+                                <div class="d-flex justify-content-between mb-1 small fw-bold">
+                                    <span>معدل رضا المرضى عن الاستشارات الافتراضية</span>
+                                    <span class="text-info">95%</span>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-info" role="progressbar" style="width: 95%" aria-valuenow="95" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="dashboard-card h-100">
+                        <h3 class="card-header-sm">
+                            <i class="fas fa-triangle-exclamation text-danger me-2"></i>
+                            إحصائيات مخاطر الأوبئة والطوارئ بالمحافظات
+                        </h3>
+                        <div class="p-2">
+                            <p class="text-muted small mb-3">رصد حي لمستويات التهديد الوبائي والحالات الحرجة المسجلة حسب التوزيع الجغرافي.</p>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover align-middle m-0" style="font-size: 0.85rem;">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>المحافظة</th>
+                                            <th class="text-center">إجمالي الحالات</th>
+                                            <th class="text-center">الحالات الحرجة</th>
+                                            <th>مستوى التهديد</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="govRiskTableBody">
+                                        <tr>
+                                            <td colspan="4" class="text-center text-muted py-3">جاري تحميل بيانات المخاطر...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
         <!-- Footer -->
         <footer class="text-center py-4 mt-5 border-top opacity-50" style="font-size:0.8rem; border-color: rgba(255,255,255,0.1) !important;">
             <span>© @DateTime.Now.Year — منصة إطمن للخدمات الطبية | لوحة الإدارة والتحكم المركزي</span>
@@ -875,6 +1037,7 @@
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Leaflet map integration script for crisis mode widget -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
@@ -965,6 +1128,161 @@
                 });
                 </text>
             }
+
+            // Load Normal Mode Charts
+            @if (!Model.IsCrisisModeActive)
+            {
+                <text>
+                $.getJSON('/AdminDashboard/GetDashboardProjectCharts', function(data) {
+                    if (data && data.success) {
+                        // 1. Resource Distribution
+                        const resourceCtx = document.getElementById('resourceChart').getContext('2d');
+                        new Chart(resourceCtx, {
+                            type: 'doughnut',
+                            data: {
+                                labels: ['مستشفيات', 'عيادات', 'أطباء'],
+                                datasets: [{
+                                    data: [data.resourceDistribution.hospitals, data.resourceDistribution.clinics, data.resourceDistribution.doctors],
+                                    backgroundColor: ['#e74c3c', '#3498db', '#2ecc71'],
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        position: 'bottom',
+                                        labels: { boxWidth: 10, font: { family: 'Tajawal', size: 9 } }
+                                    }
+                                }
+                            }
+                        });
+
+                        // 2. Beds by Governorate
+                        const bedsCtx = document.getElementById('bedsGovChart').getContext('2d');
+                        new Chart(bedsCtx, {
+                            type: 'bar',
+                            data: {
+                                labels: ['القاهرة', 'الجيزة', 'الأسكندرية', 'الشرقية'],
+                                datasets: [{
+                                    label: 'الأسرة الشاغرة',
+                                    data: [data.bedsByGov.cairo, data.bedsByGov.giza, data.bedsByGov.alex, data.bedsByGov.sharqia],
+                                    backgroundColor: 'rgba(26, 111, 191, 0.75)',
+                                    borderColor: 'rgba(26, 111, 191, 1)',
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: {
+                                    y: { beginAtZero: true, ticks: { font: { size: 9 } } },
+                                    x: { ticks: { font: { size: 9, family: 'Tajawal' } } }
+                                },
+                                plugins: {
+                                    legend: { display: false }
+                                }
+                            }
+                        });
+
+                        // 3. Appointments Trend
+                        const dayNamesArabic = {
+                            'Sunday': 'الأحد',
+                            'Monday': 'الاثنين',
+                            'Tuesday': 'الثلاثاء',
+                            'Wednesday': 'الأربعاء',
+                            'Thursday': 'الخميس',
+                            'Friday': 'الجمعة',
+                            'Saturday': 'السبت'
+                        };
+                        const trendLabels = data.appointmentsTrend.map(t => dayNamesArabic[t.Day] || t.Day);
+                        const trendValues = data.appointmentsTrend.map(t => t.Count);
+
+                        const trendCtx = document.getElementById('appointmentsTrendChart').getContext('2d');
+                        new Chart(trendCtx, {
+                            type: 'line',
+                            data: {
+                                labels: trendLabels.length ? trendLabels : ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'],
+                                datasets: [{
+                                    label: 'الحجوزات',
+                                    data: trendValues.length ? trendValues : [0, 0, 0, 0, 0, 0, 0],
+                                    fill: true,
+                                    backgroundColor: 'rgba(60, 213, 203, 0.15)',
+                                    borderColor: '#3cd5cb',
+                                    borderWidth: 2,
+                                    tension: 0.3
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: {
+                                    y: { ticks: { font: { size: 9 } } },
+                                    x: { ticks: { font: { size: 9, family: 'Tajawal' } } }
+                                },
+                                plugins: {
+                                    legend: { display: false }
+                                }
+                            }
+                        });
+                    }
+                });
+
+                // Load Governorate Risk Stats
+                $.getJSON('/AdminDashboard/GetGovernorateRiskStats', function(data) {
+                    if (data && data.success) {
+                        let rowsHtml = '';
+                        data.stats.forEach(function(item) {
+                            let badgeClass = 'bg-success';
+                            if (item.threatLevel === 'خطر مرتفع جداً') {
+                                badgeClass = 'bg-danger';
+                            } else if (item.threatLevel === 'متوسط الخطورة') {
+                                badgeClass = 'bg-warning text-dark';
+                            }
+                            rowsHtml += `
+                                <tr>
+                                    <td><strong>${item.governorate}</strong></td>
+                                    <td class="text-center font-monospace">${item.totalCases}</td>
+                                    <td class="text-center font-monospace text-danger">${item.criticalCases}</td>
+                                    <td><span class="badge ${badgeClass}">${item.threatLevel}</span></td>
+                                </tr>
+                            `;
+                        });
+                        $('#govRiskTableBody').html(rowsHtml);
+                    } else {
+                        $('#govRiskTableBody').html('<tr><td colspan="4" class="text-center text-danger">فشل تحميل البيانات</td></tr>');
+                    }
+                });
+                </text>
+            }
+
+            // Click handler for interactive calendar days
+            $('.clickable-day').on('click', function() {
+                $('.calendar-day').removeClass('active');
+                $(this).addClass('active');
+                const selectedDay = $(this).data('day');
+                
+                // Fetch daily stats
+                $.getJSON('/AdminDashboard/GetDailyStats', { day: selectedDay }, function(data) {
+                    if (data && data.success) {
+                        $('#statsSelectedDay').text(data.day);
+                        $('#statsEmergencies').text(data.emergencies);
+                        $('#statsAppointments').text(data.appointments);
+                        $('#statsDoctors').text(data.activeDoctors);
+                        $('#statsBeds').text(data.occupiedBeds);
+                        
+                        if ($('#dailyStatsPanel').is(':hidden')) {
+                            $('#dailyStatsPanel').slideDown(300);
+                        } else {
+                            $('#dailyStatsPanel').removeClass('animate__fadeInRight').addClass('animate__pulse');
+                            setTimeout(function() {
+                                $('#dailyStatsPanel').removeClass('animate__pulse');
+                            }, 500);
+                        }
+                    }
+                });
+            });
         });
     </script>
     <style>

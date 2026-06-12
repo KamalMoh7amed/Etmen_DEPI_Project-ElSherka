@@ -16,5 +16,7 @@ namespace Etmen_PL.Models.ViewModels.Hospital
 
         [StringLength(1000)]
         public string? ResponseNotes { get; set; }
+
+        public string? AssignedDoctorUserId { get; set; }
     }
 }

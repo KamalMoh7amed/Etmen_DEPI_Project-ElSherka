@@ -7,6 +7,9 @@
     int.TryParse(Context.Request.Query["providerId"], out var providerId);
 }
 
+<!-- Leaflet.js CSS for correct map tiles rendering -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
 <style>
     .details-card {
         background: #FFFFFF;
@@ -162,18 +165,7 @@
                 <!-- Description -->
                 <div class="col-12">
                     <div class="info-label">تفاصيل الأعراض والشكوى الواردة:</div>
-                    <div class="p-3 bg-light rounded-3 border text-dark fw-600 mb-3" style="font-size: 0.9rem; line-height: 1.6;">
-                        @(Model.Description ?? "لا توجد تفاصيل إضافية مكتوبة للشكوى الحالية.")
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Right side: Map & Decision -->
-    <div class="col-lg-5">
-        
-        <!-- Live Patient Location Map -->
+                    <div class="p-3 bg-light rounded-3 border text-dark fw-600 mb-3" style="font-size: 0.9rem; line-height:        <!-- Live Patient Location Map -->
         <div class="details-card mb-4" style="height: auto;">
             <h3 class="card-section-title">
                 <i class="fas fa-map-location-dot text-info"></i>
@@ -182,7 +174,17 @@
 
             @if (Model.Latitude.HasValue && Model.Longitude.HasValue)
             {
-                <div id="detailMap"></div>
+                <div class="position-relative">
+                    <div id="detailMap"></div>
+                    @if (ViewBag.HospitalLat != null && ViewBag.HospitalLng != null)
+                    {
+                        <div class="position-absolute bottom-0 start-0 m-3 p-3 bg-white rounded-3 shadow border text-dark" style="z-index: 1000; direction: rtl; min-width: 180px;">
+                            <div class="small text-muted fw-800 mb-1"><i class="fas fa-truck-medical text-danger"></i> تتبع حركة الإسعاف:</div>
+                            <div class="fw-900 text-primary mb-1" id="etaDistance" style="font-size: 0.85rem;">حساب المسافة...</div>
+                            <div class="fw-900 text-success" id="etaDuration" style="font-size: 0.85rem;">حساب زمن الوصول...</div>
+                        </div>
+                    }
+                </div>
             }
             else
             {
@@ -212,13 +214,28 @@
                 <!-- Decision trigger field -->
                 <input type="hidden" name="Status" id="triageDecision" value="" />
 
-                <div class="decision-buttons">
+                <div class="decision-buttons mb-3">
                     <button type="button" class="btn-decision btn-decision-accept" onclick="selectDecision('Accepted', this)">
                         <i class="fas fa-circle-check"></i> قبول الاستقبال
                     </button>
                     <button type="button" class="btn-decision btn-decision-reject" onclick="selectDecision('Rejected', this)">
                         <i class="fas fa-circle-xmark"></i> رفض الاستقبال
                     </button>
+                </div>
+
+                <!-- Doctor Assignment Dropdown -->
+                <div class="mb-3 d-none animate__animated animate__fadeIn" id="doctorAssignmentSection">
+                    <label class="form-label small fw-800 text-muted">إسناد الحالة لطبيب طوارئ مناوب:</label>
+                    <select class="form-select" name="AssignedDoctorUserId">
+                        <option value="">-- اختر طبيباً من القائمة (اختياري) --</option>
+                        @if (Model.AvailableDoctors != null)
+                        {
+                            foreach (var doc in Model.AvailableDoctors)
+                            {
+                                <option value="@doc.ApplicationUserId">د. @doc.FullName (@doc.Specialization)</option>
+                            }
+                        }
+                    </select>
                 </div>
 
                 <!-- Notes -->
@@ -247,7 +264,7 @@
 
                 const map = L.map('detailMap', {
                     zoomControl: true
-                }).setView([lat, lng], 13);
+                }).setView([lat, lng], 12);
 
                 // Use standard openstreetmap tiles for light dashboard theme
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -273,9 +290,66 @@
                     }")
                     .appendTo("head");
 
-                L.marker([lat, lng], { icon: pulsingIcon }).addTo(map)
-                    .bindPopup("<div style='font-family:Tajawal,sans-serif; text-align:right; direction:rtl;'><strong>موقع المريض الحرجة</strong></div>")
-                    .openPopup();
+                const patientMarker = L.marker([lat, lng], { icon: pulsingIcon }).addTo(map)
+                    .bindPopup("<div style='font-family:Tajawal,sans-serif; text-align:right; direction:rtl;'><strong>موقع سيارة الإسعاف</strong></div>");
+
+                @if (ViewBag.HospitalLat != null && ViewBag.HospitalLng != null)
+                {
+                    <text>
+                    const hospLat = parseFloat('@ViewBag.HospitalLat');
+                    const hospLng = parseFloat('@ViewBag.HospitalLng');
+
+                    // Add Hospital Marker
+                    const hospitalIcon = L.divIcon({
+                        className: 'hospital-marker-wrapper',
+                        html: '<div style="width:16px; height:16px; border-radius:50%; background:#1A6FBF; border:3px solid #ffffff; box-shadow:0 0 10px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center; color:white;"><i class="fas fa-hospital" style="font-size:8px;"></i></div>',
+                        iconSize: [16, 16],
+                        iconAnchor: [8, 8]
+                    });
+
+                    const hospitalMarker = L.marker([hospLat, hospLng], { icon: hospitalIcon }).addTo(map)
+                        .bindPopup("<div style='font-family:Tajawal,sans-serif; text-align:right; direction:rtl;'><strong>مستشفى الاستقبال</strong></div>");
+
+                    // Draw connecting route line
+                    const routeLine = L.polyline([[lat, lng], [hospLat, hospLng]], {
+                        color: '#1A6FBF',
+                        weight: 4,
+                        opacity: 0.7,
+                        dashArray: '10, 10'
+                    }).addTo(map);
+
+                    // Fit bounds to show both
+                    const group = new L.featureGroup([patientMarker, hospitalMarker]);
+                    map.fitBounds(group.getBounds().pad(0.15));
+
+                    // Calculate Distance (Haversine formula)
+                    function getDistance(lat1, lon1, lat2, lon2) {
+                        const R = 6371; // Radius of the earth in km
+                        const dLat = (lat2 - lat1) * Math.PI / 180;
+                        const dLon = (lon2 - lon1) * Math.PI / 180;
+                        const a = 
+                            Math.sin(dLat/2) * Math.sin(dLat/2) +
+                            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                            Math.sin(dLon/2) * Math.sin(dLon/2);
+                        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                        return R * c; // Distance in km
+                    }
+
+                    const distKm = getDistance(lat, lng, hospLat, hospLng);
+                    
+                    // Assume ambulance speed 50 km/h + 2 min dispatch overhead
+                    const etaMin = Math.round((distKm / 50) * 60 + 2);
+
+                    document.getElementById('etaDistance').innerHTML = `<i class="fas fa-route"></i> المسافة: ${distKm.toFixed(2)} كم`;
+                    document.getElementById('etaDuration').innerHTML = `<i class="fas fa-clock"></i> الوصول المتوقع: ${etaMin} دقيقة`;
+                    </text>
+                }
+                else
+                {
+                    <text>
+                    patientMarker.openPopup();
+                    </text>
+                }
             });
         </script>
     }
@@ -285,6 +359,14 @@
             document.getElementById('triageDecision').value = decision;
             document.querySelectorAll('.btn-decision').forEach(btn => btn.classList.remove('active'));
             element.classList.add('active');
+
+            // Show or hide doctor assignment section
+            const docSection = document.getElementById('doctorAssignmentSection');
+            if (decision === 'Accepted') {
+                docSection.classList.remove('d-none');
+            } else {
+                docSection.classList.add('d-none');
+            }
         }
 
         function submitDecisionForm() {

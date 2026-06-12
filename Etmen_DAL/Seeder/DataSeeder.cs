@@ -45,6 +45,27 @@ namespace Etmen_DAL.Seed
                 }
             }
 
+            // 2.5️⃣ Seed Hospital Staff User
+            var staffEmail = "staff@etmen.com";
+            if (await userManager.FindByEmailAsync(staffEmail) == null)
+            {
+                var staffUser = new ApplicationUser
+                {
+                    UserName = staffEmail,
+                    Email = staffEmail,
+                    FirstName = "Hospital",
+                    LastName = "Staff",
+                    EmailConfirmed = true,
+                    IsActive = true
+                };
+
+                var result = await userManager.CreateAsync(staffUser, "Staff@123");
+                if (result.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(staffUser, "HospitalStaff");
+                }
+            }
+
             // 3️⃣ Seed Default Crisis Configuration
             if (!await context.CrisisConfigurations.AnyAsync())
             {
