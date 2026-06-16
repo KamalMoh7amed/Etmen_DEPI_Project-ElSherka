@@ -1,217 +1,405 @@
-@model Etmen_PL.Models.ViewModels.Patient.PatientDashboardViewModel
+@model Etmen_PL.Models.ViewModels.Doctor.DoctorPatientDetailsViewModel
 @{
-    ViewData["Title"] = "ملف المريض";
+    ViewData["Title"] = "الملف الطبي للمريض";
     Layout = "~/Views/Shared/_DoctorLayout.cshtml";
+    var latestRecord = Model.MedicalRecords.FirstOrDefault();
+    var latestRisk = Model.RiskAssessments.FirstOrDefault();
 }
 
-<div class="row g-4">
-    <!-- Patient Info Header -->
-    <div class="col-12">
-        <div class="glass-panel animate__animated animate__fadeInUp d-flex align-items-center gap-4 flex-wrap" style="background:linear-gradient(135deg, rgba(10,28,44,0.96), rgba(14,96,121,0.88)), url('https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&w=1200&q=80') center/cover; color:white; border:none;">
-            <div class="sidebar-user-avatar flex-shrink-0" style="width:70px;height:70px;background:linear-gradient(135deg,var(--primary),var(--accent));font-size:1.8rem;">
-                <i class="fas fa-user"></i>
-            </div>
-            <div class="flex-grow-1">
-                <h3 class="fw-bold mb-1">@Model.PatientName</h3>
-                <p class="mb-0" style="color:rgba(255,255,255,0.7);font-size:0.9rem;">
-                    <i class="fas fa-id-card ms-1"></i> ملف المريض الطبي
-                </p>
-            </div>
-            <div class="d-flex gap-2 flex-wrap">
-                <a href="/DoctorPatients/Search" class="btn-outline-custom" style="border-color:rgba(255,255,255,0.3);color:white;">
-                    <i class="fas fa-arrow-left"></i> عودة
-                </a>
-                <a href="/DoctorPatients/AddMedicalRecord/@ViewContext.RouteData.Values["patientProfileId"]" class="btn-success-custom">
-                    <i class="fas fa-notes-medical"></i> إضافة سجل طبي
-                </a>
-            </div>
-        </div>
-    </div>
+<!-- Leaflet.js for Patient Current Location Tracking -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <!-- Quick Stats -->
-    <div class="col-lg-3 col-md-6">
-        <div class="stat-card animate__animated animate__fadeInUp">
-            <div class="stat-card-icon blue"><i class="fas fa-file-medical-alt"></i></div>
-            <div class="stat-card-number count-up" data-target="@Model.MedicalRecordsCount">0</div>
-            <div class="stat-card-label">سجلات طبية</div>
-        </div>
-    </div>
-    <div class="col-lg-3 col-md-6">
-        <div class="stat-card animate__animated animate__fadeInUp" style="animation-delay:0.1s;">
-            <div class="stat-card-icon orange"><i class="fas fa-exclamation-triangle"></i></div>
-            <div class="stat-card-number count-up" data-target="@Model.UnreadAlertsCount">0</div>
-            <div class="stat-card-label">تنبيهات غير مقروءة</div>
-        </div>
-    </div>
-    <div class="col-lg-3 col-md-6">
-        <div class="stat-card animate__animated animate__fadeInUp" style="animation-delay:0.2s;">
-            <div class="stat-card-icon green"><i class="fas fa-calendar-check"></i></div>
-            <div class="stat-card-number count-up" data-target="@Model.UpcomingAppointmentsCount">0</div>
-            <div class="stat-card-label">مواعيد قادمة</div>
-        </div>
-    </div>
-    <div class="col-lg-3 col-md-6">
-        <div class="stat-card animate__animated animate__fadeInUp" style="animation-delay:0.3s;">
-            <div class="stat-card-icon purple"><i class="fas fa-weight"></i></div>
-            <div class="stat-card-number">@(Model.LatestBmi?.ToString("F1") ?? "-")</div>
-            <div class="stat-card-label">مؤشر كتلة الجسم (@(Model.LatestBmiCategory ?? "-"))</div>
-        </div>
-    </div>
+<!-- Chart.js for Vitals Trends -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- Risk Assessment Card -->
-    @if (Model.LatestRiskAssessment != null)
+<style>
+    .patient-header {
+        background: linear-gradient(135deg, #0f1c2c 0%, #1e344b 100%);
+        border-radius: 20px;
+        padding: 2.5rem;
+        color: white;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+    .neon-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+    }
+    .neon-card:hover {
+        box-shadow: 0 8px 24px rgba(26, 111, 191, 0.08);
+        border-color: rgba(26, 111, 191, 0.2);
+    }
+    .metric-badge {
+        padding: 10px;
+        border-radius: 12px;
+        text-align: center;
+        background: #f8fafc;
+        border: 1px solid #edf2f7;
+    }
+    .metric-value {
+        font-size: 1.25rem;
+        font-weight: bold;
+        color: #1a6fbf;
+    }
+    .metric-title {
+        font-size: 0.75rem;
+        color: #64748b;
+        font-weight: 600;
+        margin-top: 4px;
+    }
+    .vitals-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+        gap: 12px;
+    }
+    .timeline-item {
+        border-right: 2px solid #e2e8f0;
+        padding-right: 1.5rem;
+        position: relative;
+        padding-bottom: 1.5rem;
+    }
+    .timeline-item::after {
+        content: '';
+        width: 12px; height: 12px;
+        border-radius: 50%;
+        background: #1a6fbf;
+        position: absolute;
+        top: 6px; right: -7px;
+        border: 2px solid white;
+    }
+    .timeline-item.critical::after {
+        background: #e74c3c;
+    }
+</style>
+
+<div class="container-fluid py-2" dir="rtl" style="text-align: right;">
+
+    <!-- Alerts -->
+    @if (TempData["Success"] != null)
     {
-        <div class="col-lg-6">
-            <div class="dr-card animate__animated animate__fadeInUp" style="animation-delay:0.1s;">
-                <div class="dr-card-header">
-                    <h5 class="dr-card-title"><i class="fas fa-chart-line"></i> آخر تقييم مخاطر</h5>
-                    <span class="status-badge @(Model.LatestRiskAssessment.RiskLevel.ToString() switch { 
-                        "Low" => "completed", "Medium" => "pending", 
-                        "High" => "cancelled", "Critical" => "cancelled", 
-                        "Emergency" => "cancelled", _ => "pending" 
-                    })">
-                        <span class="dot"></span>
-                        @(Model.LatestRiskAssessment.RiskLevel.ToString() switch { 
-                            "Low" => "منخفض", "Medium" => "متوسط",
-                            "High" => "مرتفع", "Critical" => "خطير",
-                            "Emergency" => "طارئ", _ => Model.LatestRiskAssessment.RiskLevel.ToString() 
-                        })
-                    </span>
+        <div class="alert alert-success border-0 rounded-4 shadow-sm mb-4">
+            <i class="fas fa-check-circle me-2"></i> @TempData["Success"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger border-0 rounded-4 shadow-sm mb-4">
+            <i class="fas fa-exclamation-circle me-2"></i> @TempData["Error"]
+        </div>
+    }
+
+    <!-- Patient Header -->
+    <div class="patient-header d-flex justify-content-between align-items-center flex-wrap gap-4">
+        <div class="d-flex align-items-center gap-4">
+            <div class="rounded-circle d-flex align-items-center justify-content-center bg-primary" style="width: 80px; height: 80px; font-size: 2.5rem; color: white;">
+                <i class="fas fa-user-circle"></i>
+            </div>
+            <div>
+                <h2 class="fw-black text-white mb-1">@Model.PatientName</h2>
+                <div class="d-flex align-items-center gap-3 text-white-50 flex-wrap small">
+                    <span><i class="fas fa-calendar ms-1"></i> العمر: @Model.Age سنة</span>
+                    <span>|</span>
+                    <span><i class="fas fa-venus-mars ms-1"></i> الجنس: @(Model.Gender == "Male" ? "ذكر" : "أنثى")</span>
+                    <span>|</span>
+                    <span><i class="fas fa-droplet text-danger ms-1"></i> فصيلة الدم: @Model.BloodType</span>
+                    <span>|</span>
+                    <span><i class="fas fa-weight ms-1"></i> مؤشر الكتلة (BMI): @Model.BMIWithCategory</span>
                 </div>
-                <div class="d-flex align-items-center gap-4">
-                    <div class="text-center">
-                        <div class="fs-1 fw-bold" style="color:var(--primary);">@(Model.LatestRiskAssessment.RiskScore.ToString("P0"))</div>
-                        <small class="text-muted fw-bold">نسبة الخطورة</small>
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="/DoctorPatients/Search" class="btn btn-outline-light rounded-pill px-4">
+                <i class="fas fa-arrow-right"></i> عودة
+            </a>
+            <a href="/DoctorPatients/AddMedicalRecord/@Model.PatientProfileId" class="btn btn-success rounded-pill px-4">
+                <i class="fas fa-notes-medical"></i> إضافة سجل طبي
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Column 1: History, Trends, Scans -->
+        <div class="col-lg-8">
+            <!-- Vitals Chart Trends -->
+            <div class="neon-card">
+                <h5 class="fw-bold mb-3 text-dark"><i class="fas fa-chart-line text-primary ms-1"></i> خريطة المؤشرات الحيوية التاريخية</h5>
+                <div style="height: 280px;">
+                    <canvas id="vitalsHistoryChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Medical Records Timeline -->
+            <div class="neon-card">
+                <h5 class="fw-bold mb-4 text-dark"><i class="fas fa-notes-medical text-primary ms-1"></i> سجل الملاحظات والتشخيص الطبي (@Model.MedicalRecords.Count)</h5>
+                @if (Model.MedicalRecords.Any())
+                {
+                    <div class="d-flex flex-column pe-2" style="max-height: 400px; overflow-y: auto;">
+                        @foreach (var record in Model.MedicalRecords)
+                        {
+                            <div class="timeline-item">
+                                <div class="fw-bold text-dark">@record.RecordDate.ToString("dd/MM/yyyy HH:mm")</div>
+                                <div class="small text-muted mb-2">محرر بواسطة الطبيب المعالج</div>
+                                <p class="mb-2 text-secondary">@record.Notes</p>
+                                @if (!string.IsNullOrEmpty(record.Symptoms))
+                                {
+                                    <div class="small mb-2"><strong class="text-dark">الأعراض الظاهرة:</strong> @record.Symptoms</div>
+                                }
+                                <div class="vitals-grid">
+                                    @if (record.HeartRate.HasValue) { <div class="metric-badge"><div class="metric-value">@record.HeartRate</div><div class="metric-title">نبض القلب</div></div> }
+                                    @if (record.OxygenSaturation.HasValue) { <div class="metric-badge"><div class="metric-value">@record.OxygenSaturation%</div><div class="metric-title">الأكسجين</div></div> }
+                                    @if (record.BloodSugar.HasValue) { <div class="metric-badge"><div class="metric-value">@record.BloodSugar</div><div class="metric-title">سكر الدم</div></div> }
+                                    @if (record.SystolicBP.HasValue) { <div class="metric-badge"><div class="metric-value">@record.SystolicBP/@record.DiastolicBP</div><div class="metric-title">ضغط الدم</div></div> }
+                                    @if (record.Temperature.HasValue) { <div class="metric-badge"><div class="metric-value">@record.Temperature°م</div><div class="metric-title">الحرارة</div></div> }
+                                </div>
+                            </div>
+                        }
                     </div>
-                    @if (Model.LatestRiskAssessment.TriggeredSymptoms.Any())
-                    {
-                        <div class="flex-grow-1">
-                            <small class="text-muted fw-bold d-block mb-1">الأعراض</small>
-                            <p class="mb-0 small">@string.Join("، ", Model.LatestRiskAssessment.TriggeredSymptoms)</p>
-                        </div>
-                    }
-                </div>
+                }
+                else
+                {
+                    <div class="text-center py-4 text-muted">لا توجد سجلات طبية سابقة.</div>
+                }
             </div>
-        </div>
-    }
 
-    <!-- Latest Medical Record -->
-    @if (Model.LatestMedicalRecord != null)
-    {
-        <div class="col-lg-6">
-            <div class="dr-card animate__animated animate__fadeInUp" style="animation-delay:0.15s;">
-                <div class="dr-card-header">
-                    <h5 class="dr-card-title"><i class="fas fa-heartbeat"></i> آخر قياسات طبية</h5>
-                </div>
-                <div class="row g-2">
-                    @if (Model.LatestMedicalRecord.SystolicBP.HasValue || Model.LatestMedicalRecord.DiastolicBP.HasValue)
-                    {
-                        <div class="col-4 col-md-3 text-center p-2 rounded-3" style="background:#F8FAFC;">
-                            <div class="fw-bold fs-5" style="color:var(--primary);">@Model.LatestMedicalRecord.SystolicBP/@Model.LatestMedicalRecord.DiastolicBP</div>
-                            <small class="text-muted">ضغط الدم</small>
-                        </div>
-                    }
-                    @if (Model.LatestMedicalRecord.HeartRate.HasValue)
-                    {
-                        <div class="col-4 col-md-3 text-center p-2 rounded-3" style="background:#F8FAFC;">
-                            <div class="fw-bold fs-5" style="color:var(--success);">@Model.LatestMedicalRecord.HeartRate</div>
-                            <small class="text-muted">نبضات القلب</small>
-                        </div>
-                    }
-                    @if (Model.LatestMedicalRecord.BloodSugar.HasValue)
-                    {
-                        <div class="col-4 col-md-3 text-center p-2 rounded-3" style="background:#F8FAFC;">
-                            <div class="fw-bold fs-5" style="color:var(--warning);">@Model.LatestMedicalRecord.BloodSugar</div>
-                            <small class="text-muted">سكر الدم</small>
-                        </div>
-                    }
-                    @if (Model.LatestMedicalRecord.OxygenSaturation.HasValue)
-                    {
-                        <div class="col-4 col-md-3 text-center p-2 rounded-3" style="background:#F8FAFC;">
-                            <div class="fw-bold fs-5" style="color:var(--accent);">@Model.LatestMedicalRecord.OxygenSaturation%</div>
-                            <small class="text-muted">الأكسجين</small>
-                        </div>
-                    }
-                </div>
-            </div>
-        </div>
-    }
-
-    <!-- Recent Alerts -->
-    @if (Model.RecentAlerts.Any())
-    {
-        <div class="col-12">
-            <div class="dr-card animate__animated animate__fadeInUp" style="animation-delay:0.2s;">
-                <div class="dr-card-header">
-                    <h5 class="dr-card-title"><i class="fas fa-bell"></i> التنبيهات الأخيرة</h5>
-                </div>
-                <div class="d-flex flex-column gap-2">
-                    @foreach (var alert in Model.RecentAlerts)
-                    {
-                        <div class="p-3 rounded-3 d-flex align-items-center gap-3 @(alert.IsRead ? "" : "critical-card")" style="@(alert.IsRead ? "background:#F8FAFC;" : "")">
-                            <div class="sidebar-user-avatar flex-shrink-0" style="width:36px;height:36px;background:linear-gradient(135deg,@(alert.IsRead ? "var(--text-muted)" : "var(--danger)"),@(alert.IsRead ? "var(--border)" : "#c0392b)");">
-                                <i class="fas fa-@(alert.IsRead ? "check" : "exclamation")" style="font-size:0.8rem;"></i>
+            <!-- Lab/Radiology Scans (الأشعة) -->
+            <div class="neon-card">
+                <h5 class="fw-bold mb-3 text-dark"><i class="fas fa-file-medical-alt text-primary ms-1"></i> الأشعة والتحاليل والتقارير المرفوعة (@Model.LabResults.Count)</h5>
+                @if (Model.LabResults.Any())
+                {
+                    <div class="row g-3">
+                        @foreach (var scan in Model.LabResults)
+                        {
+                            <div class="col-md-6">
+                                <div class="p-3 border rounded-3 d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="fw-bold text-dark mb-1">@scan.TestName</h6>
+                                        <small class="text-muted"><i class="far fa-calendar ms-1"></i> @scan.TestDate.ToString("dd/MM/yyyy")</small>
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(scan.FileUrl))
+                                    {
+                                        <a href="@scan.FileUrl" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill"><i class="fas fa-file-pdf"></i> عرض المستند</a>
+                                    }
+                                </div>
                             </div>
-                            <div class="flex-grow-1 min-w-0">
-                                <div class="fw-bold small">@alert.Title</div>
-                                <small class="text-muted">@alert.CreatedAt.ToString("dd/MM/yyyy HH:mm")</small>
-                            </div>
-                        </div>
-                    }
-                </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4 text-muted">لا يوجد ملفات أشعة أو تقارير مرفوعة حالياً.</div>
+                }
             </div>
         </div>
-    }
 
-    <!-- Upcoming Appointments -->
-    @if (Model.UpcomingAppointments.Any())
-    {
-        <div class="col-12">
-            <div class="dr-card animate__animated animate__fadeInUp" style="animation-delay:0.25s;">
-                <div class="dr-card-header">
-                    <h5 class="dr-card-title"><i class="fas fa-calendar-alt"></i> المواعيد القادمة</h5>
-                </div>
-                <div class="table-responsive-custom">
-                    <table class="dr-table">
-                        <thead>
-                            <tr>
-                                <th>التاريخ</th>
-                                <th>اسم الطبيب</th>
-                                <th>الحالة</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var apt in Model.UpcomingAppointments)
+        <!-- Column 2: Actions, Location Map, Family Alerts, Transfers -->
+        <div class="col-lg-4">
+            <!-- Patient Location GPS Map -->
+            <div class="neon-card">
+                <h5 class="fw-bold mb-3 text-dark"><i class="fas fa-map-marker-alt text-primary ms-1"></i> التتبع الجغرافي للمريض</h5>
+                <div id="patientMap" style="height: 200px; border-radius: 12px; border: 1px solid #e2e8f0;"></div>
+            </div>
+
+            <!-- Doctor Referrals / Transfers to Emergency Hospitals -->
+            <div class="neon-card">
+                <h5 class="fw-bold mb-3 text-danger"><i class="fas fa-hospital-user ms-1"></i> تحويل المريض إلى مستشفى طوارئ</h5>
+                <p class="text-muted small">قم بإحالة المريض فوراً لغرفة طوارئ مستشفى مجهز لتلقي الإشعارات الفورية والتنسيق.</p>
+                <form method="post" action="/DoctorPatients/TransferPatient/@Model.PatientProfileId">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">مستشفى الاستقبال</label>
+                        <select name="hospitalId" class="form-select rounded-3" required>
+                            <option value="">اختر مستشفى طوارئ طاقم نشط</option>
+                            @foreach (var hosp in Model.ActiveEmergencyHospitals)
                             {
-                                <tr>
-                                    <td>@apt.Date.ToString("dd/MM/yyyy")</td>
-                                    <td>@apt.DoctorName</td>
-                                    <td>
-                                        <span class="status-badge @(apt.Status switch { "Confirmed" => "confirmed", "Pending" => "pending", _ => "pending" })">
-                                            <span class="dot"></span>
-                                            @(apt.Status switch { "Confirmed" => "مؤكد", "Pending" => "معلق", _ => apt.Status })
-                                        </span>
-                                    </td>
-                                </tr>
+                                <option value="@hosp.Id">🏥 @hosp.Name - @hosp.Address</option>
                             }
-                        </tbody>
-                    </table>
-                </div>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">التشخيص والتوجيه العاجل</label>
+                        <textarea name="diagnosis" class="form-control rounded-3" rows="3" placeholder="اكتب تشخيص الحالة والتعليمات اللازمة فوراً..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-danger rounded-pill w-100 fw-bold"><i class="fas fa-ambulance"></i> تحويل فوري طوارئ</button>
+                </form>
             </div>
-        </div>
-    }
 
-    <!-- Empty State -->
-    @if (Model.MedicalRecordsCount == 0 && Model.LatestRiskAssessment == null && !Model.RecentAlerts.Any())
-    {
-        <div class="col-12">
-            <div class="dr-card animate__animated animate__fadeInUp">
-                <div class="empty-state">
-                    <div class="empty-state-icon"><i class="fas fa-user-md"></i></div>
-                    <div class="empty-state-text">لا توجد بيانات طبية كافية لهذا المريض</div>
-                    <p class="text-muted small mt-2">بإمكانك إضافة سجل طبي جديد من الزر بالأعلى</p>
-                </div>
+            <!-- Family Members / Notification & Chat Trigger -->
+            <div class="neon-card">
+                <h5 class="fw-bold mb-3 text-primary"><i class="fas fa-users ms-1"></i> أفراد العائلة وجهات الاتصال</h5>
+                <p class="text-muted small mb-3">يمكنك بث إشعارات عاجلة لأفراد العائلة أو بدء محادثة فورية لتنسيق الحالة.</p>
+                
+                @if (Model.FamilyLinks.Any())
+                {
+                    <div class="d-flex flex-column gap-3">
+                        @foreach (var link in Model.FamilyLinks)
+                        {
+                            var memberName = link.PrimaryPatientId == Model.PatientProfileId ? link.LinkedPatient.FullName : link.PrimaryPatient.FullName;
+                            var memberUserId = link.PrimaryPatientId == Model.PatientProfileId ? link.LinkedPatient.ApplicationUserId : link.PrimaryPatient.ApplicationUserId;
+                            var memberRel = link.Relationship switch {
+                                "Father" => "أب",
+                                "Mother" => "أم",
+                                "Spouse" => "زوج / زوجة",
+                                "Son" => "ابن",
+                                "Daughter" => "ابنة",
+                                "Brother" => "أخ",
+                                "Sister" => "أخت",
+                                _ => link.Relationship
+                            };
+
+                            <div class="p-3 border rounded-3 bg-light">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="fw-bold text-dark">@memberName <span class="badge bg-secondary ms-1">@memberRel</span></div>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <!-- Alert family member -->
+                                    <button type="button" class="btn btn-sm btn-outline-warning rounded-pill flex-grow-1" onclick="openAlertModal('@memberUserId', '@memberName')">
+                                        <i class="fas fa-bell"></i> إرسال تنبيه
+                                    </button>
+                                    <!-- Chat with family member -->
+                                    <a href="/Chat/Thread?otherUserId=@memberUserId" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                        <i class="far fa-comments"></i> مراسلة
+                                    </a>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4 text-muted small">لا يوجد أفراد عائلة مرتبطين أو مفعلين حالياً.</div>
+                }
             </div>
         </div>
-    }
+    </div>
 </div>
+
+<!-- Send Alert Modal -->
+<div class="modal fade" id="sendAlertModal" tabindex="-1" aria-hidden="true" dir="rtl" style="text-align: right;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header border-0 bg-primary text-white rounded-top-4 py-3">
+                <h5 class="modal-title fw-bold" id="alertModalTitle"><i class="fas fa-bell ms-1"></i> إرسال تنبيه طبي عاجل</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="margin-left: 0; margin-right: auto;"></button>
+            </div>
+            <form method="post" action="/DoctorPatients/SendAlertToFamily/@Model.PatientProfileId">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="recipientUserId" id="alertRecipientUserId" />
+                <div class="modal-body py-4">
+                    <p class="text-muted small">سيتم إرسال هذا التنبيه فوراً كإشعار منبثق وتنبيه عاجل في لوحة تحكم القريب المختار.</p>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">نص الرسالة التنبيهية</label>
+                        <textarea name="alertMessage" class="form-control rounded-3" rows="3" placeholder="مثال: يرجى التوجه لغرفة الطوارئ بمستشفى النيل فوراً لمتابعة حالة المريض..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4"><i class="fas fa-paper-plane"></i> إرسال التنبيه</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Initialize Map
+        let lat = @(Model.Latitude ?? 30.0444m);
+        let lng = @(Model.Longitude ?? 31.2357m);
+        let map = L.map('patientMap').setView([lat, lng], 14);
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        L.circle([lat, lng], {
+            color: '#1A6FBF',
+            fillColor: '#1A6FBF',
+            fillOpacity: 0.15,
+            radius: 500
+        }).addTo(map);
+
+        L.marker([lat, lng]).addTo(map)
+            .bindPopup("<b>موقع المريض الأخير</b>")
+            .openPopup();
+
+        // Vitals Chart
+        let ctx = document.getElementById('vitalsHistoryChart').getContext('2d');
+        
+        let rawData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MedicalRecords.OrderBy(r => r.RecordDate).Take(10).Select(r => new {
+            date = r.RecordDate.ToString("dd/MM HH:mm"),
+            hr = r.HeartRate,
+            sugar = r.BloodSugar,
+            o2 = r.OxygenSaturation
+        })));
+
+        let labels = rawData.map(d => d.date);
+        let hrData = rawData.map(d => d.hr);
+        let sugarData = rawData.map(d => d.sugar);
+        let o2Data = rawData.map(d => d.o2);
+
+        if (labels.length === 0) {
+            labels = ["لا توجد قراءات"];
+            hrData = [0];
+            sugarData = [0];
+            o2Data = [0];
+        }
+
+        let vitalsChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'نبضات القلب (BPM)',
+                        data: hrData,
+                        borderColor: '#E74C3C',
+                        backgroundColor: 'rgba(231, 76, 60, 0.05)',
+                        borderWidth: 2,
+                        tension: 0.3
+                    },
+                    {
+                        label: 'سكر الدم (mg/dL)',
+                        data: sugarData,
+                        borderColor: '#F1C40F',
+                        backgroundColor: 'rgba(241, 196, 15, 0.05)',
+                        borderWidth: 2,
+                        tension: 0.3
+                    },
+                    {
+                        label: 'نسبة الأكسجين (%)',
+                        data: o2Data,
+                        borderColor: '#2ECC71',
+                        backgroundColor: 'rgba(46, 204, 113, 0.05)',
+                        borderWidth: 2,
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { grid: { color: '#f1f5f9' } },
+                    x: { grid: { color: '#f1f5f9' } }
+                },
+                plugins: {
+                    legend: { labels: { font: { family: 'Tajawal' } } }
+                }
+            }
+        });
+    });
+
+    function openAlertModal(recipientUserId, memberName) {
+        document.getElementById('alertRecipientUserId').value = recipientUserId;
+        document.getElementById('alertModalTitle').innerHTML = '<i class="fas fa-bell ms-1"></i> إرسال تنبيه طبي عاجل لـ: ' + memberName;
+        let myModal = new bootstrap.Modal(document.getElementById('sendAlertModal'));
+        myModal.show();
+    }
+</script>

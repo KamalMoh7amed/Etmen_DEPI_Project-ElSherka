@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Etmen_Domain.Entities
@@ -26,5 +26,8 @@ namespace Etmen_Domain.Entities
         public bool IsActive { get; set; } = true;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public virtual ICollection<DoctorProvider> DoctorProviders { get; set; } = new List<DoctorProvider>();
+        public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
     }
 }

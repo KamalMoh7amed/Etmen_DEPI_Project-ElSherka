@@ -4,6 +4,7 @@ using Etmen_Domain.Enums;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 
 namespace Etmen_BLL.Repositories.Services
 {
@@ -106,9 +107,9 @@ namespace Etmen_BLL.Repositories.Services
             IEmailService emailSvc, IUnitOfWork uow,
             Etmen_Domain.Entities.Appointment appt, string timeLabel)
         {
-            var patient    = appt.PatientProfile ?? await uow.PatientProfiles.GetByIdAsync(appt.PatientProfileId);
+            var patient    = appt.PatientProfile ?? await uow.PatientProfiles.Table.Include(p => p.ApplicationUser).FirstOrDefaultAsync(p => p.Id == appt.PatientProfileId);
             var doctor     = appt.DoctorProfile  ?? (appt.DoctorProfileId.HasValue
-                                ? await uow.DoctorProfiles.GetByIdAsync(appt.DoctorProfileId.Value)
+                                ? await uow.DoctorProfiles.Table.Include(d => d.ApplicationUser).FirstOrDefaultAsync(d => d.Id == appt.DoctorProfileId.Value)
                                 : null);
 
             var patientEmail = patient?.ApplicationUser?.Email;

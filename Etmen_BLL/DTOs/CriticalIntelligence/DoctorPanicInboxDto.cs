@@ -7,6 +7,7 @@ namespace Etmen_BLL.DTOs.CriticalIntelligence
         public int TotalCriticalCases { get; set; }
         public int AssignedToDoctor { get; set; }
         public int UnassignedCriticalCases { get; set; }
+        public bool IsAvailable { get; set; }
         public List<DoctorPanicInboxItemDto> Items { get; set; } = new();
     }
 }

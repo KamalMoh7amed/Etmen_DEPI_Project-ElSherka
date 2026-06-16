@@ -176,10 +176,28 @@ namespace Etmen_BLL.Repositories.Services
         {
             if (!emergencyRequest.DoctorsNotified)
             {
-                var doctors = await _uow.DoctorProfiles.Table
-                    .Include(d => d.ApplicationUser)
-                    .Where(d => d.IsAvailable && d.ApplicationUserId != string.Empty)
-                    .ToListAsync();
+                List<DoctorProfile> doctors;
+                if (emergencyRequest.HealthcareProviderId.HasValue)
+                {
+                    var providerId = emergencyRequest.HealthcareProviderId.Value;
+                    var affiliations = await _uow.DoctorProviders.GetByProviderIdAsync(providerId);
+                    var emergencyDoctorIds = affiliations
+                        .Where(a => a.IsEmergencyDoctor)
+                        .Select(a => a.DoctorProfileId)
+                        .ToList();
+
+                    doctors = await _uow.DoctorProfiles.Table
+                        .Include(d => d.ApplicationUser)
+                        .Where(d => d.IsAvailable && d.ApplicationUserId != string.Empty && emergencyDoctorIds.Contains(d.Id))
+                        .ToListAsync();
+                }
+                else
+                {
+                    doctors = await _uow.DoctorProfiles.Table
+                        .Include(d => d.ApplicationUser)
+                        .Where(d => d.IsAvailable && d.ApplicationUserId != string.Empty)
+                        .ToListAsync();
+                }
 
                 foreach (var doctor in doctors)
                 {

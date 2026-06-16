@@ -16,17 +16,20 @@ namespace Etmen_PL.Controllers
         private readonly IPatientService _patientService;
         private readonly IPdfReportService _pdfReportService;
         private readonly ILogger<LabResultsController> _logger;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
         public LabResultsController(
             ILabService labService,
             IPatientService patientService,
             IPdfReportService pdfReportService,
-            ILogger<LabResultsController> logger)
+            ILogger<LabResultsController> logger,
+            IWebHostEnvironment webHostEnvironment)
         {
             _labService = labService;
             _patientService = patientService;
             _pdfReportService = pdfReportService;
             _logger = logger;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         /// <summary>
@@ -100,7 +103,7 @@ namespace Etmen_PL.Controllers
                 }
 
                 // Save file to wwwroot/uploads/lab-results/{userId}/{filename}
-                var uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "lab-results", userId);
+                var uploadFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "lab-results", userId);
                 if (!Directory.Exists(uploadFolder))
                 {
                     Directory.CreateDirectory(uploadFolder);

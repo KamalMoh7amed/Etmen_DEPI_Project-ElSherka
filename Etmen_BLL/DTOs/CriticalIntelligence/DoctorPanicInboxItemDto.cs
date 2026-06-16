@@ -6,6 +6,7 @@ namespace Etmen_BLL.DTOs.CriticalIntelligence
     {
         public int EmergencyRequestId { get; set; }
         public int PatientProfileId { get; set; }
+        public string PatientUserId { get; set; } = string.Empty;
         public string PatientName { get; set; } = string.Empty;
         public decimal RiskScore { get; set; }
         public RiskLevel RiskLevel { get; set; }

@@ -16,6 +16,7 @@ namespace Etmen_BLL.Repositories.Services
         private readonly IUnitOfWork _uow;
         private readonly ILogger<AuthService> _logger;
         private readonly IEmailService _emailService;
+        private readonly IBackgroundTaskQueue _taskQueue;
         private readonly string _baseUrl;
 
         public AuthService(
@@ -24,7 +25,8 @@ namespace Etmen_BLL.Repositories.Services
             IUnitOfWork uow,
             ILogger<AuthService> logger,
             IEmailService emailService,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IBackgroundTaskQueue taskQueue)
         {
             _userManager   = userManager;
             _signInManager = signInManager;
@@ -32,6 +34,7 @@ namespace Etmen_BLL.Repositories.Services
             _logger        = logger;
             _emailService  = emailService;
             _baseUrl       = configuration["AppSettings:BaseUrl"] ?? "https://localhost:7001";
+            _taskQueue    = taskQueue;
         }
 
 
@@ -91,13 +94,15 @@ namespace Etmen_BLL.Repositories.Services
             if (role == "Patient")
             {
                 user.IsEmailVerified = true;
+                user.EmailConfirmed = true; // Confirm email for ASP.NET Identity
                 await _userManager.UpdateAsync(user);
 
                 _logger.LogInformation("New Patient registered and auto-verified: {Email}", user.Email);
 
                 // Send welcome email immediately for patients (auto-verified)
                 var fullName = $"{dto.FirstName} {dto.LastName}".Trim();
-                _ = Task.Run(() => _emailService.SendWelcomeEmailAsync(user.Email!, fullName, role));
+                await _taskQueue.QueueBackgroundWorkItemAsync(async token => 
+                    await _emailService.SendWelcomeEmailAsync(user.Email!, fullName, role));
 
                 return ServiceResult<AuthResult>.Created(new AuthResult
                 {
@@ -115,8 +120,9 @@ namespace Etmen_BLL.Repositories.Services
                 var encodedToken  = Uri.EscapeDataString(token);
                 var activationLink = $"{_baseUrl}/Account/VerifyEmail?userId={user.Id}&token={encodedToken}";
 
-                _ = Task.Run(() => _emailService.SendAccountActivationEmailAsync(
-                    user.Email!, $"{dto.FirstName} {dto.LastName}".Trim(), activationLink, role));
+                await _taskQueue.QueueBackgroundWorkItemAsync(async token => 
+                    await _emailService.SendAccountActivationEmailAsync(
+                        user.Email!, $"{dto.FirstName} {dto.LastName}".Trim(), activationLink, role));
 
                 _logger.LogInformation(
                     "New Doctor registered: {Email}, activation email sent.", user.Email);
@@ -145,6 +151,9 @@ namespace Etmen_BLL.Repositories.Services
 
             if (result.IsLockedOut)
                 return ServiceResult<AuthResult>.Failure("الحساب مقفل مؤقتاً بسبب محاولات تسجيل دخول متعددة.", 429);
+
+            if (result.IsNotAllowed)
+                return ServiceResult<AuthResult>.Failure("الرجاء تفعيل الحساب من الـ Gmail أولاً.", 403);
 
             if (!result.Succeeded)
                 return ServiceResult<AuthResult>.Failure("بريد إلكتروني أو كلمة مرور غير صحيحة.", 401);
@@ -189,7 +198,8 @@ namespace Etmen_BLL.Repositories.Services
             var roles   = await _userManager.GetRolesAsync(user);
             var role    = roles.FirstOrDefault() ?? "Patient";
             var name    = $"{user.FirstName} {user.LastName}".Trim();
-            _ = Task.Run(() => _emailService.SendWelcomeEmailAsync(user.Email!, name, role));
+            await _taskQueue.QueueBackgroundWorkItemAsync(async token => 
+                await _emailService.SendWelcomeEmailAsync(user.Email!, name, role));
 
             return ServiceResult.Success();
         }
@@ -215,7 +225,8 @@ namespace Etmen_BLL.Repositories.Services
             var resetLink    = $"{_baseUrl}/Account/ResetPassword?token={encodedToken}&email={encodedEmail}";
             var name         = $"{user.FirstName} {user.LastName}".Trim();
 
-            _ = Task.Run(() => _emailService.SendPasswordResetEmailAsync(user.Email!, name, resetLink));
+            await _taskQueue.QueueBackgroundWorkItemAsync(async token => 
+                await _emailService.SendPasswordResetEmailAsync(user.Email!, name, resetLink));
 
             _logger.LogInformation("Password reset email sent to {Email}.", dto.Email);
             return ServiceResult.Success();

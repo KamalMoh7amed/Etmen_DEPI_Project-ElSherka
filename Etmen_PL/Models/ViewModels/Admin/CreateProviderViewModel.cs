@@ -28,6 +28,8 @@ namespace Etmen_PL.Models.ViewModels.Admin
         [Range(0, 1000)]
         public int? AvailableBeds { get; set; }
 
+        public bool IsEmergencyCenter { get; set; } = false;
+
         public bool IsActive { get; set; } = true;
     }
 }

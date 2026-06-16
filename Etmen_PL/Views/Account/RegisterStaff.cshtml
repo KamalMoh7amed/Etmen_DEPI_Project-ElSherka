@@ -1,0 +1,73 @@
+@model Etmen_PL.Models.ViewModels.Account.RegisterStaffViewModel
+@{
+    ViewData["Title"] = "تسجيل حساب موظف جديد";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    bool isEmailPrefilled = ViewBag.IsEmailPrefilled ?? false;
+}
+
+<div class="container py-5 d-flex align-items-center justify-content-center" style="min-height: 80vh;">
+    <div class="col-lg-6 col-md-8 col-12 animate__animated animate__fadeIn">
+        <div class="card shadow-lg border-0 rounded-4 p-5" style="background: white; border: 1px solid rgba(0,0,0,0.05) !important;">
+            <div class="text-center mb-4">
+                <div class="text-primary fs-1 mb-2">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <h3 class="fw-black text-dark mb-1" style="font-weight: 900;">إكمال تسجيل موظف</h3>
+                <p class="text-muted small">دعوة للانضمام إلى طاقم عمل <strong>@ViewBag.ProviderName</strong></p>
+            </div>
+
+            <form asp-controller="Account" asp-action="RegisterStaff" method="post" class="needs-validation">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Token" />
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger small" role="alert"></div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6 col-12">
+                        <label asp-for="FirstName" class="form-label fw-bold small text-dark">الاسم الأول</label>
+                        <input asp-for="FirstName" class="form-control rounded-pill px-3" required placeholder="مثال: أحمد" />
+                        <span asp-validation-for="FirstName" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6 col-12">
+                        <label asp-for="LastName" class="form-label fw-bold small text-dark">الاسم الأخير</label>
+                        <input asp-for="LastName" class="form-control rounded-pill px-3" required placeholder="مثال: علي" />
+                        <span asp-validation-for="LastName" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label fw-bold small text-dark">البريد الإلكتروني</label>
+                    @if (isEmailPrefilled)
+                    {
+                        <input asp-for="Email" class="form-control rounded-pill px-3" readonly />
+                    }
+                    else
+                    {
+                        <input asp-for="Email" class="form-control rounded-pill px-3" required placeholder="name@domain.com" />
+                    }
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6 col-12">
+                        <label asp-for="Password" class="form-label fw-bold small text-dark">كلمة المرور</label>
+                        <input asp-for="Password" type="password" class="form-control rounded-pill px-3" required placeholder="أدخل كلمة مرور قوية" />
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6 col-12">
+                        <label asp-for="ConfirmPassword" class="form-label fw-bold small text-dark">تأكيد كلمة المرور</label>
+                        <input asp-for="ConfirmPassword" type="password" class="form-control rounded-pill px-3" required placeholder="تأكيد كلمة المرور" />
+                        <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold py-2.5 shadow-sm">
+                    <i class="fas fa-check-circle me-1"></i> إكمال التسجيل وتفعيل الحساب
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

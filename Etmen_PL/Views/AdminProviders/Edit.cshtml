@@ -86,6 +86,15 @@
                         <span asp-validation-for="Longitude" class="text-danger small"></span>
                     </div>
                     
+                    <!-- IsEmergencyCenter Checkbox -->
+                    <div class="col-12 mt-2">
+                        <div class="form-check form-switch mt-2">
+                            <input asp-for="IsEmergencyCenter" class="form-check-input" type="checkbox" style="width:3rem;height:1.5rem;" />
+                            <label class="form-check-label fw-bold me-2" asp-for="IsEmergencyCenter">المنشأة مجهزة بقسم طوارئ (يمكنها استقبال حالات طارئة)</label>
+                        </div>
+                        <span asp-validation-for="IsEmergencyCenter" class="text-danger small"></span>
+                    </div>
+
                     <!-- IsActive Checkbox -->
                     <div class="col-12 mt-2">
                         <div class="form-check form-switch mt-2">
@@ -109,6 +118,380 @@
                     <a href="/AdminProviders" class="btn btn-outline-secondary rounded-pill px-4 fw-800">إلغاء</a>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Staff Management Section for Admin -->
+    <div class="col-lg-8 col-12 mx-auto mt-4 animate__animated animate__fadeIn">
+        <div class="dashboard-card p-4">
+            <h4 class="card-header-sm border-bottom pb-3 mb-4">
+                <i class="fas fa-users-cog text-primary"></i> إدارة موظفي المنشأة الطبية
+            </h4>
+
+            <!-- Invite & Link Generator -->
+            <div class="row g-4 mb-4">
+                <!-- Invite Form -->
+                <div class="col-md-7 col-12">
+                    <div class="p-3 border rounded-4 bg-light">
+                        <h6 class="fw-bold mb-3 text-dark"><i class="fas fa-envelope-open-text text-primary me-1"></i> دعوة موظف جديد بالبريد الإلكتروني</h6>
+                        
+                        <form asp-controller="HospitalStaffManagement" asp-action="Invite" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="providerId" value="@ViewBag.ProviderId" />
+                            <input type="hidden" name="redirectUrl" value="/AdminProviders/Edit/@ViewBag.ProviderId" />
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">البريد الإلكتروني للموظف</label>
+                                <input type="email" name="email" required class="form-control rounded-pill px-3" placeholder="name@domain.com" />
+                            </div>
+
+                            <div class="row g-2 mb-3">
+                                <div class="col-md-6 col-12">
+                                    <label class="form-label small fw-bold">الدور الوظيفي</label>
+                                    <select name="role" class="form-select rounded-pill px-3" style="height:38px;">
+                                        <option value="Receptionist">موظف استقبال (Receptionist)</option>
+                                        <option value="TriageStaff">موظف طوارئ وفرز (TriageStaff)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 col-12">
+                                    <label class="form-label small fw-bold">وردية العمل</label>
+                                    <select name="shift" class="form-select rounded-pill px-3" style="height:38px;">
+                                        <option value="None">غير محدد</option>
+                                        <option value="Morning">وردية صباحية</option>
+                                        <option value="Evening">وردية مسائية</option>
+                                        <option value="Night">وردية ليلية</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4 py-2 fw-700">
+                                <i class="fas fa-paper-plane me-1"></i> إرسال دعوة الانضمام
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Link Generator -->
+                <div class="col-md-5 col-12">
+                    <div class="p-3 border rounded-4 bg-light h-100 d-flex flex-column justify-content-between">
+                        <div>
+                            <h6 class="fw-bold mb-2 text-dark"><i class="fas fa-link text-success me-1"></i> رابط دعوة سريع (Link)</h6>
+                            <p class="text-muted small">قم بتوليد رابط سريع وإرساله للموظف عبر الواتساب للتسجيل فوراً (صالح لمدة 24 ساعة).</p>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="row g-2 mb-2">
+                                <div class="col-6">
+                                    <select id="linkRole" class="form-select form-select-sm rounded-pill px-2">
+                                        <option value="Receptionist">استقبال</option>
+                                        <option value="TriageStaff">طوارئ</option>
+                                    </select>
+                                </div>
+                                <div class="col-6">
+                                    <select id="linkShift" class="form-select form-select-sm rounded-pill px-2">
+                                        <option value="None">الوردية</option>
+                                        <option value="Morning">صباحي</option>
+                                        <option value="Evening">مسائي</option>
+                                        <option value="Night">ليلي</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button type="button" onclick="generateLink()" class="btn btn-outline-success btn-sm w-100 rounded-pill fw-bold">
+                                <i class="fas fa-magic me-1"></i> توليد رابط الدعوة السريع
+                            </button>
+                        </div>
+
+                        <div id="linkOutput" class="d-none">
+                            <div class="input-group input-group-sm">
+                                <input type="text" id="inviteLinkText" readonly class="form-control" />
+                                <button type="button" onclick="copyInviteLink()" class="btn btn-success"><i class="fas fa-copy"></i></button>
+                            </div>
+                            <span class="text-success small d-block mt-1"><i class="fas fa-check-circle"></i> تم التوليد بنجاح!</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Staff -->
+            <div class="border rounded-4 overflow-hidden mt-4">
+                <div class="p-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2 bg-light">
+                    <h6 class="fw-bold m-0 text-dark"><i class="fas fa-user-shield text-primary me-1"></i> طاقم العمل الحالي بالمنشأة</h6>
+                    <div class="d-flex gap-2">
+                        <a href="/HospitalStaffManagement/Stats?providerId=@ViewBag.ProviderId" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold">
+                            <i class="fas fa-chart-bar me-1"></i> إحصائيات الأداء
+                        </a>
+                        <a href="/HospitalStaffManagement/Logs?providerId=@ViewBag.ProviderId" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold">
+                            <i class="fas fa-receipt me-1"></i> سجل العمليات
+                        </a>
+                    </div>
+                </div>
+
+                @if (ViewBag.StaffMembers == null || !((List<Etmen_BLL.DTOs.HospitalStaff.StaffProfileDto>)ViewBag.StaffMembers).Any())
+                {
+                    <div class="text-center py-5 text-muted">
+                        <i class="fas fa-users-slash fs-1 mb-3 text-muted opacity-50"></i>
+                        <h5>لا يوجد موظفون معينون في هذه المنشأة بعد</h5>
+                        <p class="small mb-0">ابدأ بدعوة موظفي الاستقبال أو الطوارئ لمساعدة المنشأة.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0 table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>الموظف</th>
+                                    <th>الدور</th>
+                                    <th>الوردية</th>
+                                    <th>الحالة</th>
+                                    <th class="text-center">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var staff in (List<Etmen_BLL.DTOs.HospitalStaff.StaffProfileDto>)ViewBag.StaffMembers)
+                                {
+                                    <tr>
+                                        <td class="fw-bold">
+                                            <div>@staff.FullName</div>
+                                            <small class="text-muted font-monospace" style="font-size:0.75rem;">@staff.Email</small>
+                                        </td>
+                                        <td>
+                                            <form asp-controller="HospitalStaffManagement" asp-action="UpdateStaff" method="post" class="d-inline-flex gap-1 align-items-center">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="profileId" value="@staff.Id" />
+                                                <input type="hidden" name="redirectUrl" value="/AdminProviders/Edit/@ViewBag.ProviderId" />
+                                                <input type="hidden" name="shift" value="@staff.ActiveShift" />
+                                                <select name="role" onchange="this.form.submit()" class="form-select form-select-sm rounded-pill py-0 px-2" style="font-size:0.8rem; width:120px;">
+                                                    <option value="Receptionist" selected="@(staff.RoleType == StaffRoleType.Receptionist)">استقبال</option>
+                                                    <option value="TriageStaff" selected="@(staff.RoleType == StaffRoleType.TriageStaff)">فرز وطوارئ</option>
+                                                </select>
+                                            </form>
+                                        </td>
+                                        <td>
+                                            <form asp-controller="HospitalStaffManagement" asp-action="UpdateStaff" method="post" class="d-inline-flex gap-1 align-items-center">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="profileId" value="@staff.Id" />
+                                                <input type="hidden" name="redirectUrl" value="/AdminProviders/Edit/@ViewBag.ProviderId" />
+                                                <input type="hidden" name="role" value="@staff.RoleType" />
+                                                <select name="shift" onchange="this.form.submit()" class="form-select form-select-sm rounded-pill py-0 px-2" style="font-size:0.8rem; width:100px;">
+                                                    <option value="None" selected="@(staff.ActiveShift == StaffShiftType.None)">غير محدد</option>
+                                                    <option value="Morning" selected="@(staff.ActiveShift == StaffShiftType.Morning)">صباحي</option>
+                                                    <option value="Evening" selected="@(staff.ActiveShift == StaffShiftType.Evening)">مسائي</option>
+                                                    <option value="Night" selected="@(staff.ActiveShift == StaffShiftType.Night)">ليلي</option>
+                                                </select>
+                                            </form>
+                                        </td>
+                                        <td>
+                                            @if (staff.IsInvitationAccepted)
+                                            {
+                                                <span class="badge bg-success-light text-success rounded-pill px-3 py-1.5" style="font-size:0.8rem; background-color:rgba(40,167,69,0.1) !important;">نشط / مقبول</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning-light text-warning rounded-pill px-3 py-1.5" style="font-size:0.8rem; background-color:rgba(255,193,7,0.1) !important;">معلق</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center justify-content-center gap-2">
+                                                @if (!staff.IsInvitationAccepted)
+                                                {
+                                                    <form asp-controller="HospitalStaffManagement" asp-action="Resend" method="post">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="profileId" value="@staff.Id" />
+                                                        <input type="hidden" name="redirectUrl" value="/AdminProviders/Edit/@ViewBag.ProviderId" />
+                                                        <button type="submit" class="btn btn-sm btn-outline-info rounded-pill px-3" title="إعادة إرسال الدعوة"><i class="fas fa-redo"></i> تذكير</button>
+                                                    </form>
+                                                    <form asp-controller="HospitalStaffManagement" asp-action="Cancel" method="post">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="profileId" value="@staff.Id" />
+                                                        <input type="hidden" name="redirectUrl" value="/AdminProviders/Edit/@ViewBag.ProviderId" />
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3" title="إلغاء الدعوة"><i class="fas fa-trash-alt"></i> إلغاء</button>
+                                                    </form>
+                                                }
+                                                else
+                                                {
+                                                    <a href="/Chat/Thread?otherUserId=@staff.UserId" class="btn btn-sm btn-outline-primary rounded-pill px-3" title="دردشة وتنسيق"><i class="fas fa-comment-dots"></i> محادثة</a>
+                                                    <form asp-controller="HospitalStaffManagement" asp-action="Remove" method="post" onsubmit="return confirm('هل أنت متأكد من إخراج هذا الموظف من طاقم المنشأة؟')">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="profileId" value="@staff.Id" />
+                                                        <input type="hidden" name="redirectUrl" value="/AdminProviders/Edit/@ViewBag.ProviderId" />
+                                                        <button type="submit" class="btn btn-sm btn-danger rounded-pill px-3"><i class="fas fa-user-minus"></i> فصل</button>
+                                                    </form>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+</div>
+
+    <!-- Doctor Management Section for Admin -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+        <div class="card-header bg-success bg-gradient text-white py-3">
+            <h5 class="card-title mb-0 fw-bold"><i class="fas fa-user-md me-2"></i> إدارة أطباء المنشأة</h5>
+        </div>
+        <div class="card-body p-4">
+            <div class="row g-4">
+                <!-- Column 1: Add/Register Doctor Form -->
+                <div class="col-lg-5">
+                    <div class="border rounded-3 p-3 bg-light">
+                        <h6 class="fw-bold mb-3 border-bottom pb-2 text-success"><i class="fas fa-plus-circle me-1"></i> ربط أو تسجيل طبيب جديد</h6>
+                        
+                        <!-- Nav tabs for switching add options -->
+                        <ul class="nav nav-pills nav-justified mb-3" id="doctorTab" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active btn-sm" id="existing-doctor-tab" data-bs-toggle="pill" data-bs-target="#existing-doctor" type="button" role="tab" aria-controls="existing-doctor" aria-selected="true">طبيب مسجل</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link btn-sm" id="new-doctor-tab" data-bs-toggle="pill" data-bs-target="#new-doctor" type="button" role="tab" aria-controls="new-doctor" aria-selected="false">طبيب جديد (تسجيل تلقائي)</button>
+                            </li>
+                        </ul>
+                        
+                        <form asp-controller="AdminProviders" asp-action="AddDoctorAffiliation" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="providerId" value="@ViewBag.ProviderId" />
+                            
+                            <div class="tab-content" id="doctorTabContent">
+                                <!-- Tab 1: Existing Doctor -->
+                                <div class="tab-pane fade show active" id="existing-doctor" role="tabpanel" aria-labelledby="existing-doctor-tab">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold text-secondary small">اختر طبيب من القائمة</label>
+                                        <select class="form-select form-select-sm" name="doctorId">
+                                            <option value="">-- اختر طبيب --</option>
+                                            @if (ViewBag.AllDoctors != null)
+                                            {
+                                                foreach (var doctor in (List<Etmen_Domain.Entities.DoctorProfile>)ViewBag.AllDoctors)
+                                                {
+                                                    <option value="@doctor.Id">@doctor.FullName (@(doctor.Specialization ?? "عام"))</option>
+                                                }
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <!-- Tab 2: New Doctor (Auto-registration) -->
+                                <div class="tab-pane fade" id="new-doctor" role="tabpanel" aria-labelledby="new-doctor-tab">
+                                    <div class="row g-2">
+                                        <div class="col-md-6 mb-2">
+                                            <label class="form-label fw-semibold text-secondary small">الاسم الأول *</label>
+                                            <input type="text" class="form-control form-control-sm" name="firstName" placeholder="مثال: أحمد" />
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <label class="form-label fw-semibold text-secondary small">الاسم الأخير *</label>
+                                            <input type="text" class="form-control form-control-sm" name="lastName" placeholder="مثال: علي" />
+                                        </div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label fw-semibold text-secondary small">البريد الإلكتروني *</label>
+                                        <input type="email" class="form-control form-control-sm" name="email" placeholder="example@doctor.com" />
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label fw-semibold text-secondary small">رقم الهاتف</label>
+                                        <input type="text" class="form-control form-control-sm" name="phoneNumber" placeholder="01xxxxxxxxx" />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold text-secondary small">التخصص</label>
+                                        <input type="text" class="form-control form-control-sm" name="specialization" placeholder="مثال: طوارئ، قلب" />
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Common Affiliation Options -->
+                            <div class="border-top pt-3 mt-3">
+                                <div class="mb-2">
+                                    <label class="form-label fw-semibold text-secondary small">الدور الوظيفي في المنشأة</label>
+                                    <input type="text" class="form-control form-control-sm" name="affiliationRole" placeholder="مثال: استشاري، طبيب مقيم" />
+                                </div>
+                                
+                                <div class="mb-3 form-check form-switch d-flex align-items-center justify-content-between">
+                                    <label class="form-check-label fw-semibold text-secondary small" for="isEmergencyDoctor">طبيب طوارئ في المنشأة؟</label>
+                                    <input class="form-check-input ms-2" type="checkbox" role="switch" id="isEmergencyDoctor" name="isEmergencyDoctor" value="true" />
+                                </div>
+
+                                <div class="mb-3 form-check form-switch d-flex align-items-center justify-content-between">
+                                    <label class="form-check-label fw-semibold text-secondary small" for="isOwner">هل الطبيب مالك/مدير المنشأة (عيادة خاصة)؟</label>
+                                    <input class="form-check-input ms-2" type="checkbox" role="switch" id="isOwner" name="isOwner" value="true" />
+                                </div>
+                                
+                                <button type="submit" class="btn btn-success bg-gradient btn-sm w-100 rounded-pill py-2"><i class="fas fa-link me-1"></i> ربط الطبيب بالمنشأة</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Column 2: Affiliated Doctors List -->
+                <div class="col-lg-7">
+                    <h6 class="fw-bold mb-3 border-bottom pb-2 text-dark"><i class="fas fa-list me-1"></i> الأطباء المرتبطين حالياً (@(ViewBag.AffiliatedDoctors != null ? ((List<Etmen_Domain.Entities.DoctorProvider>)ViewBag.AffiliatedDoctors).Count : 0))</h6>
+                    
+                    @if (ViewBag.AffiliatedDoctors == null || !((List<Etmen_Domain.Entities.DoctorProvider>)ViewBag.AffiliatedDoctors).Any())
+                    {
+                        <div class="alert alert-info border-0 rounded-3 text-center py-4">
+                            <i class="fas fa-info-circle fa-2x mb-2 text-info"></i>
+                            <p class="mb-0 small fw-semibold">لا يوجد أطباء مرتبطين بهذا المركز حالياً.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive rounded-3 border">
+                            <table class="table table-hover align-middle mb-0 text-center">
+                                <thead class="table-light small">
+                                    <tr>
+                                        <th>الطبيب</th>
+                                        <th>التخصص</th>
+                                        <th>طوارئ؟</th>
+                                        <th>مالك؟</th>
+                                        <th>الدور</th>
+                                        <th>إجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="small">
+                                    @foreach (var aff in (List<Etmen_Domain.Entities.DoctorProvider>)ViewBag.AffiliatedDoctors)
+                                    {
+                                        <tr>
+                                            <td class="fw-semibold text-start text-nowrap">@aff.DoctorProfile.FullName</td>
+                                            <td>@(aff.DoctorProfile.Specialization ?? "عام")</td>
+                                            <td>
+                                                @if (aff.IsEmergencyDoctor)
+                                                {
+                                                    <span class="badge bg-danger rounded-pill px-2">طوارئ</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary rounded-pill px-2">لا</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (aff.IsOwner)
+                                                {
+                                                    <span class="badge bg-warning text-dark rounded-pill px-2">نعم</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-light text-secondary rounded-pill px-2">لا</span>
+                                                }
+                                            </td>
+                                            <td>@(aff.AffiliationRole ?? "عضو")</td>
+                                            <td>
+                                                <form asp-controller="AdminProviders" asp-action="RemoveDoctorAffiliation" method="post" onsubmit="return confirm('هل أنت متأكد من إلغاء ارتباط هذا الطبيب بالمنشأة؟')">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="providerId" value="@ViewBag.ProviderId" />
+                                                    <input type="hidden" name="doctorId" value="@aff.DoctorProfileId" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger border-0 rounded-circle" title="إلغاء الارتباط"><i class="fas fa-trash-alt"></i></button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -162,5 +545,39 @@
                 }
             });
         });
+
+        function generateLink() {
+            const providerId = '@ViewBag.ProviderId';
+            const role = $('#linkRole').val();
+            const shift = $('#linkShift').val();
+            
+            $.ajax({
+                url: '/HospitalStaffManagement/GenerateInviteLink',
+                type: 'GET',
+                data: { providerId: providerId, role: role, shift: shift },
+                success: function(res) {
+                    if (res.success) {
+                        $('#inviteLinkText').val(res.link);
+                        $('#linkOutput').removeClass('d-none');
+                    } else {
+                        alert(res.message || 'حدث خطأ أثناء توليد الرابط.');
+                    }
+                },
+                error: function() {
+                    alert('خطأ في الاتصال بالخادم.');
+                }
+            });
+        }
+
+        function copyInviteLink() {
+            const input = document.getElementById('inviteLinkText');
+            input.select();
+            input.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(input.value).then(function() {
+                alert('تم نسخ رابط الدعوة بنجاح!');
+            }).catch(function() {
+                alert('فشل في نسخ الرابط.');
+            });
+        }
     </script>
 }

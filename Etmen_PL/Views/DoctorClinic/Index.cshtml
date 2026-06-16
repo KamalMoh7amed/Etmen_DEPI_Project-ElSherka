@@ -1,6 +1,7 @@
+@using Etmen_Domain.Enums
 @model Etmen_PL.Controllers.DoctorClinicViewModel
 @{
-    ViewData["Title"] = "عيادتي";
+    ViewData["Title"] = "إدارة عيادتي الذكية";
     Layout = "~/Views/Shared/_DoctorLayout.cshtml";
     
     var activeSlots = Model.Slots.Where(s => !s.IsBooked).ToList();
@@ -9,71 +10,253 @@
         .Select(a => new { a.PatientId, a.PatientName, a.PatientPhone, a.PatientEmail })
         .DistinctBy(p => p.PatientId)
         .ToList();
+    var staffMembers = ViewBag.StaffMembers as List<Etmen_BLL.DTOs.HospitalStaff.StaffProfileDto> ?? new List<Etmen_BLL.DTOs.HospitalStaff.StaffProfileDto>();
 }
 
+<!-- Load Animate.css & FontAwesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
 <style>
-    .clinic-header {
-        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    :root {
+        --primary-glass: rgba(26, 111, 191, 0.08);
+        --success-glass: rgba(40, 167, 69, 0.08);
+        --warning-glass: rgba(255, 193, 7, 0.08);
+        --danger-glass: rgba(220, 53, 69, 0.08);
+        --purple-glass: rgba(142, 68, 173, 0.08);
+        
+        --primary-dark: #0f2b48;
+    }
+
+    body {
+        background-color: #f8fafc;
+    }
+
+    .glass-card {
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
         border-radius: 24px;
-        padding: 2rem;
-        box-shadow: 0 10px 30px rgba(26, 111, 191, 0.15);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.04);
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        overflow: hidden;
+    }
+    .glass-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.08);
+        background: rgba(255, 255, 255, 0.8);
+        border-color: rgba(26, 111, 191, 0.25);
+    }
+
+    /* Clinic Premium Header */
+    .clinic-header-premium {
+        position: relative;
+        border-radius: 28px;
+        padding: 3rem;
+        background: linear-gradient(135deg, #0A1C2C 0%, #156082 50%, #1a6fbf 100%) !important;
+        box-shadow: 0 20px 45px rgba(10, 28, 44, 0.15);
         color: white;
+        overflow: hidden;
+        z-index: 1;
+        border: 1px solid rgba(255, 255, 255, 0.1);
         margin-bottom: 2rem;
-        border: none;
     }
-    .clinic-nav-tabs {
-        border-bottom: 2px solid var(--border);
+    .clinic-header-premium::before {
+        content: '';
+        position: absolute;
+        top: -40%; left: -20%;
+        width: 450px; height: 450px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(0, 201, 167, 0.2) 0%, transparent 60%);
+        filter: blur(40px);
+        z-index: -1;
+        animation: pulseGradient 10s ease-in-out infinite alternate;
+    }
+    @@keyframes pulseGradient {
+        0% { transform: translate(0, 0) scale(1); }
+        100% { transform: translate(20px, 15px) scale(1.1); }
+    }
+
+    /* Metric Cards */
+    .metric-card-glass {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.02);
+        transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+    }
+    .metric-card-glass:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 30px rgba(31, 38, 135, 0.06);
+        border-color: rgba(26, 111, 191, 0.25);
+    }
+    .metric-icon-box {
+        width: 54px;
+        height: 54px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        transition: all 0.3s;
+    }
+    .metric-card-glass:hover .metric-icon-box {
+        transform: scale(1.1) rotate(-8deg);
+    }
+    .bg-primary-glass { background: var(--primary-glass); color: var(--primary); }
+    .bg-success-glass { background: var(--success-glass); color: var(--success); }
+    .bg-warning-glass { background: var(--warning-glass); color: #e67e22; }
+    .bg-danger-glass { background: var(--danger-glass); color: var(--danger); }
+
+    /* Navigation Tabs */
+    .clinic-nav-tabs-glass {
+        border-bottom: 2px solid rgba(0,0,0,0.05);
         margin-bottom: 2rem;
-        gap: 1rem;
+        gap: 0.5rem;
     }
-    .clinic-nav-tabs .nav-link {
+    .clinic-nav-tabs-glass .nav-link {
         border: none;
-        color: var(--text-muted);
+        color: #7f8c8d;
         font-weight: 700;
         padding: 12px 20px;
-        position: relative;
+        border-radius: 12px 12px 0 0;
         background: transparent;
         transition: all 0.3s;
     }
-    .clinic-nav-tabs .nav-link:hover {
-        color: var(--primary);
+    .clinic-nav-tabs-glass .nav-link:hover {
+        color: #1a6fbf;
+        background: rgba(26, 111, 191, 0.05);
     }
-    .clinic-nav-tabs .nav-link.active {
-        color: var(--primary);
+    .clinic-nav-tabs-glass .nav-link.active {
+        color: #1a6fbf;
+        background: rgba(255, 255, 255, 0.8);
+        box-shadow: 0 -4px 15px rgba(0,0,0,0.02);
+        position: relative;
     }
-    .clinic-nav-tabs .nav-link.active::after {
+    .clinic-nav-tabs-glass .nav-link.active::after {
         content: '';
         position: absolute;
-        bottom: -2px; left: 0; right: 0;
+        bottom: 0; left: 0; right: 0;
         height: 3px;
-        background: var(--primary);
-        border-radius: 3px;
+        background: #1a6fbf;
+        border-radius: 3px 3px 0 0;
     }
-    .metric-card-custom {
-        background: white;
-        border: 1px solid var(--border);
+
+    /* Table Custom styles */
+    .table-container-glass {
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
         border-radius: 20px;
-        padding: 1.5rem;
-        transition: all 0.3s;
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.03);
     }
-    .metric-card-custom:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+    .dr-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin: 0;
+    }
+    .dr-table th {
+        background: rgba(26, 111, 191, 0.04);
+        color: #2c3e50;
+        font-weight: 800;
+        padding: 16px 20px;
+        border-bottom: 2px solid rgba(0,0,0,0.05);
+        text-align: right;
+    }
+    .dr-table td {
+        padding: 16px 20px;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        color: #34495e;
+        font-size: 0.95rem;
+        vertical-align: middle;
+        transition: all 0.2s;
+    }
+    .dr-table tr:last-child td {
+        border-bottom: none;
+    }
+    .dr-table tr:hover td {
+        background: rgba(26, 111, 191, 0.015);
+    }
+
+    /* Badge Custom styles */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+    .status-badge.confirmed { background: rgba(46, 204, 113, 0.1); color: #27ae60; }
+    .status-badge.pending { background: rgba(241, 196, 15, 0.1); color: #d35400; }
+    .status-badge.completed { background: rgba(52, 152, 219, 0.1); color: #2980b9; }
+    .status-badge.cancelled { background: rgba(231, 76, 60, 0.1); color: #c0392b; }
+    
+    .status-badge .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background-color: currentColor;
+    }
+
+    /* Custom Toast CSS */
+    .toast-container {
+        position: fixed;
+        bottom: 24px;
+        left: 24px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .custom-toast {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        border-radius: 16px;
+        padding: 16px 24px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 300px;
+        animation: slideInLeft 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        transition: all 0.3s ease;
+    }
+    .custom-toast.success { border-left: 5px solid #2ecc71; }
+    .custom-toast.error { border-left: 5px solid #e74c3c; }
+    .custom-toast.info { border-left: 5px solid #3498db; }
+    @@keyframes slideInLeft {
+        from { transform: translateX(-100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @@keyframes fadeOut {
+        to { opacity: 0; transform: translateY(20px); }
     }
 </style>
 
 <div class="container-fluid animate__animated animate__fadeIn">
-    <!-- Clinic Header -->
-    <div class="clinic-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <!-- Clinic Premium Header -->
+    <div class="clinic-header-premium d-flex justify-content-between align-items-center flex-wrap gap-4">
         <div>
             <span class="badge bg-white text-primary mb-2 px-3 py-2 fw-bold" style="font-size:0.8rem;">
-                <i class="fas fa-clinic-medical"></i> إدارة مركز الخدمة والعيادة
+                <i class="fas fa-clinic-medical"></i> مركز إدارة الخدمة والعيادة
             </span>
-            <h2 class="fw-black text-white mb-1">عيادتي — @(string.IsNullOrEmpty(Model.EntityName) ? "لم يتم التسمية بعد" : Model.EntityName)</h2>
-            <p class="text-white-50 mb-0">تحديث مواعيد العيادة، إدارة أوقات العمل المتاحة، والاطلاع على سجل المراجعات والمرضى.</p>
+            <h2 class="fw-black text-white mb-2">عيادتي — @(string.IsNullOrEmpty(Model.EntityName) ? "لم يتم التسمية بعد" : Model.EntityName)</h2>
+            <p class="text-white-50 mb-0 fw-medium">تحديث مواعيد العيادة، إدارة أوقات العمل المتاحة، والاطلاع على سجل المراجعات والمرضى.</p>
         </div>
         <div>
-            <a href="/DoctorClinic/Edit" class="btn btn-light rounded-pill px-4 py-2 fw-800 text-primary">
+            <a href="/DoctorClinic/Edit" class="btn btn-light rounded-pill px-4 py-2 fw-800 text-primary shadow-sm hover-grow">
                 <i class="fas fa-edit me-1"></i> تعديل بيانات العيادة
             </a>
         </div>
@@ -82,38 +265,38 @@
     <!-- Metrics Stats Rows -->
     <div class="row g-4 mb-4">
         <div class="col-md-3 col-sm-6 col-12">
-            <div class="metric-card-custom d-flex align-items-center gap-3">
-                <div class="rounded-3 p-3 bg-primary-light text-primary fs-3"><i class="fas fa-calendar-check"></i></div>
+            <div class="metric-card-glass">
+                <div class="metric-icon-box bg-primary-glass"><i class="fas fa-calendar-check"></i></div>
                 <div>
-                    <h3 class="fw-bold mb-0">@Model.Appointments.Count</h3>
-                    <small class="text-muted">إجمالي الحجوزات</small>
+                    <h3 class="fw-black mb-0 text-dark">@Model.Appointments.Count</h3>
+                    <small class="text-muted fw-bold">إجمالي الحجوزات</small>
                 </div>
             </div>
         </div>
         <div class="col-md-3 col-sm-6 col-12">
-            <div class="metric-card-custom d-flex align-items-center gap-3">
-                <div class="rounded-3 p-3 bg-success-light text-success fs-3"><i class="fas fa-clock"></i></div>
+            <div class="metric-card-glass">
+                <div class="metric-icon-box bg-success-glass"><i class="fas fa-clock"></i></div>
                 <div>
-                    <h3 class="fw-bold mb-0">@activeSlots.Count</h3>
-                    <small class="text-muted">الفترات المتاحة</small>
+                    <h3 class="fw-black mb-0 text-dark">@activeSlots.Count</h3>
+                    <small class="text-muted fw-bold">الفترات المتاحة</small>
                 </div>
             </div>
         </div>
         <div class="col-md-3 col-sm-6 col-12">
-            <div class="metric-card-custom d-flex align-items-center gap-3">
-                <div class="rounded-3 p-3 bg-warning-light text-warning fs-3"><i class="fas fa-user-injured"></i></div>
+            <div class="metric-card-glass">
+                <div class="metric-icon-box bg-warning-glass"><i class="fas fa-user-injured"></i></div>
                 <div>
-                    <h3 class="fw-bold mb-0">@uniquePatients.Count</h3>
-                    <small class="text-muted">مرضى العيادة</small>
+                    <h3 class="fw-black mb-0 text-dark">@uniquePatients.Count</h3>
+                    <small class="text-muted fw-bold">مرضى العيادة</small>
                 </div>
             </div>
         </div>
         <div class="col-md-3 col-sm-6 col-12">
-            <div class="metric-card-custom d-flex align-items-center gap-3">
-                <div class="rounded-3 p-3 bg-danger-light text-danger fs-3"><i class="fas fa-file-medical"></i></div>
+            <div class="metric-card-glass">
+                <div class="metric-icon-box bg-danger-glass"><i class="fas fa-file-medical"></i></div>
                 <div>
-                    <h3 class="fw-bold mb-0">@Model.EntityType</h3>
-                    <small class="text-muted">نوع المنشأة</small>
+                    <h4 class="fw-bold mb-0 text-dark" style="font-size: 1.15rem;">@Model.EntityType</h4>
+                    <small class="text-muted fw-bold">نوع المنشأة</small>
                 </div>
             </div>
         </div>
@@ -122,47 +305,47 @@
     <div class="row g-4">
         <!-- Clinic Details Panel & Map -->
         <div class="col-lg-4 col-12">
-            <div class="dr-card">
-                <div class="dr-card-header">
-                    <h5 class="dr-card-title"><i class="fas fa-info-circle"></i> بيانات العيادة والتواصل</h5>
+            <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <h5 class="fw-black text-dark mb-4 pb-2 border-bottom"><i class="fas fa-info-circle text-primary me-2"></i> بيانات العيادة والتواصل</h5>
+                    
+                    <div class="d-flex flex-column gap-3">
+                        <div>
+                            <small class="text-muted fw-bold d-block mb-1">اسم العيادة / الفرع</small>
+                            <span class="fw-bold text-dark fs-6">@(Model.BranchArabicName.Length > 0 ? Model.BranchArabicName : Model.EntityName)</span>
+                        </div>
+                        <div>
+                            <small class="text-muted fw-bold d-block mb-1">نوع المنشأة</small>
+                            <span class="badge bg-light text-primary border px-3 py-1">@Model.EntityType</span>
+                        </div>
+                        <div>
+                            <small class="text-muted fw-bold d-block mb-1">العنوان والموقع</small>
+                            <span class="text-muted small fw-bold">@Model.City - @Model.Area</span>
+                        </div>
+                        <div>
+                            <small class="text-muted fw-bold d-block mb-1">رقم الهاتف</small>
+                            <span class="fw-bold font-monospace text-dark">@(Model.BranchMobile.Length > 0 ? Model.BranchMobile : "غير متوفر")</span>
+                        </div>
+                        <div>
+                            <small class="text-muted fw-bold d-block mb-1">الرقم الضريبي والترخيص</small>
+                            <span class="small font-monospace fw-bold text-secondary">الضريبة: @(Model.TaxId.Length > 0 ? Model.TaxId : "-") | التجاري: @(Model.CommercialRegistration.Length > 0 ? Model.CommercialRegistration : "-")</span>
+                        </div>
+                    </div>
                 </div>
-                
-                <div class="d-flex flex-column gap-3">
-                    <div>
-                        <small class="text-muted fw-bold d-block mb-1">اسم العيادة / الفرع</small>
-                        <span class="fw-bold text-dark fs-6">@(Model.BranchArabicName.Length > 0 ? Model.BranchArabicName : Model.EntityName)</span>
-                    </div>
-                    <div>
-                        <small class="text-muted fw-bold d-block mb-1">نوع المنشأة</small>
-                        <span class="badge bg-light text-primary border px-3 py-1">@Model.EntityType</span>
-                    </div>
-                    <div>
-                        <small class="text-muted fw-bold d-block mb-1">العنوان والموقع</small>
-                        <span class="text-muted small">@Model.City - @Model.Area</span>
-                    </div>
-                    <div>
-                        <small class="text-muted fw-bold d-block mb-1">رقم الهاتف</small>
-                        <span class="fw-bold font-monospace text-dark">@(Model.BranchMobile.Length > 0 ? Model.BranchMobile : "غير متوفر")</span>
-                    </div>
-                    <div>
-                        <small class="text-muted fw-bold d-block mb-1">الرقم الضريبي والترخيص</small>
-                        <span class="small font-monospace">الضريبة: @(Model.TaxId.Length > 0 ? Model.TaxId : "-") | التجاري: @(Model.CommercialRegistration.Length > 0 ? Model.CommercialRegistration : "-")</span>
-                    </div>
 
-                    <!-- Map Showing Location -->
-                    <div class="mt-2">
-                        <small class="text-muted fw-bold d-block mb-2"><i class="fas fa-map-location-dot"></i> موقع العيادة الجغرافي</small>
-                        @if (Model.Latitude.HasValue && Model.Longitude.HasValue)
-                        {
-                            <div id="clinicMap" style="height: 180px; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; z-index: 1;"></div>
-                        }
-                        else
-                        {
-                            <div class="text-center p-4 rounded-3 border bg-light text-muted small">
-                                لم يتم تعيين الإحداثيات الجغرافية بعد. يرجى تعديل بيانات العيادة لتحديد موقعها على الخريطة.
-                            </div>
-                        }
-                    </div>
+                <!-- Map Showing Location -->
+                <div class="mt-4">
+                    <small class="text-muted fw-bold d-block mb-2"><i class="fas fa-map-location-dot text-primary me-1"></i> موقع العيادة الجغرافي</small>
+                    @if (Model.Latitude.HasValue && Model.Longitude.HasValue)
+                    {
+                        <div id="clinicMap" style="height: 200px; border-radius: 18px; border: 1px solid rgba(0,0,0,0.05); overflow: hidden; z-index: 1;"></div>
+                    }
+                    else
+                    {
+                        <div class="text-center p-4 rounded-3 border bg-light text-muted small">
+                            لم يتم تعيين الإحداثيات الجغرافية بعد. يرجى تعديل بيانات العيادة لتحديد موقعها على الخريطة.
+                        </div>
+                    }
                 </div>
             </div>
         </div>
@@ -170,7 +353,7 @@
         <!-- Clinic Tabs Panels -->
         <div class="col-lg-8 col-12">
             <!-- Navigation Tabs -->
-            <ul class="nav nav-tabs clinic-nav-tabs" id="clinicTabs" role="tablist">
+            <ul class="nav nav-tabs clinic-nav-tabs-glass" id="clinicTabs" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="appt-tab" data-bs-toggle="tab" data-bs-target="#apptsPanel" type="button" role="tab" aria-controls="apptsPanel" aria-selected="true">
                         <i class="far fa-calendar-check me-2"></i> المواعيد القادمة (@Model.Appointments.Count)
@@ -186,6 +369,11 @@
                         <i class="fas fa-users-medical me-2"></i> مرضى العيادة (@uniquePatients.Count)
                     </button>
                 </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="staff-tab" data-bs-toggle="tab" data-bs-target="#staffPanel" type="button" role="tab" aria-controls="staffPanel" aria-selected="false">
+                        <i class="fas fa-users-cog me-2"></i> طاقم العمل والورديات (@staffMembers.Count)
+                    </button>
+                </li>
             </ul>
 
             <!-- Tabs Content -->
@@ -193,7 +381,7 @@
                 
                 <!-- Tab 1: Appointments -->
                 <div class="tab-pane fade show active" id="apptsPanel" role="tabpanel" aria-labelledby="appt-tab">
-                    <div class="dr-card p-0" style="overflow:hidden;">
+                    <div class="table-container-glass">
                         @if (!Model.Appointments.Any())
                         {
                             <div class="text-center py-5 text-muted">
@@ -220,12 +408,12 @@
                                         {
                                             <tr>
                                                 <td class="fw-bold">
-                                                    <a href="/DoctorPatients/Details/@appt.PatientId" class="text-decoration-none" style="color:var(--primary);">
+                                                    <a href="/DoctorPatients/Details/@appt.PatientId" class="text-decoration-none text-primary fw-bold">
                                                         @appt.PatientName
                                                     </a>
                                                 </td>
-                                                <td>@appt.AppointmentDate.ToString("yyyy-MM-dd")</td>
-                                                <td>@appt.StartTime.ToString(@"hh\:mm") - @appt.EndTime.ToString(@"hh\:mm")</td>
+                                                <td class="fw-bold">@appt.AppointmentDate.ToString("yyyy-MM-dd")</td>
+                                                <td class="font-monospace">@appt.StartTime.ToString(@"hh\:mm") - @appt.EndTime.ToString(@"hh\:mm")</td>
                                                 <td>
                                                     <span class="status-badge @(appt.Status switch { 
                                                         "Confirmed" => "confirmed", "Pending" => "pending", 
@@ -241,11 +429,11 @@
                                                 </td>
                                                 <td>
                                                     <div class="d-flex align-items-center justify-content-center gap-2">
-                                                        <a href="/DoctorAppointments/Details/@appt.Id" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-                                                            <i class="fas fa-eye"></i> تفاصيل
+                                                        <a href="/DoctorAppointments/Details/@appt.Id" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold">
+                                                            <i class="fas fa-eye me-1"></i> تفاصيل
                                                         </a>
-                                                        <a href="/Chat/Thread?otherUserId=@appt.PatientId" class="btn btn-sm btn-outline-primary rounded-pill px-3" title="مراسلة المريض">
-                                                            <i class="fas fa-comment-dots"></i> محادثة
+                                                        <a href="/Chat/Thread?otherUserId=@appt.PatientId" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" title="مراسلة المريض">
+                                                            <i class="fas fa-comment-dots me-1"></i> محادثة
                                                         </a>
                                                     </div>
                                                 </td>
@@ -261,25 +449,69 @@
                 <!-- Tab 2: Available Slots -->
                 <div class="tab-pane fade" id="slotsPanel" role="tabpanel" aria-labelledby="slots-tab">
                     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                        <h6 class="fw-bold m-0"><i class="fas fa-clock text-primary"></i> إدارة الفترات الزمنية وأوقات العمل</h6>
+                        <h6 class="fw-black text-dark m-0"><i class="fas fa-clock text-primary me-2"></i> إدارة الفترات الزمنية وأوقات العمل</h6>
                         <div class="d-flex gap-2">
                             <a href="/DoctorSlots/Create" class="btn btn-sm btn-primary rounded-pill px-3 py-2 fw-700">
-                                <i class="fas fa-plus"></i> فترة منفردة
+                                <i class="fas fa-plus me-1"></i> فترة منفردة
                             </a>
-                            <a href="/DoctorSlots/BulkCreate" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-2 fw-700">
-                                <i class="fas fa-magic"></i> توليد فترات مجمعة
-                            </a>
+                            <button type="button" onclick="$('#bulkGeneratorCard').slideToggle()" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-2 fw-700">
+                                <i class="fas fa-magic me-1"></i> المولد الذكي للفترات
+                            </button>
                         </div>
                     </div>
 
-                    <div class="dr-card p-0" style="overflow:hidden;">
+                    <!-- Smart Bulk Slot Generator Card -->
+                    <div class="glass-card p-4 mb-4" id="bulkGeneratorCard" style="display: none; border-color: rgba(26, 111, 191, 0.2);">
+                        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                            <h6 class="fw-black text-primary m-0"><i class="fas fa-magic me-2"></i> مولد مواعيد العيادة التلقائي</h6>
+                            <button type="button" class="btn-close" onclick="$('#bulkGeneratorCard').slideUp()"></button>
+                        </div>
+                        <form id="bulkGeneratorForm">
+                            <div class="row g-3">
+                                <div class="col-md-6 col-12">
+                                    <label class="form-label small fw-bold text-dark">تاريخ البدء</label>
+                                    <input type="date" name="StartDate" required class="form-control rounded-pill px-3" value="@DateTime.Today.ToString("yyyy-MM-dd")" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                                </div>
+                                <div class="col-md-6 col-12">
+                                    <label class="form-label small fw-bold text-dark">تاريخ الانتهاء</label>
+                                    <input type="date" name="EndDate" required class="form-control rounded-pill px-3" value="@DateTime.Today.AddDays(7).ToString("yyyy-MM-dd")" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                                </div>
+                                <div class="col-md-4 col-6">
+                                    <label class="form-label small fw-bold text-dark">ساعة بدء الدوام</label>
+                                    <input type="time" name="StartTime" required class="form-control rounded-pill px-3" value="18:00" />
+                                </div>
+                                <div class="col-md-4 col-6">
+                                    <label class="form-label small fw-bold text-dark">ساعة انتهاء الدوام</label>
+                                    <input type="time" name="EndTime" required class="form-control rounded-pill px-3" value="22:00" />
+                                </div>
+                                <div class="col-md-4 col-12">
+                                    <label class="form-label small fw-bold text-dark">مدة الكشف (جلسة المريض)</label>
+                                    <select name="SlotDurationMinutes" class="form-select rounded-pill px-3" style="height: 38px;">
+                                        <option value="15">15 دقيقة</option>
+                                        <option value="20">20 دقيقة</option>
+                                        <option value="30" selected>30 دقيقة</option>
+                                        <option value="45">45 دقيقة</option>
+                                        <option value="60">60 دقيقة</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-end">
+                                <button type="button" onclick="$('#bulkGeneratorCard').slideUp()" class="btn btn-sm btn-light rounded-pill px-4 me-2 fw-bold">إلغاء</button>
+                                <button type="submit" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold">
+                                    <i class="fas fa-play me-1"></i> توليد الفترات الآن
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="table-container-glass">
                         @if (!Model.Slots.Any())
                         {
                             <div class="text-center py-5 text-muted">
                                 <i class="far fa-clock fs-1 mb-3 text-primary opacity-50"></i>
-                                <h5>لم تقم بتهيئة أوقات عملك لهذا الأسبوع بعد</h5>
-                                <p class="small mb-2">قم بإنشاء فترات عمل متاحة ليتمكن المرضى من حجز عيادتك.</p>
-                                <a href="/DoctorSlots/BulkCreate" class="btn btn-sm btn-primary rounded-pill px-3">بدء التهيئة السريعة</a>
+                                <h5>لم تقم بتهيئة أوقات عملك للعيادة بعد</h5>
+                                <p class="small mb-3">قم بتوليد فترات عمل متاحة ليتمكن المرضى من حجز عيادتك.</p>
+                                <button type="button" onclick="$('#bulkGeneratorCard').slideDown()" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold">بدء التهيئة السريعة</button>
                             </div>
                         }
                         else
@@ -294,12 +526,12 @@
                                             <th class="text-center">الإجراءات</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody id="slotsTableBody">
                                         @foreach (var slot in Model.Slots.OrderBy(s => s.Date).ThenBy(s => s.StartTime))
                                         {
-                                            <tr>
-                                                <td class="fw-bold">@slot.Date.ToString("yyyy-MM-dd")</td>
-                                                <td>@slot.StartTime.ToString(@"hh\:mm") - @slot.EndTime.ToString(@"hh\:mm")</td>
+                                            <tr id="slot-row-@slot.Id">
+                                                <td class="fw-bold text-dark">@slot.Date.ToString("yyyy-MM-dd")</td>
+                                                <td class="font-monospace">@slot.StartTime.ToString(@"hh\:mm") - @slot.EndTime.ToString(@"hh\:mm")</td>
                                                 <td>
                                                     @if (slot.IsBooked)
                                                     {
@@ -314,17 +546,13 @@
                                                     <div class="text-center">
                                                         @if (!slot.IsBooked)
                                                         {
-                                                            <form asp-action="Delete" asp-controller="DoctorSlots" method="post" style="display:inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذه الفترة المتاحة؟');">
-                                                                @Html.AntiForgeryToken()
-                                                                <input type="hidden" name="id" value="@slot.Id" />
-                                                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
-                                                                    <i class="fas fa-trash-alt"></i> حذف
-                                                                </button>
-                                                            </form>
+                                                            <button type="button" onclick="deleteSlotAjax(@slot.Id)" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold">
+                                                                <i class="fas fa-trash-alt me-1"></i> حذف
+                                                            </button>
                                                         }
                                                         else
                                                         {
-                                                            <span class="text-muted small">محجوزة بالكامل</span>
+                                                            <span class="text-muted small fw-bold">محجوزة بالكامل</span>
                                                         }
                                                     </div>
                                                 </td>
@@ -339,7 +567,7 @@
 
                 <!-- Tab 3: Clinic Patients -->
                 <div class="tab-pane fade" id="patientsPanel" role="tabpanel" aria-labelledby="patients-tab">
-                    <div class="dr-card p-0" style="overflow:hidden;">
+                    <div class="table-container-glass">
                         @if (!uniquePatients.Any())
                         {
                             <div class="text-center py-5 text-muted">
@@ -364,16 +592,16 @@
                                         @foreach (var patient in uniquePatients)
                                         {
                                             <tr>
-                                                <td class="fw-bold">@patient.PatientName</td>
-                                                <td class="font-monospace">@(patient.PatientPhone ?? "-")</td>
-                                                <td>@(patient.PatientEmail ?? "-")</td>
+                                                <td class="fw-bold text-dark">@patient.PatientName</td>
+                                                <td class="font-monospace text-secondary fw-semibold">@(patient.PatientPhone ?? "-")</td>
+                                                <td class="text-secondary fw-semibold">@(patient.PatientEmail ?? "-")</td>
                                                 <td>
                                                     <div class="d-flex align-items-center justify-content-center gap-2">
-                                                        <a href="/DoctorPatients/Details/@patient.PatientId" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-                                                            <i class="fas fa-folder-open"></i> الملف الطبي
+                                                        <a href="/DoctorPatients/Details/@patient.PatientId" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold">
+                                                            <i class="fas fa-folder-open me-1"></i> الملف الطبي
                                                         </a>
-                                                        <a href="/Chat/Thread?otherUserId=@patient.PatientId" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                                                            <i class="fas fa-comment-dots"></i> محادثة
+                                                        <a href="/Chat/Thread?otherUserId=@patient.PatientId" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold">
+                                                            <i class="fas fa-comment-dots me-1"></i> محادثة
                                                         </a>
                                                     </div>
                                                 </td>
@@ -384,6 +612,219 @@
                             </div>
                         }
                     </div>
+                </div>
+
+                <!-- Tab 4: Staff Management -->
+                <div class="tab-pane fade" id="staffPanel" role="tabpanel" aria-labelledby="staff-tab">
+                    @if (!Model.HealthcareProviderId.HasValue)
+                    {
+                        <div class="text-center py-5 text-muted">
+                            <i class="fas fa-lock fs-1 mb-3 text-warning"></i>
+                            <h5>يجب حفظ بيانات العيادة أولاً لتتمكن من إضافة طاقم عمل</h5>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Invite form & link generator -->
+                        <div class="row g-4 mb-4">
+                            <!-- Quick Invite Form -->
+                            <div class="col-md-7 col-12">
+                                <div class="glass-card p-4 h-100">
+                                    <h6 class="fw-black mb-3 text-dark"><i class="fas fa-envelope-open-text text-primary me-1"></i> دعوة موظف جديد بالبريد الإلكتروني</h6>
+                                    
+                                    <form asp-controller="HospitalStaffManagement" asp-action="Invite" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="providerId" value="@Model.HealthcareProviderId.Value" />
+                                        <input type="hidden" name="redirectUrl" value="/DoctorClinic" />
+
+                                        <div class="mb-3">
+                                            <label class="form-label small fw-bold">البريد الإلكتروني للموظف</label>
+                                            <input type="email" name="email" required class="form-control rounded-pill px-3" placeholder="name@domain.com" />
+                                        </div>
+
+                                        <div class="row g-2 mb-3">
+                                            <div class="col-md-6 col-12">
+                                                <label class="form-label small fw-bold">الدور الوظيفي</label>
+                                                <select name="role" class="form-select rounded-pill px-3" style="height:38px;">
+                                                    <option value="Receptionist">موظف استقبال (Receptionist)</option>
+                                                    <option value="TriageStaff">موظف طوارئ وفرز (TriageStaff)</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6 col-12">
+                                                <label class="form-label small fw-bold">وردية العمل</label>
+                                                <select name="shift" class="form-select rounded-pill px-3" style="height:38px;">
+                                                    <option value="None">غير محدد</option>
+                                                    <option value="Morning">وردية صباحية</option>
+                                                    <option value="Evening">وردية مسائية</option>
+                                                    <option value="Night">وردية ليلية</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4 py-2 fw-700">
+                                            <i class="fas fa-paper-plane me-1"></i> إرسال دعوة الانضمام
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Link Generator -->
+                            <div class="col-md-5 col-12">
+                                <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between">
+                                    <div>
+                                        <h6 class="fw-black mb-2 text-dark"><i class="fas fa-link text-success me-1"></i> رابط دعوة سريع (Link)</h6>
+                                        <p class="text-muted small fw-medium">قم بتوليد رابط سريع وإرساله للموظف عبر الواتساب للتسجيل فوراً (صالح لمدة 24 ساعة).</p>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <div class="row g-2 mb-2">
+                                            <div class="col-6">
+                                                <select id="linkRole" class="form-select form-select-sm rounded-pill px-2">
+                                                    <option value="Receptionist">استقبال</option>
+                                                    <option value="TriageStaff">طوارئ</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-6">
+                                                <select id="linkShift" class="form-select form-select-sm rounded-pill px-2">
+                                                    <option value="None">الوردية</option>
+                                                    <option value="Morning">صباحي</option>
+                                                    <option value="Evening">مسائي</option>
+                                                    <option value="Night">ليلي</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <button type="button" onclick="generateLink()" class="btn btn-outline-success btn-sm w-100 rounded-pill fw-bold">
+                                            <i class="fas fa-magic me-1"></i> توليد رابط الدعوة السريع
+                                        </button>
+                                    </div>
+
+                                    <div id="linkOutput" class="d-none">
+                                        <div class="input-group input-group-sm">
+                                            <input type="text" id="inviteLinkText" readonly class="form-control" />
+                                            <button type="button" onclick="copyInviteLink()" class="btn btn-success"><i class="fas fa-copy"></i></button>
+                                        </div>
+                                        <span class="text-success small d-block mt-1 fw-bold"><i class="fas fa-check-circle"></i> تم التوليد بنجاح!</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Current Staff List -->
+                        <div class="table-container-glass">
+                            <div class="p-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2 bg-light">
+                                <h6 class="fw-black m-0 text-dark"><i class="fas fa-user-shield text-primary me-1"></i> طاقم العمل الحالي بالمنشأة</h6>
+                                <div class="d-flex gap-2">
+                                    <a href="/HospitalStaffManagement/Stats?providerId=@Model.HealthcareProviderId.Value" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold">
+                                        <i class="fas fa-chart-bar me-1"></i> إحصائيات الأداء
+                                    </a>
+                                    <a href="/HospitalStaffManagement/Logs?providerId=@Model.HealthcareProviderId.Value" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold">
+                                        <i class="fas fa-receipt me-1"></i> سجل العمليات
+                                    </a>
+                                </div>
+                            </div>
+
+                            @if (!staffMembers.Any())
+                            {
+                                <div class="text-center py-5 text-muted animate__animated animate__fadeIn">
+                                    <i class="fas fa-users-slash fs-1 mb-3 text-muted opacity-50"></i>
+                                    <h5>لا يوجد موظفون معينون في عيادتك بعد</h5>
+                                    <p class="small mb-0">ابدأ بدعوة موظفي الاستقبال أو الطوارئ لمساعدتك في تنظيم العمل.</p>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="table-responsive animate__animated animate__fadeIn">
+                                    <table class="dr-table">
+                                        <thead>
+                                            <tr>
+                                                <th>الموظف</th>
+                                                <th>الدور</th>
+                                                <th>الوردية</th>
+                                                <th>الحالة</th>
+                                                <th class="text-center">الإجراءات</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var staff in staffMembers)
+                                            {
+                                                <tr>
+                                                    <td class="fw-bold">
+                                                        <div class="text-dark">@staff.FullName</div>
+                                                        <small class="text-muted font-monospace" style="font-size:0.75rem;">@staff.Email</small>
+                                                    </td>
+                                                    <td>
+                                                        <form asp-controller="HospitalStaffManagement" asp-action="UpdateStaff" method="post" class="d-inline-flex gap-1 align-items-center">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="profileId" value="@staff.Id" />
+                                                            <input type="hidden" name="redirectUrl" value="/DoctorClinic" />
+                                                            <input type="hidden" name="shift" value="@staff.ActiveShift" />
+                                                            <select name="role" onchange="this.form.submit()" class="form-select form-select-sm rounded-pill py-0 px-2" style="font-size:0.8rem; width:120px;">
+                                                                <option value="Receptionist" selected="@(staff.RoleType == StaffRoleType.Receptionist)">استقبال</option>
+                                                                <option value="TriageStaff" selected="@(staff.RoleType == StaffRoleType.TriageStaff)">فرز وطوارئ</option>
+                                                            </select>
+                                                        </form>
+                                                    </td>
+                                                    <td>
+                                                        <form asp-controller="HospitalStaffManagement" asp-action="UpdateStaff" method="post" class="d-inline-flex gap-1 align-items-center">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="profileId" value="@staff.Id" />
+                                                            <input type="hidden" name="redirectUrl" value="/DoctorClinic" />
+                                                            <input type="hidden" name="role" value="@staff.RoleType" />
+                                                            <select name="shift" onchange="this.form.submit()" class="form-select form-select-sm rounded-pill py-0 px-2" style="font-size:0.8rem; width:100px;">
+                                                                <option value="None" selected="@(staff.ActiveShift == StaffShiftType.None)">غير محدد</option>
+                                                                <option value="Morning" selected="@(staff.ActiveShift == StaffShiftType.Morning)">صباحي</option>
+                                                                <option value="Evening" selected="@(staff.ActiveShift == StaffShiftType.Evening)">مسائي</option>
+                                                                <option value="Night" selected="@(staff.ActiveShift == StaffShiftType.Night)">ليلي</option>
+                                                            </select>
+                                                        </form>
+                                                    </td>
+                                                    <td>
+                                                        @if (staff.IsInvitationAccepted)
+                                                        {
+                                                            <span class="status-badge completed"><span class="dot"></span> نشط / مقبول</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="status-badge pending"><span class="dot"></span> معلق</span>
+                                                        }
+                                                    </td>
+                                                    <td>
+                                                        <div class="d-flex align-items-center justify-content-center gap-2">
+                                                            @if (!staff.IsInvitationAccepted)
+                                                            {
+                                                                <form asp-controller="HospitalStaffManagement" asp-action="Resend" method="post" style="display:inline;">
+                                                                    @Html.AntiForgeryToken()
+                                                                    <input type="hidden" name="profileId" value="@staff.Id" />
+                                                                    <input type="hidden" name="redirectUrl" value="/DoctorClinic" />
+                                                                    <button type="submit" class="btn btn-sm btn-outline-info rounded-pill px-3 fw-bold" title="إعادة إرسال الدعوة"><i class="fas fa-redo me-1"></i> تذكير</button>
+                                                                </form>
+                                                                <form asp-controller="HospitalStaffManagement" asp-action="Cancel" method="post" style="display:inline;">
+                                                                    @Html.AntiForgeryToken()
+                                                                    <input type="hidden" name="profileId" value="@staff.Id" />
+                                                                    <input type="hidden" name="redirectUrl" value="/DoctorClinic" />
+                                                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold" title="إلغاء الدعوة"><i class="fas fa-trash-alt me-1"></i> إلغاء</button>
+                                                                </form>
+                                                            }
+                                                            else
+                                                            {
+                                                                <a href="/Chat/Thread?otherUserId=@staff.UserId" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" title="دردشة وتنسيق"><i class="fas fa-comment-dots me-1"></i> محادثة</a>
+                                                                <form asp-controller="HospitalStaffManagement" asp-action="Remove" method="post" onsubmit="return confirm('هل أنت متأكد من إخراج هذا الموظف من طاقم المنشأة؟')" style="display:inline;">
+                                                                    @Html.AntiForgeryToken()
+                                                                    <input type="hidden" name="profileId" value="@staff.Id" />
+                                                                    <input type="hidden" name="redirectUrl" value="/DoctorClinic" />
+                                                                    <button type="submit" class="btn btn-sm btn-danger rounded-pill px-3 fw-bold"><i class="fas fa-user-minus me-1"></i> فصل</button>
+                                                                </form>
+                                                            }
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                        </div>
+                    }
                 </div>
 
             </div>
@@ -414,4 +855,143 @@
             });
         </script>
     }
+
+    @if (Model.HealthcareProviderId.HasValue)
+    {
+        <script>
+            function generateLink() {
+                const providerId = '@Model.HealthcareProviderId.Value';
+                const role = $('#linkRole').val();
+                const shift = $('#linkShift').val();
+                
+                $.ajax({
+                    url: '/HospitalStaffManagement/GenerateInviteLink',
+                    type: 'GET',
+                    data: { providerId: providerId, role: role, shift: shift },
+                    success: function(res) {
+                        if (res.success) {
+                            $('#inviteLinkText').val(res.link);
+                            $('#linkOutput').removeClass('d-none');
+                            showToast('تم توليد رابط الدعوة السريع بنجاح!', 'success');
+                        } else {
+                            showToast(res.message || 'حدث خطأ أثناء توليد الرابط.', 'error');
+                        }
+                    },
+                    error: function() {
+                        showToast('خطأ في الاتصال بالخادم.', 'error');
+                    }
+                });
+            }
+
+            function copyInviteLink() {
+                const input = document.getElementById('inviteLinkText');
+                input.select();
+                input.setSelectionRange(0, 99999);
+                navigator.clipboard.writeText(input.value).then(function() {
+                    showToast('تم نسخ رابط الدعوة بنجاح!', 'success');
+                }).catch(function() {
+                    showToast('فشل في نسخ الرابط.', 'error');
+                });
+            }
+        </script>
+    }
+
+    <script>
+        // Custom Toast Helper
+        function showToast(message, type = 'success') {
+            let icon = '<i class="fas fa-check-circle text-success fs-5"></i>';
+            if (type === 'error') {
+                icon = '<i class="fas fa-exclamation-circle text-danger fs-5"></i>';
+            } else if (type === 'info') {
+                icon = '<i class="fas fa-info-circle text-primary fs-5"></i>';
+            }
+            
+            const toast = $(`
+                <div class="custom-toast ${type}">
+                    ${icon}
+                    <div class="flex-grow-1 text-dark fw-bold small">${message}</div>
+                </div>
+            `);
+            
+            if ($('#customToastContainer').length === 0) {
+                $('body').append('<div id="customToastContainer" class="toast-container"></div>');
+            }
+            
+            $('#customToastContainer').append(toast);
+            
+            setTimeout(() => {
+                toast.css('animation', 'fadeOut 0.5s forwards');
+                setTimeout(() => toast.remove(), 500);
+            }, 4000);
+        }
+
+        // AJAX Delete Slot Function
+        function deleteSlotAjax(slotId) {
+            if (!confirm('هل أنت متأكد من حذف هذه الفترة المتاحة؟')) return;
+            
+            // Call ToggleSlot with enable = false, since it deletes the slot and returns JSON
+            $.ajax({
+                url: '/DoctorSlots/ToggleSlot',
+                type: 'POST',
+                data: {
+                    id: slotId,
+                    date: '2026-01-01',
+                    startTime: '00:00:00',
+                    endTime: '00:00:00',
+                    enable: false
+                },
+                success: function(res) {
+                    if (res.success) {
+                        showToast('تم حذف الفترة الزمنية بنجاح!', 'success');
+                        $(`#slot-row-${slotId}`).slideUp(300, function() {
+                            $(this).remove();
+                            // If table is empty now, show default empty view
+                            if ($('#slotsTableBody tr').length === 0) {
+                                location.reload(); // Reload to show empty state
+                            }
+                        });
+                    } else {
+                        showToast(res.message || 'فشل حذف الفترة الزمنية.', 'error');
+                    }
+                },
+                error: function() {
+                    showToast('حدث خطأ أثناء محاولة الاتصال بالخادم للحذف.', 'error');
+                }
+            });
+        }
+
+        // AJAX Smart Bulk Slot Generator Submit
+        $(document).ready(function() {
+            $('#bulkGeneratorForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                const submitBtn = $(this).find('button[type="submit"]');
+                const originalText = submitBtn.html();
+                
+                submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> جاري توليد الفترات...');
+                
+                $.ajax({
+                    url: '/DoctorSlots/BulkCreateAjax',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    success: function(res) {
+                        submitBtn.prop('disabled', false).html(originalText);
+                        if (res.success) {
+                            showToast(res.message || 'تم توليد الفترات الزمنية بنجاح!', 'success');
+                            $('#bulkGeneratorCard').slideUp();
+                            setTimeout(() => {
+                                location.reload(); // Reload to refresh metrics and slot table
+                            }, 1500);
+                        } else {
+                            showToast(res.message || 'حدث خطأ أثناء توليد الفترات.', 'error');
+                        }
+                    },
+                    error: function() {
+                        submitBtn.prop('disabled', false).html(originalText);
+                        showToast('حدث خطأ غير متوقع في خادم النظام.', 'error');
+                    }
+                });
+            });
+        });
+    </script>
 }

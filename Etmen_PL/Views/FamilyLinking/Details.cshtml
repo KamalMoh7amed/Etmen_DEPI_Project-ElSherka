@@ -1,0 +1,828 @@
+@model Etmen_Domain.Entities.PatientProfile
+@using Etmen_Domain.Entities
+@{
+    ViewData["Title"] = "تفاصيل القريب — إطمن";
+    Layout = null;
+    var currentUserId = Model.ApplicationUserId;
+    var latestRecord = Model.MedicalRecords.OrderByDescending(r => r.RecordDate).FirstOrDefault();
+    var latestRisk = Model.RiskAssessments.OrderByDescending(r => r.AssessmentDate).FirstOrDefault();
+    var recentAlerts = Model.EmergencyRequests.OrderByDescending(r => r.RequestedAt).Take(3).ToList();
+    
+    // Evaluate status
+    string statusText = "مستقر";
+    string statusClass = "text-success";
+    string statusBg = "rgba(39, 174, 96, 0.1)";
+    
+    if (latestRecord != null)
+    {
+        if (latestRecord.HeartRate > 100 || latestRecord.HeartRate < 60 ||
+            latestRecord.OxygenSaturation < 95 ||
+            latestRecord.BloodSugar > 140 || latestRecord.BloodSugar < 70 ||
+            latestRecord.Temperature > 37.8m || latestRecord.Temperature < 36.0m)
+        {
+            statusText = "تحذير";
+            statusClass = "text-warning";
+            statusBg = "rgba(243, 156, 18, 0.1)";
+        }
+    }
+}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.rtl.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    
+    <!-- Leaflet.js -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --primary:        #1A6FBF;
+            --accent:         #00C9A7;
+            --success:        #2ECC71;
+            --warning:        #F1C40F;
+            --danger:         #E74C3C;
+            --dark-bg:        #0B131A;
+            --card-bg:        #121F2B;
+            --card-border:    #1F3447;
+            --text-light:     #E2E8F0;
+            --text-gray:      #94A3B8;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── NAVBAR ── */
+        .dashboard-nav {
+            background: #090F14;
+            border-bottom: 1px solid var(--card-border);
+            padding: 0.75rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+        .nav-logo-icon {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem;
+            color: white;
+        }
+        .nav-logo-text {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: white;
+        }
+        .nav-logo-text span { color: var(--accent); }
+
+        /* ── MAIN LAYOUT ── */
+        .neon-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        .neon-card:hover {
+            border-color: rgba(26, 111, 191, 0.4);
+            box-shadow: 0 8px 32px rgba(26, 111, 191, 0.1);
+        }
+
+        /* ── FAMILY TABS ── */
+        .family-tabs-container {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding: 10px 0;
+            margin-bottom: 1.5rem;
+        }
+        .family-tab {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 10px 20px;
+            color: var(--text-light);
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 110px;
+            transition: all 0.3s;
+        }
+        .family-tab:hover, .family-tab.active {
+            background: linear-gradient(135deg, rgba(26, 111, 191, 0.2), rgba(0, 201, 167, 0.1));
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+        .family-tab-avatar {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: white;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+        .family-tab-status {
+            font-size: 0.75rem;
+            margin-top: 4px;
+            font-weight: bold;
+        }
+
+        .metric-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background-color: rgba(255, 255, 255, 0.02);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+        .metric-icon-wrapper {
+            width: 36px; height: 36px;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem;
+        }
+        .metric-value {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .alert-item {
+            padding: 12px;
+            border-radius: 10px;
+            background-color: rgba(231, 76, 60, 0.05);
+            border: 1px solid rgba(231, 76, 60, 0.15);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* ── BUTTONS ── */
+        .btn-sos {
+            background: linear-gradient(135deg, var(--danger), #c0392b);
+            border: none;
+            color: white;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: bold;
+            display: flex; align-items: center; justify-content: center;
+            gap: 8px;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        .btn-sos:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 15px rgba(231, 76, 60, 0.4);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ── NAVBAR ── -->
+    <nav class="dashboard-nav d-flex align-items-center justify-content-between">
+        <a href="/" class="nav-logo">
+            <div class="nav-logo-icon"><i class="fas fa-heartbeat"></i></div>
+            <span class="nav-logo-text">إط<span>من</span></span>
+        </a>
+        <div class="d-flex align-items-center gap-3">
+            <a href="/FamilyLinking" class="btn btn-sm btn-outline-light rounded-pill px-3">
+                <i class="fas fa-arrow-right"></i> العودة للارتباط العائلي
+            </a>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <!-- Family Tabs -->
+        <h5 class="fw-bold mb-3"><i class="fas fa-users text-accent"></i> أفراد العائلة المرتبطين</h5>
+        <div class="family-tabs-container">
+            @if (ViewBag.FamilyTabs is List<FamilyLink> tabs && tabs != null)
+            {
+                @foreach (var tab in tabs)
+                {
+                    var isSelfTab = tab.Id == ViewBag.CurrentLinkId;
+                    var tabName = tab.PrimaryPatientId == Model.Id ? (tab.LinkedPatient?.FullName ?? "مريض") : (tab.PrimaryPatient?.FullName ?? "مريض");
+                    var initial = !string.IsNullOrEmpty(tabName) ? tabName[0].ToString() : "ق";
+                    
+                    <a href="/FamilyLinking/Details/@tab.Id" class="family-tab @(isSelfTab ? "active" : "")">
+                        <div class="family-tab-avatar">@initial</div>
+                        <div class="fw-bold text-center text-truncate" style="max-width: 90px; font-size: 0.85rem;">@tabName</div>
+                        <span class="family-tab-status text-success"><span class="dot"></span> مستقر</span>
+                    </a>
+                }
+            }
+        </div>
+
+        <div class="row g-4">
+            <!-- Column 1: Alerts, Map, SOS -->
+            <div class="col-lg-4 col-md-6">
+                @* Active Emergency Status Card *@
+                @if (Model.EmergencyRequests != null)
+                {
+                    var activeEmergency = Model.EmergencyRequests.FirstOrDefault(r => 
+                        r.Status != Etmen_Domain.Enums.EmergencyRequestStatus.Completed && 
+                        r.Status != Etmen_Domain.Enums.EmergencyRequestStatus.Cancelled);
+                        
+                    if (activeEmergency != null)
+                    {
+                        var statusName = activeEmergency.Status switch {
+                            Etmen_Domain.Enums.EmergencyRequestStatus.Pending => "في انتظار الاستجابة",
+                            Etmen_Domain.Enums.EmergencyRequestStatus.Accepted => "مقبولة وجاري المتابعة",
+                            Etmen_Domain.Enums.EmergencyRequestStatus.Escalated => "حالة حرجة متصاعدة",
+                            _ => activeEmergency.Status.ToString()
+                        };
+                        
+                        var docName = activeEmergency.AssignedDoctor != null 
+                            ? $"{activeEmergency.AssignedDoctor.FirstName} {activeEmergency.AssignedDoctor.LastName}".Trim() 
+                            : "";
+                        if (string.IsNullOrEmpty(docName) && activeEmergency.AssignedDoctor != null)
+                        {
+                            docName = activeEmergency.AssignedDoctor.UserName;
+                        }
+
+                        int activeStep = 1;
+                        if (activeEmergency.AssignedDoctorUserId != null) { activeStep = 2; }
+                        if (activeEmergency.HealthcareProviderId != null || activeEmergency.AcceptedAt != null) { activeStep = 3; }
+                        if (activeEmergency.Status == Etmen_Domain.Enums.EmergencyRequestStatus.Completed) { activeStep = 4; }
+                        
+                        int progressWidth = activeStep switch {
+                            1 => 0,
+                            2 => 33,
+                            3 => 66,
+                            4 => 100,
+                            _ => 0
+                        };
+
+                        <div class="neon-card mb-4" id="activeEmergencyCard" style="border: 2px solid var(--danger); background: rgba(231, 76, 60, 0.08); animation: pulse-border 2s infinite;">
+                            <style>
+                                @@keyframes pulse-border {
+                                    0% { border-color: rgba(231, 76, 60, 0.6); box-shadow: 0 0 10px rgba(231, 76, 60, 0.2); }
+                                    50% { border-color: rgba(231, 76, 60, 1); box-shadow: 0 0 20px rgba(231, 76, 60, 0.4); }
+                                    100% { border-color: rgba(231, 76, 60, 0.6); box-shadow: 0 0 10px rgba(231, 76, 60, 0.2); }
+                                }
+                            </style>
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <span class="spinner-grow spinner-grow-sm text-danger" role="status"></span>
+                                <h5 class="fw-bold text-danger mb-0">حالة طوارئ نشطة!</h5>
+                            </div>
+                            
+                            <!-- Progress Stepper -->
+                            <div class="mb-4 mt-3 px-1">
+                                <div class="d-flex justify-content-between align-items-center position-relative" style="z-index: 1;">
+                                    <div class="position-absolute start-0 end-0 top-50 translate-y-middle bg-secondary" style="height: 3px; z-index: -1; opacity: 0.3; transform: translateY(-50%);"></div>
+                                    <div class="position-absolute start-0 top-50 translate-y-middle bg-danger" id="stepperProgressLine" style="height: 3px; z-index: -1; width: @(progressWidth)%; transition: width 0.5s ease; transform: translateY(-50%);"></div>
+
+                                    <!-- Step 1: Triggered -->
+                                    <div class="text-center d-flex flex-column align-items-center">
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center border border-2 @(activeStep >= 1 ? "border-danger text-white bg-danger" : "border-secondary text-white-50") stepper-dot" id="step1-dot" style="width: 26px; height: 26px; font-size: 0.7rem; font-weight: 700; background: var(--card-bg); transition: all 0.3s ease;">1</div>
+                                        <span class="small mt-1 text-white-50" style="font-size: 0.65rem;">استغاثة</span>
+                                    </div>
+
+                                    <!-- Step 2: Assigned Doctor -->
+                                    <div class="text-center d-flex flex-column align-items-center">
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center border border-2 @(activeStep >= 2 ? "border-danger text-white bg-danger" : "border-secondary text-white-50") stepper-dot" id="step2-dot" style="width: 26px; height: 26px; font-size: 0.7rem; font-weight: 700; background: var(--card-bg); transition: all 0.3s ease;">2</div>
+                                        <span class="small mt-1 text-white-50" style="font-size: 0.65rem;">طبيب</span>
+                                    </div>
+
+                                    <!-- Step 3: Hospital Dispatched -->
+                                    <div class="text-center d-flex flex-column align-items-center">
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center border border-2 @(activeStep >= 3 ? "border-danger text-white bg-danger" : "border-secondary text-white-50") stepper-dot" id="step3-dot" style="width: 26px; height: 26px; font-size: 0.7rem; font-weight: 700; background: var(--card-bg); transition: all 0.3s ease;">3</div>
+                                        <span class="small mt-1 text-white-50" style="font-size: 0.65rem;">توجيه</span>
+                                    </div>
+
+                                    <!-- Step 4: Completed -->
+                                    <div class="text-center d-flex flex-column align-items-center">
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center border border-2 @(activeStep >= 4 ? "border-danger text-white bg-danger" : "border-secondary text-white-50") stepper-dot" id="step4-dot" style="width: 26px; height: 26px; font-size: 0.7rem; font-weight: 700; background: var(--card-bg); transition: all 0.3s ease;">4</div>
+                                        <span class="small mt-1 text-white-50" style="font-size: 0.65rem;">معالجة</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="text-white-50 small">نوع الحالة:</div>
+                                <div class="fw-bold text-danger" style="font-size: 1.1rem;">@activeEmergency.EmergencyType</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="text-white-50 small">حالة الطلب:</div>
+                                <span class="badge bg-danger" id="emergencyStatusBadge">@statusName</span>
+                            </div>
+
+                            <div class="row g-2 mb-3 pt-2 border-top border-secondary">
+                                <div class="col-12">
+                                    <div class="text-white-50 small">المستشفى المحال إليها:</div>
+                                    <div class="fw-bold"><i class="fas fa-hospital text-accent me-1"></i> <span id="emergencyHospitalName">@(activeEmergency.HealthcareProvider?.Name ?? "جاري تحديد المستشفى...")</span></div>
+                                </div>
+                                <div class="col-12 mt-2" id="emergencyDoctorContainer">
+                                    @if (activeEmergency.AssignedDoctor != null)
+                                    {
+                                        <div class="text-white-50 small">الطبيب المتولي للحالة:</div>
+                                        <div class="fw-bold"><i class="fas fa-user-md text-primary me-1"></i> د. @docName</div>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-white-50 small">الطبيب المتولي للحالة:</div>
+                                        <div class="fw-bold text-warning"><i class="fas fa-spinner fa-spin me-1"></i> في انتظار تعيين طبيب</div>
+                                    }
+                                </div>
+                            </div>
+
+                            <div id="emergencyChatBtnContainer">
+                                @if (activeEmergency.AssignedDoctor != null)
+                                {
+                                    <div class="d-grid gap-2 mt-3">
+                                        <a href="/Chat/Thread?otherUserId=@activeEmergency.AssignedDoctorUserId" class="btn btn-sm btn-outline-success rounded-3 py-2 fw-bold d-flex align-items-center justify-content-center gap-2">
+                                            <i class="fas fa-comment-medical"></i> محادثة مع الطبيب المسؤول
+                                        </a>
+                                    </div>
+                                }
+                            </div>
+                            
+                            <div id="emergencyRecommendationsContainer" style="display: @((!string.IsNullOrEmpty(activeEmergency.PatientRecommendations) || !string.IsNullOrEmpty(activeEmergency.FamilyRecommendations) || !string.IsNullOrEmpty(activeEmergency.PrescribedMedications)) ? "block" : "none")">
+                                <div class="mt-3 pt-3 border-top border-secondary">
+                                    <h6 class="fw-bold text-warning mb-2" style="font-size:0.85rem;"><i class="fas fa-clipboard-list me-1"></i> التوصيات والتعليمات الطارئة:</h6>
+                                    @if (!string.IsNullOrEmpty(activeEmergency.PatientRecommendations))
+                                    {
+                                        <div class="mb-2" style="font-size:0.8rem; background:rgba(255,255,255,0.03); padding:8px; border-radius:6px; border-left: 3px solid var(--accent);">
+                                            <strong class="text-white-50">توصية للمريض:</strong>
+                                            <p class="mb-0 text-white mt-1">@activeEmergency.PatientRecommendations</p>
+                                        </div>
+                                    }
+                                    @if (!string.IsNullOrEmpty(activeEmergency.FamilyRecommendations))
+                                    {
+                                        <div class="mb-2" style="font-size:0.8rem; background:rgba(255,255,255,0.03); padding:8px; border-radius:6px; border-left: 3px solid var(--warning);">
+                                            <strong class="text-white-50">توصية للعائلة:</strong>
+                                            <p class="mb-0 text-white mt-1">@activeEmergency.FamilyRecommendations</p>
+                                        </div>
+                                    }
+                                    @if (!string.IsNullOrEmpty(activeEmergency.PrescribedMedications))
+                                    {
+                                        <div class="mb-2" style="font-size:0.8rem; background:rgba(255,255,255,0.03); padding:8px; border-radius:6px; border-left: 3px solid var(--danger);">
+                                            <strong class="text-white-50">الأدوية الموصوفة للآن:</strong>
+                                            <p class="mb-0 text-white mt-1">@activeEmergency.PrescribedMedications</p>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+
+                <!-- Alerts Panel -->
+                <div class="neon-card mb-4" style="min-height: 220px;">
+                    <h5 class="fw-bold text-primary mb-3"><i class="fas fa-bell"></i> تنبيهات فورية</h5>
+                    @if (recentAlerts.Any())
+                    {
+                        @foreach (var alert in recentAlerts)
+                        {
+                            <div class="alert-item">
+                                <i class="fas fa-exclamation-triangle text-danger fs-5"></i>
+                                <div>
+                                    <div class="fw-bold small" style="color:var(--text-light);">استغاثة طوارئ نشطة</div>
+                                    <small class="text-white-50">@alert.RequestedAt.ToString("HH:mm dd/MM/yyyy")</small>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center py-4 text-muted small">
+                            <i class="fas fa-shield-halved fs-3 mb-2 opacity-50"></i>
+                            <br />لا توجد تنبيهات طوارئ نشطة حالياً.
+                        </div>
+                    }
+                </div>
+
+                <!-- GPS Location Map -->
+                <div class="neon-card mb-4">
+                    <h5 class="fw-bold text-accent mb-3"><i class="fas fa-map-location-dot"></i> خريطة الموقع</h5>
+                    <div id="locationMap" style="height: 200px; border-radius: 12px; border: 1px solid var(--card-border);"></div>
+                    @if (Model.Latitude.HasValue && Model.Longitude.HasValue)
+                    {
+                        <div class="d-flex justify-content-between mt-2 small text-white-50">
+                            <span>المسافة الحالية: <strong>0.3 كم</strong></span>
+                            <span>المنزل: <strong>نعم</strong></span>
+                        </div>
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=@Model.Latitude,@Model.Longitude" target="_blank" class="btn btn-sm btn-outline-info w-100 mt-2 rounded-3 fw-bold" style="font-size:0.8rem;">
+                            <i class="fas fa-location-arrow me-1"></i> الحصول على الاتجاهات (خرائط جوجل)
+                        </a>
+                    }
+                </div>
+
+                <!-- Emergency SOS Call -->
+                <div class="neon-card">
+                    <h5 class="fw-bold text-danger mb-3"><i class="fas fa-triangle-exclamation"></i> طوارئ</h5>
+                    <div class="d-grid gap-2">
+                        <a href="tel:123" class="btn-sos">
+                            <i class="fas fa-phone-alt animate__animated animate__pulse animate__infinite"></i> اتصال طارئ بالأسعاف
+                        </a>
+                        <a href="/Chat/Thread?otherUserId=@Model.ApplicationUserId" class="btn btn-outline-info rounded-3 py-2 fw-bold text-info">
+                            <i class="far fa-comments ms-1"></i> فتح محادثة فورية
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Column 2: Vital History Chart & Stable List -->
+            <div class="col-lg-5 col-md-6">
+                <!-- Vitals Trend Chart -->
+                <div class="neon-card mb-4" style="min-height: 360px;">
+                    <h5 class="fw-bold text-accent mb-3"><i class="fas fa-chart-line"></i> المؤشرات الحيوية (نبضات القلب وسكر الدم)</h5>
+                    <div style="height: 250px;">
+                        <canvas id="vitalsHistoryChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Lab/Radiology Results list -->
+                <div class="neon-card">
+                    <h5 class="fw-bold text-primary mb-3"><i class="fas fa-file-waveform"></i> نتائج التحاليل والأشعة السابقة</h5>
+                    @if (Model.LabResults.Any())
+                    {
+                        <div class="d-flex flex-column gap-2" style="max-height: 200px; overflow-y: auto;">
+                            @foreach (var lab in Model.LabResults.OrderByDescending(l => l.TestDate))
+                            {
+                                <div class="p-2 rounded-3 bg-dark d-flex align-items-center justify-content-between" style="border: 1px solid var(--card-border);">
+                                    <div>
+                                        <div class="fw-bold small">@lab.TestName</div>
+                                        <small class="text-white-50">تاريخ الفحص: @lab.TestDate.ToString("dd/MM/yyyy")</small>
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(lab.FileUrl))
+                                    {
+                                        <a href="@lab.FileUrl" target="_blank" class="btn btn-xs btn-primary"><i class="fas fa-download"></i> عرض</a>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4 text-muted small">
+                            <i class="fas fa-file-excel fs-3 mb-2 opacity-50"></i>
+                            <br />لا توجد تقارير تحاليل أو أشعة مسجلة حالياً.
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Column 3: Patient Profile Card & Vital Metric Details -->
+            <div class="col-lg-3 col-md-12">
+                <!-- Patient Card -->
+                <div class="neon-card text-center mb-4">
+                    <div class="mx-auto rounded-circle d-flex align-items-center justify-content-center" style="width: 70px; height: 70px; background: var(--primary); font-size: 2rem; color: white;">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <h4 class="fw-bold mt-3 mb-1">@Model.FullName</h4>
+                    <p class="text-white-50 small mb-2">صلة القرابة: <strong>@ViewBag.Relationship</strong></p>
+                    <span class="badge px-3 py-2 fw-bold @statusClass" style="background-color:@statusBg;">
+                        @statusText
+                    </span>
+
+                    <div class="mt-4 pt-3 border-top" style="border-color: var(--card-border) !important;">
+                        <div class="row text-center g-2">
+                            <div class="col-6">
+                                <div class="text-white-50 small">فصيلة الدم</div>
+                                <div class="fw-bold">@(string.IsNullOrEmpty(Model.BloodType) ? "غير محدد" : Model.BloodType)</div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-white-50 small">مؤشر الكتلة</div>
+                                <div class="fw-bold">@Model.BMI</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vital Metric Panels -->
+                <div class="neon-card">
+                    <h5 class="fw-bold text-accent mb-3"><i class="fas fa-heartbeat"></i> القراءات الحالية</h5>
+                    
+                    <!-- Heart Rate -->
+                    <div class="metric-row">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="metric-icon-wrapper text-danger" style="background: rgba(231, 76, 60, 0.1);">
+                                <i class="fas fa-heart"></i>
+                            </div>
+                            <div class="small">معدل النبض</div>
+                        </div>
+                        <div class="metric-value text-danger">@(latestRecord?.HeartRate?.ToString("F0") ?? "-") <span style="font-size:0.75rem;">BPM</span></div>
+                    </div>
+
+                    <!-- Oxygen -->
+                    <div class="metric-row">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="metric-icon-wrapper text-info" style="background: rgba(52, 152, 219, 0.1);">
+                                <i class="fas fa-wind"></i>
+                            </div>
+                            <div class="small">نسبة الأكسجين</div>
+                        </div>
+                        <div class="metric-value text-info">@(latestRecord?.OxygenSaturation?.ToString("F0") ?? "-")%</div>
+                    </div>
+
+                    <!-- Blood Pressure -->
+                    <div class="metric-row">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="metric-icon-wrapper text-success" style="background: rgba(46, 204, 113, 0.1);">
+                                <i class="fas fa-gauge"></i>
+                            </div>
+                            <div class="small">ضغط الدم</div>
+                        </div>
+                        <div class="metric-value text-success">
+                            @(latestRecord?.SystolicBP != null ? $"{latestRecord.SystolicBP.Value.ToString("F0")}/{latestRecord.DiastolicBP?.ToString("F0")}" : "-")
+                        </div>
+                    </div>
+
+                    <!-- Blood Sugar -->
+                    <div class="metric-row">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="metric-icon-wrapper text-warning" style="background: rgba(241, 196, 15, 0.1);">
+                                <i class="fas fa-droplet"></i>
+                            </div>
+                            <div class="small">نسبة السكر</div>
+                        </div>
+                        <div class="metric-value text-warning">@(latestRecord?.BloodSugar?.ToString("F0") ?? "-") <span style="font-size:0.75rem;">mg/dL</span></div>
+                    </div>
+
+                    <!-- Temperature -->
+                    <div class="metric-row">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="metric-icon-wrapper text-white" style="background: rgba(255, 255, 255, 0.1);">
+                                <i class="fas fa-temperature-high"></i>
+                            </div>
+                            <div class="small">درجة الحرارة</div>
+                        </div>
+                        <div class="metric-value">@(latestRecord?.Temperature?.ToString("F1") ?? "-")°م</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts for Leaflet Map and Chart.js -->
+    <script>
+        // Initialize Leaflet Map
+        document.addEventListener("DOMContentLoaded", function () {
+            let lat = @(Model.Latitude ?? 30.0444m);
+            let lng = @(Model.Longitude ?? 31.2357m);
+            let map = L.map('locationMap').setView([lat, lng], 14);
+
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            L.circle([lat, lng], {
+                color: '#00C9A7',
+                fillColor: '#00C9A7',
+                fillOpacity: 0.2,
+                radius: 400
+            }).addTo(map);
+
+            L.marker([lat, lng]).addTo(map)
+                .bindPopup("<b>موقع @Model.FullName الحالي</b>")
+                .openPopup();
+
+            // Populate Vitals Chart
+            let ctx = document.getElementById('vitalsHistoryChart').getContext('2d');
+            
+            // Collect vitals from model history
+            let rawData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MedicalRecords.OrderBy(r => r.RecordDate).Take(7).Select(r => new {
+                date = r.RecordDate.ToString("dd/MM"),
+                hr = r.HeartRate,
+                sugar = r.BloodSugar
+            })));
+
+            let labels = rawData.map(d => d.date);
+            let hrData = rawData.map(d => d.hr);
+            let sugarData = rawData.map(d => d.sugar);
+
+            if (labels.length === 0) {
+                labels = ["الأحد", "الأثنين", "الثلاثاء", "الأربعاء", "الخميس"];
+                hrData = [70, 72, 75, 71, 72];
+                sugarData = [110, 115, 120, 105, 110];
+            }
+
+            let vitalsChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'نبضات القلب (BPM)',
+                        data: hrData,
+                        borderColor: '#E74C3C',
+                        backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.3
+                    }, {
+                        label: 'سكر الدم (mg/dL)',
+                        data: sugarData,
+                        borderColor: '#F1C40F',
+                        backgroundColor: 'rgba(241, 196, 15, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#94A3B8' }
+                        },
+                        x: {
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#94A3B8' }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: { color: '#E2E8F0', font: { family: 'Tajawal' } }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+
+    <!-- SignalR Connection for Live Emergency Updates -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const patientUserId = "@Model.ApplicationUserId";
+            
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/hubs/emergency")
+                .withAutomaticReconnect()
+                .build();
+
+            connection.start().then(function () {
+                console.log("Connected to EmergencyHub successfully.");
+                connection.invoke("JoinPatientEmergencyGroup", patientUserId).catch(err => console.error(err));
+            }).catch(err => console.error(err.toString()));
+
+            connection.on("EmergencyUpdated", function (data) {
+                console.log("Emergency update received:", data);
+                
+                // If the active emergency card is not on the page, reload to show it
+                const emergencyCard = document.getElementById("activeEmergencyCard");
+                if (!emergencyCard) {
+                    location.reload();
+                    return;
+                }
+
+                // If status is Completed or Cancelled, reload to clear the card
+                if (data.status === "Completed" || data.status === "Cancelled") {
+                    location.reload();
+                    return;
+                }
+
+                // Update Stepper
+                let step = 1;
+                let statusText = "في انتظار الاستجابة";
+                if (data.doctorUserId && data.doctorUserId !== "") {
+                    step = 2;
+                    statusText = "مقبولة وجاري المتابعة";
+                }
+                if (data.hospitalName && data.hospitalName !== "جاري تحديد المستشفى..." && data.hospitalName !== "قيد المتابعة والبحث") {
+                    step = 3;
+                    statusText = "مقبولة وجاري المتابعة";
+                }
+                if (data.status === "Completed") {
+                    step = 4;
+                    statusText = "تمت المعالجة";
+                }
+
+                // Update progress line width
+                const progressLine = document.getElementById("stepperProgressLine");
+                if (progressLine) {
+                    const widthPercent = step === 1 ? 0 : (step === 2 ? 33 : (step === 3 ? 66 : 100));
+                    progressLine.style.width = widthPercent + "%";
+                }
+
+                // Update dots styling
+                for (let i = 1; i <= 4; i++) {
+                    const dot = document.getElementById("step" + i + "-dot");
+                    if (dot) {
+                        if (i <= step) {
+                            dot.className = "rounded-circle d-flex align-items-center justify-content-center border border-2 border-danger text-white bg-danger stepper-dot";
+                        } else {
+                            dot.className = "rounded-circle d-flex align-items-center justify-content-center border border-2 border-secondary text-white-50 stepper-dot";
+                        }
+                    }
+                }
+
+                // Update Badge text
+                const statusBadge = document.getElementById("emergencyStatusBadge");
+                if (statusBadge) {
+                    statusBadge.innerText = statusText;
+                }
+
+                // Update Doctor name & chat link
+                const doctorContainer = document.getElementById("emergencyDoctorContainer");
+                if (doctorContainer) {
+                    if (data.doctorName && data.doctorName !== "") {
+                        doctorContainer.innerHTML = `
+                            <div class="text-white-50 small">الطبيب المتولي للحالة:</div>
+                            <div class="fw-bold"><i class="fas fa-user-md text-primary me-1"></i> د. ` + data.doctorName + `</div>
+                        `;
+                        
+                        // Show/update chat button
+                        let chatBtnContainer = document.getElementById("emergencyChatBtnContainer");
+                        if (chatBtnContainer) {
+                            chatBtnContainer.innerHTML = `
+                                <div class="d-grid gap-2 mt-3">
+                                    <a href="/Chat/Thread?otherUserId=` + data.doctorUserId + `" class="btn btn-sm btn-outline-success rounded-3 py-2 fw-bold d-flex align-items-center justify-content-center gap-2">
+                                        <i class="fas fa-comment-medical"></i> محادثة مع الطبيب المسؤول
+                                    </a>
+                                </div>
+                            `;
+                        }
+                    } else {
+                        doctorContainer.innerHTML = `
+                            <div class="text-white-50 small">الطبيب المتولي للحالة:</div>
+                            <div class="fw-bold text-warning"><i class="fas fa-spinner fa-spin me-1"></i> في انتظار تعيين طبيب</div>
+                        `;
+                    }
+                }
+
+                // Update Hospital Name
+                const hospitalContainer = document.getElementById("emergencyHospitalName");
+                if (hospitalContainer) {
+                    hospitalContainer.innerText = data.hospitalName || "جاري تحديد المستشفى...";
+                }
+
+                // Update recommendations
+                const recsContainer = document.getElementById("emergencyRecommendationsContainer");
+                if (recsContainer) {
+                    let recsHtml = `
+                        <div class="mt-3 pt-3 border-top border-secondary">
+                            <h6 class="fw-bold text-warning mb-2" style="font-size:0.85rem;"><i class="fas fa-clipboard-list me-1"></i> التوصيات والتعليمات الطارئة:</h6>
+                    `;
+                    let hasRecs = false;
+
+                    if (data.patientRecommendations && data.patientRecommendations !== "") {
+                        recsHtml += `
+                            <div class="mb-2" style="font-size:0.8rem; background:rgba(255,255,255,0.03); padding:8px; border-radius:6px; border-left: 3px solid var(--accent);">
+                                <strong class="text-white-50">توصية للمريض:</strong>
+                                <p class="mb-0 text-white mt-1">` + data.patientRecommendations + `</p>
+                            </div>
+                        `;
+                        hasRecs = true;
+                    }
+                    if (data.familyRecommendations && data.familyRecommendations !== "") {
+                        recsHtml += `
+                            <div class="mb-2" style="font-size:0.8rem; background:rgba(255,255,255,0.03); padding:8px; border-radius:6px; border-left: 3px solid var(--warning);">
+                                <strong class="text-white-50">توصية للعائلة:</strong>
+                                <p class="mb-0 text-white mt-1">` + data.familyRecommendations + `</p>
+                            </div>
+                        `;
+                        hasRecs = true;
+                    }
+                    if (data.prescribedMedications && data.prescribedMedications !== "") {
+                        recsHtml += `
+                            <div class="mb-2" style="font-size:0.8rem; background:rgba(255,255,255,0.03); padding:8px; border-radius:6px; border-left: 3px solid var(--danger);">
+                                <strong class="text-white-50">الأدوية الموصوفة للآن:</strong>
+                                <p class="mb-0 text-white mt-1">` + data.prescribedMedications + `</p>
+                            </div>
+                        `;
+                        hasRecs = true;
+                    }
+
+                    recsHtml += `</div>`;
+
+                    if (hasRecs) {
+                        recsContainer.innerHTML = recsHtml;
+                        recsContainer.style.display = "block";
+                    } else {
+                        recsContainer.style.display = "none";
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

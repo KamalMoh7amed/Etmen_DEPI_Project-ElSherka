@@ -35,6 +35,7 @@ namespace Etmen_BLL.Repositories.Services
                 var inviteToken = InviteTokenGenerator.Generate();
                 var familyLink = new FamilyLink
                 {
+                    PrimaryPatientId = dto.PrimaryPatientId,
                     LinkedPatientId = dto.LinkedPatientId,
                     Relationship = dto.Relationship,
                     InviteToken = inviteToken,

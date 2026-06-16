@@ -30,6 +30,7 @@ namespace Etmen_PL.Models.ViewModels.Hospital
 
         // Doctor Assignment
         public string? AssignedDoctorUserId { get; set; }
+        public string? ReferringDoctorName { get; set; }
         public List<Etmen_Domain.Entities.DoctorProfile> AvailableDoctors { get; set; } = new();
     }
 }

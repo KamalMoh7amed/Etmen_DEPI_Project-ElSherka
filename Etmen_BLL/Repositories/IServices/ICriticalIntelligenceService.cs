@@ -15,5 +15,9 @@ namespace Etmen_BLL.Repositories.IServices
         Task<ServiceResult<AiMedicalSummaryDto>> GenerateMedicalSummaryAsync(int patientProfileId);
         Task<ServiceResult<ExplainableRiskDto>> ExplainRiskAsync(RiskInputDto input);
         Task<ServiceResult<ExplainableRiskDto>> ExplainRiskAssessmentAsync(int riskAssessmentId);
+        Task<ServiceResult<bool>> ToggleDoctorAvailabilityAsync(string doctorUserId);
+        Task<ServiceResult<DoctorAssignmentDto>> AssignCaseToDoctorAsync(int emergencyRequestId, string doctorUserId);
+        Task<ServiceResult<EmergencyCaseDetailDto>> GetEmergencyCaseDetailAsync(int emergencyRequestId, string doctorUserId);
+        Task<ServiceResult> SaveRecommendationsAsync(int emergencyRequestId, string? patientRecs, string? familyRecs, string? medications);
     }
 }

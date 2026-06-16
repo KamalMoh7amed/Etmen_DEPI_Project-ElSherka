@@ -2,6 +2,27 @@
 @{
     var activeCrisisResult = await CrisisService.GetActiveCrisisAsync();
     var isCrisisActive = activeCrisisResult.IsSuccess && activeCrisisResult.Data != null && activeCrisisResult.Data.IsActive && activeCrisisResult.Data.SystemMode == Etmen_Domain.Enums.SystemMode.Crisis;
+
+    string dashboardUrl = "/";
+    if (User?.Identity?.IsAuthenticated == true)
+    {
+        if (User.IsInRole("Doctor"))
+        {
+            dashboardUrl = "/DoctorDashboard";
+        }
+        else if (User.IsInRole("Admin") || User.IsInRole("CrisisAdmin"))
+        {
+            dashboardUrl = "/AdminDashboard";
+        }
+        else if (User.IsInRole("HospitalStaff"))
+        {
+            dashboardUrl = "/HospitalQueue";
+        }
+        else
+        {
+            dashboardUrl = "/PatientDashboard";
+        }
+    }
 }
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -718,7 +739,8 @@
         body.theme-dark .dashboard-card,
         body.theme-dark .form-group-medical,
         body.theme-dark .triage-row td,
-        body.theme-dark .recent-patient-card {
+        body.theme-dark .recent-patient-card,
+        body.theme-dark .glass-card {
             background-color: #151A22 !important;
             border-color: #21262D !important;
             color: #ECF0F1 !important;
@@ -729,7 +751,8 @@
         }
         body.theme-dark .med-card:hover,
         body.theme-dark .dashboard-card:hover,
-        body.theme-dark .triage-row:hover td {
+        body.theme-dark .triage-row:hover td,
+        body.theme-dark .glass-card:hover {
             border-color: #00E676 !important;
             background: #1C232E !important;
         }
@@ -740,9 +763,10 @@
         body.theme-dark h4,
         body.theme-dark h5,
         body.theme-dark h6,
-        body.theme-dark span:not(.badge),
+        body.theme-dark span:not(.badge):not(.btn *):not(a *),
         body.theme-dark label,
-        body.theme-dark strong {
+        body.theme-dark strong,
+        body.theme-dark .calendar-day-cell {
             color: #ECF0F1 !important;
         }
         body.theme-dark .text-muted,
@@ -800,7 +824,7 @@
     <nav class="navbar navbar-expand-lg doctor-navbar">
         <div class="container-fluid">
             <!-- Brand Logo -->
-            <a href="/DoctorDashboard" class="nav-brand">
+            <a href="@dashboardUrl" class="nav-brand">
                 <div class="nav-brand-icon"><i class="fas fa-heartbeat"></i></div>
                 <div>
                     <span class="nav-brand-text">إط<span>من</span></span>
@@ -863,6 +887,11 @@
 
                 <!-- Left side: Profile & Logout -->
                 <div class="d-flex align-items-center gap-3 mt-3 mt-lg-0 flex-wrap">
+                    <!-- Theme Toggle Button -->
+                    <button type="button" id="themeToggleBtn" class="btn nav-menu-link px-3 py-2 text-white" title="تبديل الوضع الليلي/النهاري" style="background: rgba(255,255,255,0.08); border-radius: 10px; border: 1px solid rgba(255,255,255,0.15);">
+                        <i class="fas fa-moon fs-5" id="themeToggleIcon"></i>
+                    </button>
+
                     <!-- Notification Bell -->
                     <a href="/Alerts" class="nav-menu-link position-relative px-3 py-2 text-white" title="التنبيهات" style="background: rgba(255,255,255,0.08); border-radius: 10px; border: 1px solid rgba(255,255,255,0.15);">
                         <i class="fas fa-bell fs-5"></i>
@@ -1109,6 +1138,33 @@
         }
 
         $(document).ready(function() {
+            // Initialize persisted theme
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            if (currentTheme === 'dark') {
+                document.body.classList.add('theme-dark');
+                document.body.classList.remove('theme-light');
+                $('#themeToggleIcon').removeClass('fa-moon').addClass('fa-sun');
+            } else {
+                document.body.classList.add('theme-light');
+                document.body.classList.remove('theme-dark');
+                $('#themeToggleIcon').removeClass('fa-sun').addClass('fa-moon');
+            }
+
+            // Theme Toggle Click Handler
+            $('#themeToggleBtn').on('click', function() {
+                if (document.body.classList.contains('theme-dark')) {
+                    document.body.classList.remove('theme-dark');
+                    document.body.classList.add('theme-light');
+                    $('#themeToggleIcon').removeClass('fa-sun').addClass('fa-moon');
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    document.body.classList.remove('theme-light');
+                    document.body.classList.add('theme-dark');
+                    $('#themeToggleIcon').removeClass('fa-moon').addClass('fa-sun');
+                    localStorage.setItem('theme', 'dark');
+                }
+            });
+
             updatePanicBadge();
             updateChatBadge();
             updateNavbarAlertBadge();

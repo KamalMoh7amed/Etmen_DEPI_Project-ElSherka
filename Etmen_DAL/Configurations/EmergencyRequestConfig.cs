@@ -33,6 +33,11 @@ namespace Etmen_DAL.Configurations
                 .HasForeignKey(x => x.AssignedDoctorUserId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            builder.HasOne(x => x.RespondedByUser)
+                .WithMany()
+                .HasForeignKey(x => x.RespondedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             builder.Property(x => x.EmergencyType)
                 .HasMaxLength(500);
 

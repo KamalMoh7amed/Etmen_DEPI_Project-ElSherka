@@ -221,7 +221,11 @@
                         <h6 class="text-primary fw-bold mb-3">@Model.Specialization</h6>
                         
                         <div class="d-flex align-items-center gap-3 flex-wrap text-muted small">
-                            <span><i class="fas fa-star text-warning"></i> 4.9 (120 تقييم)</span>
+                            <span>
+                                <i class="fas fa-star text-warning"></i> 
+                                @(ViewBag.AverageRating != null && (double)ViewBag.AverageRating > 0 ? ((double)ViewBag.AverageRating).ToString("F1") : "لا يوجد تقييم") 
+                                (@(ViewBag.Reviews != null ? ((List<Etmen_BLL.DTOs.Review.ReviewDto>)ViewBag.Reviews).Count : 0) تقييم)
+                            </span>
                             <span>|</span>
                             <span><i class="fas fa-user-clock"></i> خبرة @Model.YearsOfExperience سنوات</span>
                             <span>|</span>
@@ -279,25 +283,39 @@
             <div class="doctor-header-card p-4">
                 <h5 class="fw-bold text-dark mb-4"><i class="fas fa-comments text-primary ms-1"></i> آراء وتقييمات المرضى</h5>
                 
-                <div class="review-card">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <strong class="text-dark" style="font-size: 0.9rem;">أحمد محمود</strong>
-                        <div class="stars-box">
-                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                        </div>
+                @if (ViewBag.Reviews == null || !((List<Etmen_BLL.DTOs.Review.ReviewDto>)ViewBag.Reviews).Any())
+                {
+                    <div class="alert alert-light border-0 rounded-3 text-center py-4">
+                        <i class="far fa-comment-alt fa-2x mb-2 text-muted"></i>
+                        <p class="mb-0 small text-secondary fw-semibold">لا توجد تقييمات لهذا الطبيب بعد. كن أول من يقيم!</p>
                     </div>
-                    <p class="text-muted small mb-0">طبيب ممتاز ومتعاون جداً، قام بشرح الحالة الطبية بالتفصيل، والعيادة نظيفة ومنظمة والالتزام بالمواعيد رائع.</p>
-                </div>
-
-                <div class="review-card">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <strong class="text-dark" style="font-size: 0.9rem;">سارة عبد الرحمن</strong>
-                        <div class="stars-box">
-                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
+                }
+                else
+                {
+                    foreach (var review in (List<Etmen_BLL.DTOs.Review.ReviewDto>)ViewBag.Reviews)
+                    {
+                        <div class="review-card">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <strong class="text-dark" style="font-size: 0.9rem;">@review.PatientName</strong>
+                                <div class="stars-box">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        if (i <= review.Rating)
+                                        {
+                                            <i class="fas fa-star text-warning"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="far fa-star text-muted"></i>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                            <p class="text-muted small mb-0">@review.Comment</p>
+                            <small class="text-muted text-start d-block mt-1" style="font-size: 0.75rem;">@review.CreatedAt.ToString("yyyy-MM-dd")</small>
                         </div>
-                    </div>
-                    <p class="text-muted small mb-0">الكشف ممتاز والتشخيص دقيق، الاستقبال كان جيداً جداً ولكن انتظرنا حوالي 10 دقائق بعد موعد الحجز.</p>
-                </div>
+                    }
+                }
             </div>
         </div>
 

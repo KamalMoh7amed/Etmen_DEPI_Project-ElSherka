@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 
 namespace Etmen_Domain.Entities
 {
@@ -17,8 +17,11 @@ namespace Etmen_Domain.Entities
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? LastLoginAt { get; set; }
 
+        public bool MustChangePassword { get; set; } = false;
+
         public virtual PatientProfile? PatientProfile { get; set; }
         public virtual DoctorProfile? DoctorProfile { get; set; }
+        public virtual StaffProfile? StaffProfile { get; set; }
         public virtual ICollection<Alert> Alerts { get; set; } = new List<Alert>();
         public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
         public virtual ICollection<ChatMessage> SentMessages { get; set; } = new List<ChatMessage>();

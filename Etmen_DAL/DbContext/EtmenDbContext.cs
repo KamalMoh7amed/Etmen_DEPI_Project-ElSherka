@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Etmen_Domain.Entities;
 using System.Reflection;
@@ -25,6 +25,10 @@ namespace Etmen_DAL.DbContext
         public DbSet<CrisisConfiguration> CrisisConfigurations { get; set; }
         public DbSet<OutbreakZone> OutbreakZones { get; set; }
         public DbSet<EmergencyRequest> EmergencyRequests { get; set; }
+        public DbSet<StaffProfile> StaffProfiles { get; set; }
+        public DbSet<StaffActivityLog> StaffActivityLogs { get; set; }
+        public DbSet<DoctorProvider> DoctorProviders { get; set; }
+        public DbSet<Review> Reviews { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

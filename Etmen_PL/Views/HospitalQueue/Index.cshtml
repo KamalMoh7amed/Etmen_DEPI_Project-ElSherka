@@ -4,9 +4,10 @@
     Layout = "~/Views/Shared/_HospitalStaffLayout.cshtml";
 
     // Separate items by status
-    var pendingItems = Model.Items.Where(i => i.Status == "Pending").ToList();
-    var acceptedItems = Model.Items.Where(i => i.Status == "Accepted").ToList();
-    var escalatedItems = Model.Items.Where(i => i.Status == "Escalated").ToList();
+    var pendingItems = Model.Items.Where(i => i.Status == "Pending" && i.EmergencyType != "DoctorTransfer").ToList();
+    var acceptedItems = Model.Items.Where(i => i.Status == "Accepted" && i.EmergencyType != "DoctorTransfer").ToList();
+    var escalatedItems = Model.Items.Where(i => i.Status == "Escalated" && i.EmergencyType != "DoctorTransfer").ToList();
+    var doctorTransfers = Model.Items.Where(i => i.EmergencyType == "DoctorTransfer").ToList();
 
     // Priority statistics
     var criticalCount = Model.Items.Count(i => i.PriorityScore >= 80);
@@ -338,6 +339,12 @@
                         <span class="badge bg-danger ms-1 rounded-pill animate__animated animate__flash animate__infinite">@escalatedItems.Count</span>
                     </button>
                 </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="transfers-tab" data-bs-toggle="tab" data-bs-target="#transfers-pane" type="button" role="tab">
+                        <i class="fas fa-hospital-user text-info"></i> تحويلات الأطباء
+                        <span class="badge bg-info text-white ms-1 rounded-pill">@doctorTransfers.Count(t => t.Status == "Pending")</span>
+                    </button>
+                </li>
             </ul>
 
             <div class="tab-content" id="triageTabsContent">
@@ -528,6 +535,112 @@
                                                 <a href="/HospitalQueue/Details/@item.RequestId?providerId=@Model.ProviderId" class="btn btn-sm btn-danger rounded-pill px-3 fw-800 animate__animated animate__pulse animate__infinite">
                                                     <i class="fas fa-kit-medical"></i> فحص فوري
                                                 </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+
+                <!-- Doctor Transfers Tab Pane -->
+                <div class="tab-pane fade" id="transfers-pane" role="tabpanel">
+                    @if (doctorTransfers.Count == 0)
+                    {
+                        <div class="text-center py-5 text-muted opacity-75">
+                            <i class="fas fa-hospital-user fs-1 text-info mb-3"></i>
+                            <h5>لا توجد تحويلات أطباء حالياً.</h5>
+                            <p class="small mb-0">لم يتم إحالة أي مريض طوارئ من قبل الأطباء المعالجين مؤخراً.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="triage-table">
+                                <thead>
+                                    <tr>
+                                        <th>اسم المريض</th>
+                                        <th>الطبيب المحوِّل</th>
+                                        <th>التشخيص والتوجيه العاجل</th>
+                                        <th>تاريخ الإرسال</th>
+                                        <th>الحالة</th>
+                                        <th class="text-center">الإجراء</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in doctorTransfers)
+                                    {
+                                        <tr class="triage-row">
+                                            <td>
+                                                <div class="fw-800 text-dark">@item.PatientName</div>
+                                                <div class="text-muted small font-monospace">@item.PatientPhone</div>
+                                            </td>
+                                            <td>
+                                                <div class="fw-700 text-primary"><i class="fas fa-user-md ms-1"></i> د. @item.ReferringDoctorName</div>
+                                            </td>
+                                            <td>
+                                                <div class="small text-secondary" style="max-width: 250px; white-space: normal; word-wrap: break-word;">
+                                                    @item.Notes
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="small text-muted font-monospace">@item.RequestedAt.ToString("yyyy/MM/dd HH:mm")</div>
+                                                <div class="small text-danger font-monospace fw-700">@item.WaitingMinutes دقيقة انتظار</div>
+                                            </td>
+                                            <td>
+                                                @if (item.Status == "Pending")
+                                                {
+                                                    <span class="badge bg-warning text-dark"><i class="fas fa-clock"></i> معلّق</span>
+                                                }
+                                                else if (item.Status == "Accepted")
+                                                {
+                                                    <span class="badge bg-success"><i class="fas fa-check"></i> مقبول</span>
+                                                }
+                                                else if (item.Status == "Rejected")
+                                                {
+                                                    <span class="badge bg-danger"><i class="fas fa-times"></i> مرفوض</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary">@item.Status</span>
+                                                }
+                                            </td>
+                                            <td class="text-center">
+                                                @if (item.Status == "Pending")
+                                                {
+                                                    <div class="d-flex gap-1 justify-content-center">
+                                                        <form method="post" action="/HospitalQueue/Respond" style="display:inline;">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="RequestId" value="@item.RequestId" />
+                                                            <input type="hidden" name="ProviderId" value="@Model.ProviderId" />
+                                                            <input type="hidden" name="Status" value="Accepted" />
+                                                            <input type="hidden" name="ResponseNotes" value="تم قبول الحالة المحولة من الطبيب المعالج" />
+                                                            <button type="submit" class="btn btn-sm btn-success rounded-pill px-2.5 fw-700">
+                                                                <i class="fas fa-check"></i> قبول
+                                                            </button>
+                                                        </form>
+                                                        <form method="post" action="/HospitalQueue/Respond" style="display:inline;">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="RequestId" value="@item.RequestId" />
+                                                            <input type="hidden" name="ProviderId" value="@Model.ProviderId" />
+                                                            <input type="hidden" name="Status" value="Rejected" />
+                                                            <input type="hidden" name="ResponseNotes" value="تم رفض التحويل من قبل الموظف" />
+                                                            <button type="submit" class="btn btn-sm btn-danger rounded-pill px-2.5 fw-700">
+                                                                <i class="fas fa-times"></i> رفض
+                                                            </button>
+                                                        </form>
+                                                        <a href="/HospitalQueue/Details/@item.RequestId?providerId=@Model.ProviderId" class="btn btn-sm btn-outline-primary rounded-pill px-2 fw-700">
+                                                            تفاصيل
+                                                        </a>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <a href="/HospitalQueue/Details/@item.RequestId?providerId=@Model.ProviderId" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-700">
+                                                        عرض
+                                                    </a>
+                                                }
                                             </td>
                                         </tr>
                                     }
@@ -840,39 +953,42 @@
                 $('.eta-calc-cell').html('<span class="text-muted small">غير متوفر</span>');
             }
 
-            // 4. Live AJAX polling for incoming pending requests
-            let lastPendingCount = parseInt('@pendingItems.Count');
+            // 4. SignalR Real-Time connection for incoming pending requests
             const providerId = '@Model.ProviderId';
+            
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/hubs/queue")
+                .withAutomaticReconnect()
+                .build();
 
-            setInterval(function() {
-                $.ajax({
-                    url: '/HospitalQueue/GetPendingCount',
-                    type: 'GET',
-                    data: { providerId: providerId },
-                    success: function(res) {
-                        if (res.success && res.count > lastPendingCount) {
-                            // New case received! Play alarm and show toast
-                            playMedicalAlertSound();
-                            const toastEl = document.getElementById('newAmbulanceToast');
-                            const toast = new bootstrap.Toast(toastEl);
-                            toast.show();
-                            
-                            // Update the counter to prevent multiple triggers
-                            lastPendingCount = res.count;
+            connection.on("NewEmergencyRequest", function(request) {
+                // New case received! Play alarm and show toast
+                playMedicalAlertSound();
+                const toastEl = document.getElementById('newAmbulanceToast');
+                if (toastEl) {
+                    const toast = new bootstrap.Toast(toastEl);
+                    toast.show();
+                }
+                
+                // Reload view after 3 seconds to show new rows in the table
+                setTimeout(function() {
+                    location.reload();
+                }, 3000);
+            });
 
-                            // Reload view after 3 seconds to show new rows in the table
-                            setTimeout(function() {
-                                location.reload();
-                            }, 3000);
-                        } else if (res.success) {
-                            lastPendingCount = res.count;
-                        }
-                    },
-                    error: function(err) {
-                        console.warn("Telemetry polling failed: ", err);
-                    }
-                });
-            }, 12000); // Poll every 12 seconds
+            connection.start().then(function() {
+                console.log("SignalR connected to QueueHub.");
+                if (providerId) {
+                    connection.invoke("JoinProviderGroup", providerId).then(function() {
+                        console.log("Joined provider group: " + providerId);
+                    }).catch(function(err) {
+                        console.error(err);
+                    });
+                }
+            }).catch(function(err) {
+                console.error("SignalR Connection Error: ", err);
+            });
         });
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
 }

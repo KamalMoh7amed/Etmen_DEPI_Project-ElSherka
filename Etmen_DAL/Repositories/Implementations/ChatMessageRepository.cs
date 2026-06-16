@@ -22,8 +22,8 @@ namespace Etmen_DAL.Repositories.Implementations
 
         public async Task MarkAsReadAsync(string receiver, string sender)
         {
-            var msgs = await _dbSet.Where(m => m.ReceiverId == receiver && m.SenderId == sender && !m.IsRead).ToListAsync();
-            foreach (var m in msgs) m.IsRead = true;
+            await _dbSet.Where(m => m.ReceiverId == receiver && m.SenderId == sender && !m.IsRead)
+                        .ExecuteUpdateAsync(s => s.SetProperty(m => m.IsRead, true));
         }
 
         public async Task<int> GetUnreadCountAsync(string userId)

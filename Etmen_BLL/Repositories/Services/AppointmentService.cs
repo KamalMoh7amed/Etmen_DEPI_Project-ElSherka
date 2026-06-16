@@ -6,6 +6,7 @@ using Etmen_Domain.Entities;
 using Etmen_Domain.Enums;
 using Mapster;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 
 namespace Etmen_BLL.Repositories.Services
 {
@@ -15,17 +16,20 @@ namespace Etmen_BLL.Repositories.Services
         private readonly IEmailService _emailService;
         private readonly IPdfReportService _pdfService;
         private readonly ILogger<AppointmentService> _logger;
+        private readonly IBackgroundTaskQueue _taskQueue;
 
         public AppointmentService(
             IUnitOfWork uow,
             IEmailService emailService,
             IPdfReportService pdfService,
-            ILogger<AppointmentService> logger)
+            ILogger<AppointmentService> logger,
+            IBackgroundTaskQueue taskQueue)
         {
             _uow          = uow;
             _emailService = emailService;
             _pdfService   = pdfService;
             _logger       = logger;
+            _taskQueue    = taskQueue;
         }
 
         public async Task<ServiceResult<AppointmentDto>> BookAppointmentAsync(string userId, BookingRequestDto dto)
@@ -51,12 +55,15 @@ namespace Etmen_BLL.Repositories.Services
                     return ServiceResult<AppointmentDto>.Failure("Appointment date is required.");
 
                 // Verify the patient exists and belongs to the user
-                var patient = await _uow.PatientProfiles.GetByIdAsync(dto.PatientProfileId);
+                var patient = await _uow.PatientProfiles.Table
+                    .Include(p => p.ApplicationUser)
+                    .FirstOrDefaultAsync(p => p.Id == dto.PatientProfileId);
                 if (patient == null)
                     return ServiceResult<AppointmentDto>.Failure("Patient profile not found.");
 
-                // Verify the doctor exists
-                var doctor = await _uow.DoctorProfiles.GetByIdAsync(dto.DoctorId);
+                var doctor = await _uow.DoctorProfiles.Table
+                    .Include(d => d.ApplicationUser)
+                    .FirstOrDefaultAsync(d => d.Id == dto.DoctorId);
                 if (doctor == null)
                     return ServiceResult<AppointmentDto>.Failure("Doctor profile not found.");
 
@@ -87,12 +94,21 @@ namespace Etmen_BLL.Repositories.Services
 
                 // Add the appointment
                 await _uow.Appointments.AddAsync(appointment);
-                await _uow.CompleteAsync();
+                
+                try
+                {
+                    await _uow.CompleteAsync();
+                }
+                catch (DbUpdateConcurrencyException ex)
+                {
+                    _logger.LogWarning(ex, "Concurrency conflict: Slot {SlotId} has already been booked.", dto.SlotId);
+                    return ServiceResult<AppointmentDto>.Failure("عذراً، هذا الموعد تم حجزه للتو من قبل مريض آخر.");
+                }
 
                 var appointmentDto = appointment.Adapt<AppointmentDto>();
 
-                // ── Send booking confirmation emails (fire-and-forget) ──────
-                _ = Task.Run(async () =>
+                // ── Send booking confirmation emails (queued background task) ──────
+                await _taskQueue.QueueBackgroundWorkItemAsync(async token =>
                 {
                     try
                     {
@@ -223,8 +239,8 @@ namespace Etmen_BLL.Repositories.Services
                 appointment.UpdatedAt = DateTime.UtcNow;
                 _uow.Appointments.Update(appointment);
 
-                // ── Send cancellation emails (fire-and-forget) ─────────────
-                _ = Task.Run(async () =>
+                // ── Send cancellation emails (queued background task) ─────────────
+                await _taskQueue.QueueBackgroundWorkItemAsync(async token =>
                 {
                     try
                     {

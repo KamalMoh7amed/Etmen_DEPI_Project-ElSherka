@@ -5,6 +5,7 @@ using Etmen_Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Etmen_PL.Controllers
 {
@@ -14,15 +15,18 @@ namespace Etmen_PL.Controllers
         private readonly IChatService _chatService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<ChatController> _logger;
+        private readonly Microsoft.AspNetCore.SignalR.IHubContext<Etmen_PL.Hubs.ChatHub> _chatHubContext;
 
         public ChatController(
             IChatService chatService,
             UserManager<ApplicationUser> userManager,
-            ILogger<ChatController> logger)
+            ILogger<ChatController> logger,
+            Microsoft.AspNetCore.SignalR.IHubContext<Etmen_PL.Hubs.ChatHub> chatHubContext)
         {
             _chatService = chatService;
             _userManager = userManager;
             _logger = logger;
+            _chatHubContext = chatHubContext;
         }
 
         /// <summary>
@@ -147,6 +151,12 @@ namespace Etmen_PL.Controllers
                 }
 
                 _logger.LogInformation("Message sent from {UserId} to {ReceiverId}", userId, receiverId);
+
+                // Broadcast message via SignalR ChatHub to receiver
+                if (messageResult.Data != null)
+                {
+                    await _chatHubContext.Clients.User(receiverId).SendAsync("ReceiveMessage", userId, messageResult.Data);
+                }
 
                 return Json(new 
                 { 

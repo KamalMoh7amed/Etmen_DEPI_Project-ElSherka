@@ -7,6 +7,7 @@ using Etmen_DAL.Repositories.Interfaces;
 using Etmen_Domain.Entities;
 using Etmen_Domain.Enums;
 using Mapster;
+using Microsoft.EntityFrameworkCore;
 
 namespace Etmen_BLL.Repositories.Services
 {
@@ -246,6 +247,17 @@ namespace Etmen_BLL.Repositories.Services
                 .ToList();
             var latestMedicalRecord = orderedMedicalRecords.FirstOrDefault();
 
+            // Get active emergency request (Pending, Accepted, Escalated)
+            var activeEmergency = await _uow.EmergencyRequests.Table
+                .Include(r => r.AssignedDoctor)
+                .Include(r => r.HealthcareProvider)
+                .Where(r => r.PatientProfileId == patient.Id && 
+                            (r.Status == EmergencyRequestStatus.Pending || 
+                             r.Status == EmergencyRequestStatus.Accepted || 
+                             r.Status == EmergencyRequestStatus.Escalated))
+                .OrderByDescending(r => r.RequestedAt)
+                .FirstOrDefaultAsync();
+
             var dashboard = new DashboardDto
             {
                 PatientName = patient.FullName ?? "Unknown",
@@ -271,6 +283,28 @@ namespace Etmen_BLL.Repositories.Services
                 UpcomingAppointments = appointmentDtos,
                 RecentAlerts = alertDtos
             };
+
+            if (activeEmergency != null)
+            {
+                dashboard.HasActiveEmergency = true;
+                dashboard.ActiveEmergencyId = activeEmergency.Id;
+                
+                if (activeEmergency.AssignedDoctor != null)
+                {
+                    dashboard.ActiveEmergencyDoctorUserId = activeEmergency.AssignedDoctorUserId;
+                    
+                    var docProfile = await _uow.DoctorProfiles.Table
+                        .FirstOrDefaultAsync(d => d.ApplicationUserId == activeEmergency.AssignedDoctorUserId);
+                        
+                    dashboard.ActiveEmergencyDoctorName = docProfile?.FullName ?? 
+                        $"{activeEmergency.AssignedDoctor.FirstName} {activeEmergency.AssignedDoctor.LastName}".Trim();
+                }
+                
+                dashboard.ActiveEmergencyHospitalName = activeEmergency.HealthcareProvider?.Name;
+                dashboard.ActiveEmergencyPatientRecommendations = activeEmergency.PatientRecommendations;
+                dashboard.ActiveEmergencyFamilyRecommendations = activeEmergency.FamilyRecommendations;
+                dashboard.ActiveEmergencyPrescribedMedications = activeEmergency.PrescribedMedications;
+            }
 
             return ServiceResult<DashboardDto>.Success(dashboard);
         }

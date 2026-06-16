@@ -7,24 +7,62 @@
     string hexColor = Model.RiskColor;
     if (string.IsNullOrEmpty(hexColor)) {
         hexColor = Model.RiskLevel.ToString() switch {
-            "Safe" or "Low" => "#27AE60",
-            "Medium" => "#F39C12",
-            "High" => "#E67E22",
-            "Emergency" => "#E74C3C",
-            _ => "#1A6FBF"
+            "Safe" or "Low" => "#10B981", // Modern Emerald Green
+            "Medium" => "#F59E0B", // Modern Amber Orange
+            "High" => "#F97316", // Modern Orange
+            "Emergency" => "#EF4444", // Modern Crimson Red
+            _ => "#3B82F6" // Modern Blue
         };
     }
+
+    // Convert hex to rgb for overlay colors
+    string rgbColor = hexColor switch {
+        "#10B981" or "#27AE60" => "16, 185, 129",
+        "#F59E0B" or "#F39C12" => "245, 158, 11",
+        "#F97316" or "#E67E22" => "249, 115, 22",
+        "#EF4444" or "#E74C3C" => "239, 68, 68",
+        _ => "59, 130, 246"
+    };
 
     int percentage = (int)Math.Round(Model.RiskScore * 100);
 }
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+
 <style>
+    /* Premium Tajawal Typography */
+    body, .med-card, h1, h2, h3, h4, h5, h6, p, span, button, a {
+        font-family: 'Tajawal', sans-serif !important;
+    }
+
+    /* Outer Wrapper Card */
+    .premium-result-card {
+        background: #ffffff;
+        border-radius: 24px;
+        border: 1px solid rgba(0, 0, 0, 0.04);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.04);
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    .premium-result-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 6px;
+        background: linear-gradient(90deg, @hexColor, rgba(@rgbColor, 0.4));
+    }
+
     /* Circular Gauge Animation */
     .gauge-container {
         position: relative;
-        width: 220px;
-        height: 220px;
-        margin: 0 auto 2rem;
+        width: 230px;
+        height: 230px;
+        margin: 0 auto 1.5rem;
     }
     .gauge-svg {
         transform: rotate(-90deg);
@@ -33,267 +71,434 @@
     }
     .gauge-track {
         fill: none;
-        stroke: #E2E8F0;
-        stroke-width: 14;
+        stroke: #F1F5F9;
+        stroke-width: 12;
     }
     .gauge-fill {
         fill: none;
         stroke: @hexColor;
-        stroke-width: 14;
+        stroke-width: 12;
         stroke-linecap: round;
         stroke-dasharray: 565.48; /* 2 * PI * r (r=90) */
         stroke-dashoffset: 565.48;
-        transition: stroke-dashoffset 2s cubic-bezier(0.4, 0, 0.2, 1);
-        filter: drop-shadow(0 0 8px @hexColor);
+        transition: stroke-dashoffset 2.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        filter: drop-shadow(0 4px 10px rgba(@rgbColor, 0.3));
     }
     .gauge-text {
         position: absolute;
         top: 50%; left: 50%;
         transform: translate(-50%, -50%);
         text-align: center;
+        width: 80%;
     }
     .gauge-glow {
-        animation: gaugePulse 2s ease-in-out infinite;
+        animation: gaugePulse 2.5s ease-in-out infinite;
     }
     @@keyframes gaugePulse {
-        0%, 100% { filter: drop-shadow(0 0 8px @hexColor); }
-        50% { filter: drop-shadow(0 0 20px @hexColor); }
+        0%, 100% { filter: drop-shadow(0 2px 6px rgba(@rgbColor, 0.25)); }
+        50% { filter: drop-shadow(0 6px 16px rgba(@rgbColor, 0.55)); }
     }
 
     /* Severity Scale */
     .severity-scale {
         display: flex;
-        height: 8px;
-        border-radius: 10px;
-        overflow: hidden;
-        margin: 1rem auto;
-        max-width: 300px;
+        height: 10px;
+        border-radius: 50px;
+        background: #F1F5F9;
+        overflow: visible;
+        margin: 1.5rem auto;
+        max-width: 320px;
         position: relative;
+        padding: 0 4px;
+        align-items: center;
     }
     .severity-segment {
         flex: 1;
-        transition: opacity 0.3s;
+        height: 6px;
+        margin: 0 2px;
+        border-radius: 50px;
+        opacity: 0.25;
+        transition: all 0.4s ease;
     }
     .severity-segment.active {
         opacity: 1;
-        animation: segmentPulse 1s ease-in-out;
-    }
-    .severity-segment.inactive {
-        opacity: 0.3;
+        height: 10px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        transform: scaleY(1.1);
     }
     .severity-indicator {
         position: absolute;
-        top: -6px;
-        width: 20px;
-        height: 20px;
-        background: white;
-        border: 3px solid @hexColor;
+        top: 50%;
+        width: 18px;
+        height: 18px;
+        background: #ffffff;
+        border: 4px solid @hexColor;
         border-radius: 50%;
-        transform: translateX(-50%);
-        transition: left 2s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        transform: translate(-50%, -50%);
+        transition: left 2.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         z-index: 2;
     }
-    @@keyframes segmentPulse {
-        0%, 100% { transform: scaleY(1); }
-        50% { transform: scaleY(1.3); }
-    }
 
-    /* Symptom Tags */
-    .symptom-tag {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 16px;
-        border-radius: 50px;
-        font-size: 0.85rem;
-        font-weight: 700;
-        margin: 4px;
-        transition: all 0.3s ease;
-        cursor: default;
-        opacity: 0;
-        transform: translateY(10px);
-        animation: tagAppear 0.4s ease forwards;
-    }
-    .symptom-tag:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    .symptom-tag.normal {
-        background: linear-gradient(135deg, #D4EDDA 0%, #C3E6CB 100%);
-        border: 1px solid #28A745;
-        color: #155724;
-    }
-    .symptom-tag.abnormal {
-        background: linear-gradient(135deg, #FFF3CD 0%, #FFEEBA 100%);
-        border: 1px solid #FFC107;
-        color: #856404;
-    }
-    .symptom-tag.danger {
-        background: linear-gradient(135deg, #F8D7DA 0%, #F5C6CB 100%);
-        border: 1px solid #DC3545;
-        color: #721C24;
-    }
-    .symptom-tag.severe {
-        background: linear-gradient(135deg, #C0392B 0%, #E74C3C 100%);
-        border: none;
-        color: white;
-        animation: tagAppear 0.4s ease forwards, severePulse 2s ease-in-out infinite;
-    }
-    @@keyframes tagAppear {
-        to { opacity: 1; transform: translateY(0); }
-    }
-    @@keyframes severePulse {
-        0%, 100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4); }
-        50% { box-shadow: 0 0 0 8px rgba(231, 76, 60, 0); }
-    }
-
-    /* Recommendation Boxes */
-    .recommendation-box {
+    /* Quick Stats Card Row */
+    .stat-card-premium {
         background: #F8FAFC;
-        border-right: 5px solid @hexColor;
-        border-radius: 12px;
-        padding: 1.25rem;
-        margin-bottom: 1rem;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.01);
-        opacity: 0;
-        transform: translateX(20px);
-        animation: recSlide 0.5s ease forwards;
-        transition: all 0.3s ease;
+        border: 1px solid rgba(0, 0, 0, 0.02);
+        border-radius: 16px;
+        padding: 1.25rem 1rem;
+        text-align: center;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.005);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
     }
-    .recommendation-box:hover {
-        transform: translateX(-4px);
-        box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+    .stat-card-premium:hover {
+        transform: translateY(-4px);
+        background: #ffffff;
+        border-color: rgba(@rgbColor, 0.15);
+        box-shadow: 0 10px 25px rgba(@rgbColor, 0.06);
     }
-    @@keyframes recSlide {
-        to { opacity: 1; transform: translateX(0); }
+    .stat-card-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0.75rem;
+        font-size: 1.1rem;
     }
 
-    /* Risk Banner */
-    .risk-banner {
+    /* Risk Banner Shimmer */
+    .risk-banner-premium {
         position: relative;
         overflow: hidden;
+        font-weight: 800;
+        letter-spacing: -0.2px;
+        border-radius: 50px;
+        padding: 12px 35px;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background-color: @hexColor;
+        box-shadow: 0 8px 25px rgba(@rgbColor, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #ffffff;
     }
-    .risk-banner::before {
+    .risk-banner-premium::before {
         content: '';
         position: absolute;
         top: -50%;
         left: -50%;
         width: 200%;
         height: 200%;
-        background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
-        animation: shimmer 3s infinite;
+        background: linear-gradient(45deg, transparent, rgba(255,255,255,0.15), transparent);
+        animation: shimmer 3.5s infinite;
     }
     @@keyframes shimmer {
         0% { transform: translateX(-100%) rotate(45deg); }
         100% { transform: translateX(100%) rotate(45deg); }
     }
 
-    /* Emergency Pulse */
-    .emergency-pulse {
-        animation: emergencyGlow 1.5s ease-in-out infinite;
+    /* Modern Capsule Badge Tags */
+    .symptom-tag-premium {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 18px;
+        border-radius: 100px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        margin: 6px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: default;
+        opacity: 0;
+        transform: translateY(15px);
+        animation: tagAppearPremium 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        box-shadow: 0 3px 6px rgba(0,0,0,0.02);
     }
-    @@keyframes emergencyGlow {
-        0%, 100% { box-shadow: 0 0 20px rgba(231, 76, 60, 0.3); }
-        50% { box-shadow: 0 0 40px rgba(231, 76, 60, 0.6); }
+    .symptom-tag-premium:hover {
+        transform: translateY(-3px) scale(1.03);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+    }
+    .symptom-tag-premium.normal {
+        background: #ECFDF5;
+        border: 1px solid #A7F3D0;
+        color: #065F46;
+    }
+    .symptom-tag-premium.normal i {
+        color: #10B981;
+    }
+    .symptom-tag-premium.abnormal {
+        background: #FFFBEB;
+        border: 1px solid #FDE68A;
+        color: #92400E;
+    }
+    .symptom-tag-premium.abnormal i {
+        color: #F59E0B;
+    }
+    .symptom-tag-premium.danger {
+        background: #FEF2F2;
+        border: 1px solid #FCA5A5;
+        color: #991B1B;
+    }
+    .symptom-tag-premium.danger i {
+        color: #EF4444;
+    }
+    .symptom-tag-premium.severe {
+        background: linear-gradient(135deg, #7F1D1D 0%, #B91C1C 100%);
+        border: 1px solid #EF4444;
+        color: #FFFFFF;
+        animation: tagAppearPremium 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards, severePulsePremium 2s ease-in-out infinite;
+    }
+    .symptom-tag-premium.severe i {
+        color: #FCA5A5;
+    }
+    @@keyframes tagAppearPremium {
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @@keyframes severePulsePremium {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+        50% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
     }
 
-    /* Section Headers */
-    .section-header {
+    /* Section Header Decorator */
+    .section-header-premium {
         position: relative;
-        padding-bottom: 0.5rem;
+        font-weight: 800;
+        color: #1E293B;
+        padding-bottom: 0.75rem;
+        margin-bottom: 1.5rem;
+        font-size: 1.2rem;
     }
-    .section-header::after {
+    .section-header-premium::after {
         content: '';
         position: absolute;
         bottom: 0;
         right: 0;
-        width: 60px;
-        height: 3px;
-        background: linear-gradient(90deg, @hexColor, transparent);
-        border-radius: 2px;
+        width: 45px;
+        height: 4px;
+        background: @hexColor;
+        border-radius: 50px;
     }
 
-    /* Stats Row */
-    .stat-card {
-        background: white;
+    /* Recommendation Cards */
+    .rec-card-premium {
+        background: #F8FAFC;
+        border-right: 4px solid @hexColor;
+        border-left: 1px solid rgba(0, 0, 0, 0.01);
         border-radius: 12px;
-        padding: 1rem;
-        text-align: center;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        padding: 1.2rem 1.5rem;
+        margin-bottom: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.005);
+        opacity: 0;
+        transform: translateX(20px);
+        animation: recSlidePremium 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         transition: all 0.3s ease;
     }
-    .stat-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    .rec-card-premium:hover {
+        transform: translateX(-5px);
+        background: #ffffff;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.03);
+    }
+    @@keyframes recSlidePremium {
+        to { opacity: 1; transform: translateX(0); }
+    }
+
+    /* Emergency Notice */
+    .emergency-notice-card {
+        border-radius: 20px;
+        border: none;
+        background: linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%);
+        border-right: 6px solid #EF4444;
+        box-shadow: 0 10px 30px rgba(239, 68, 68, 0.08);
+        animation: emergencyCardPulse 3s ease-in-out infinite;
+    }
+    @@keyframes emergencyCardPulse {
+        0%, 100% { box-shadow: 0 10px 30px rgba(239, 68, 68, 0.08); }
+        50% { box-shadow: 0 10px 40px rgba(239, 68, 68, 0.18); }
+    }
+
+    /* Premium AI Analysis Panel */
+    .ai-premium-panel {
+        background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+        border-radius: 20px;
+        color: #F8FAFC;
+        padding: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+        position: relative;
+        overflow: hidden;
+    }
+    .ai-premium-panel::before {
+        content: '';
+        position: absolute;
+        top: 0; right: 0;
+        width: 150px; height: 150px;
+        background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
+        pointer-events: none;
+    }
+    .ai-badge-glowing {
+        background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        display: inline-block;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    .ai-btn-glow {
+        background: linear-gradient(90deg, #3B82F6, #8B5CF6);
+        color: white !important;
+        border: none;
+        border-radius: 12px;
+        padding: 12px 30px;
+        font-weight: 700;
+        transition: all 0.3s;
+        box-shadow: 0 8px 20px rgba(59, 130, 246, 0.25);
+    }
+    .ai-btn-glow:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 28px rgba(59, 130, 246, 0.4);
+    }
+    .ai-btn-glow:active {
+        transform: translateY(1px);
+    }
+
+    /* Action Buttons Row */
+    .btn-action-premium {
+        padding: 15px 20px;
+        font-weight: 700;
+        border-radius: 16px;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    .btn-action-premium:hover {
+        transform: translateY(-3px);
+    }
+    .btn-action-premium:active {
+        transform: translateY(0);
+    }
+    .btn-action-primary {
+        background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+        color: white;
+        box-shadow: 0 8px 20px rgba(59, 130, 246, 0.15);
+        border: none;
+    }
+    .btn-action-primary:hover {
+        box-shadow: 0 12px 28px rgba(59, 130, 246, 0.28);
+        color: white;
+    }
+    .btn-action-danger {
+        background: linear-gradient(135deg, #EF4444 0%, #B91C1C 100%);
+        color: white;
+        box-shadow: 0 8px 20px rgba(239, 68, 68, 0.15);
+        border: none;
+    }
+    .btn-action-danger:hover {
+        box-shadow: 0 12px 28px rgba(239, 68, 68, 0.28);
+        color: white;
+    }
+    .btn-action-outline {
+        border: 2px solid #E2E8F0;
+        background: #ffffff;
+        color: #475569;
+    }
+    .btn-action-outline:hover {
+        background: #F8FAFC;
+        border-color: #CBD5E1;
+        color: #1E293B;
     }
 </style>
 
 <div class="row g-4 justify-content-center">
     <div class="col-lg-8 animate__animated animate__fadeInUp">
-        <div class="med-card p-5 text-center">
+        <div class="premium-result-card p-4 p-md-5 text-center">
             
             <!-- Result Gauge -->
             <div class="gauge-container">
                 <svg class="gauge-svg">
-                    <circle class="gauge-track" cx="110" cy="110" r="90" />
-                    <circle class="gauge-fill gauge-glow" id="riskGaugeFill" cx="110" cy="110" r="90" />
+                    <circle class="gauge-track" cx="115" cy="115" r="90" />
+                    <circle class="gauge-fill gauge-glow" id="riskGaugeFill" cx="115" cy="115" r="90" />
                 </svg>
                 <div class="gauge-text">
-                    <span class="fs-5 text-muted fw-bold">النتيجة</span>
-                    <h1 class="fw-black mb-0 display-3" style="color: @hexColor">@percentage%</h1>
-                    <span class="small fw-bold" style="color: @hexColor">@Model.RiskLabel</span>
+                    <span class="small text-muted fw-bold d-block mb-1" style="letter-spacing: 0.5px;">النتيجة</span>
+                    <h1 class="fw-black mb-0 display-4" style="color: @hexColor; font-weight: 900; line-height: 1;">@percentage%</h1>
+                    <span class="badge mt-2 px-2.5 py-1.5 fw-bold" style="background-color: rgba(@rgbColor, 0.1); color: @hexColor; border-radius: 6px; font-size: 0.8rem;">@Model.RiskLabel</span>
                 </div>
             </div>
 
             <!-- Severity Scale -->
             <div class="severity-scale mb-4">
-                <div class="severity-segment @(percentage <= 25 ? "active" : "inactive")" style="background: #27AE60;"></div>
-                <div class="severity-segment @(percentage > 25 && percentage <= 50 ? "active" : "inactive")" style="background: #F39C12;"></div>
-                <div class="severity-segment @(percentage > 50 && percentage <= 75 ? "active" : "inactive")" style="background: #E67E22;"></div>
-                <div class="severity-segment @(percentage > 75 ? "active" : "inactive")" style="background: #E74C3C;"></div>
+                <div class="severity-segment @(percentage <= 25 ? "active" : "inactive")" style="background: #10B981;"></div>
+                <div class="severity-segment @(percentage > 25 && percentage <= 50 ? "active" : "inactive")" style="background: #F59E0B;"></div>
+                <div class="severity-segment @(percentage > 50 && percentage <= 75 ? "active" : "inactive")" style="background: #F97316;"></div>
+                <div class="severity-segment @(percentage > 75 ? "active" : "inactive")" style="background: #EF4444;"></div>
                 <div class="severity-indicator" id="severityIndicator"></div>
             </div>
 
             <!-- Quick Stats -->
             <div class="row g-3 mb-4">
                 <div class="col-4">
-                    <div class="stat-card">
-                        <div class="fs-4 fw-bold" style="color: @hexColor">@percentage%</div>
+                    <div class="stat-card-premium">
+                        <div class="stat-card-icon" style="background: rgba(@rgbColor, 0.08); color: @hexColor;">
+                            <i class="fas fa-heartbeat"></i>
+                        </div>
+                        <div class="fs-4 fw-bold mb-0.5" style="color: @hexColor">@percentage%</div>
                         <div class="small text-muted fw-bold">درجة الخطر</div>
                     </div>
                 </div>
                 <div class="col-4">
-                    <div class="stat-card">
-                        <div class="fs-4 fw-bold text-primary">@Model.TriggeredSymptoms.Count</div>
+                    <div class="stat-card-premium">
+                        <div class="stat-card-icon" style="background: rgba(59, 130, 246, 0.08); color: #3B82F6;">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
+                        <div class="fs-4 fw-bold text-primary mb-0.5">@Model.TriggeredSymptoms.Count</div>
                         <div class="small text-muted fw-bold">مؤشر تم رصده</div>
                     </div>
                 </div>
                 <div class="col-4">
-                    <div class="stat-card">
-                        <div class="fs-4 fw-bold @(Model.IsEmergency ? "text-danger" : "text-success")">@(Model.IsEmergency ? "طارئ" : "مستقر")</div>
+                    <div class="stat-card-premium">
+                        <div class="stat-card-icon" style="background: @(Model.IsEmergency ? "rgba(239, 68, 68, 0.08)" : "rgba(16, 185, 129, 0.08)"); color: @(Model.IsEmergency ? "#EF4444" : "#10B981");">
+                            <i class="fas @(Model.IsEmergency ? "fa-ambulance" : "fa-shield-alt")"></i>
+                        </div>
+                        <div class="fs-4 fw-bold @(Model.IsEmergency ? "text-danger" : "text-success") mb-0.5">@(Model.IsEmergency ? "طارئ" : "مستقر")</div>
                         <div class="small text-muted fw-bold">الحالة الحالية</div>
                     </div>
                 </div>
             </div>
 
             <!-- Risk Label Banner -->
-            <div class="p-3 mb-4 rounded-4 text-white d-inline-block px-5 risk-banner" style="background-color: @hexColor; box-shadow: 0 8px 25px rgba(0,0,0,0.15);">
-                <h4 class="fw-black mb-0"><i class="fas fa-notes-medical"></i> مستوى الخطر: @Model.RiskLabel</h4>
+            <div class="mb-5">
+                <div class="risk-banner-premium">
+                    <i class="fas fa-notes-medical"></i>
+                    <span>مستوى الخطر: @Model.RiskLabel</span>
+                </div>
             </div>
 
             <!-- Outbreak / System Alert Notice -->
             @if (Model.IsEmergency)
             {
-                <div class="alert alert-danger d-flex align-items-center gap-3 py-3 px-4 text-start mb-5 animate__animated animate__flash animate__infinite emergency-pulse" style="animation-duration: 3s; border-radius: 16px;">
-                    <span class="fs-2 text-danger"><i class="fas fa-exclamation-triangle"></i></span>
+                <div class="alert alert-danger emergency-notice-card d-flex align-items-center gap-3 py-3.5 px-4 text-start mb-5 animate__animated animate__pulse animate__infinite" style="animation-duration: 2s;">
+                    <span class="fs-1 text-danger"><i class="fas fa-exclamation-triangle"></i></span>
                     <div>
-                        <h6 class="fw-bold mb-1 text-danger">تحذير طبي عاجل!</h6>
-                        <p class="mb-0 small">تتطلب مؤشراتك الحيوية تدخلاً إسعافياً فورياً. تم تسجيل طلب استدعاء سيارة إسعاف لإنقاذك.</p>
+                        <h6 class="fw-bold mb-1 text-danger" style="font-size: 1.05rem;">تحذير طبي عاجل!</h6>
+                        <p class="mb-0 text-slate-700" style="font-size: 0.92rem; line-height: 1.6;">تتطلب مؤشراتك الحيوية تدخلاً إسعافياً فورياً. تم تسجيل طلب استدعاء سيارة إسعاف لإنقاذك.</p>
                         @if (Model.EmergencyRequestId.HasValue)
                         {
-                            <a href="@Url.Action("Track", "Emergency", new { id = Model.EmergencyRequestId.Value })" class="btn btn-danger btn-sm mt-2 fw-bold px-4 py-2" style="border-radius:8px;">
-                                <i class="fas fa-map-marker-alt"></i> تتبع سيارة الإسعاف الآن
+                            <a href="@Url.Action("Track", "Emergency", new { id = Model.EmergencyRequestId.Value })" class="btn btn-danger btn-sm mt-3 fw-bold px-4 py-2" style="border-radius:10px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);">
+                                <i class="fas fa-map-marker-alt me-1"></i> تتبع سيارة الإسعاف الآن
                             </a>
                         }
                     </div>
@@ -302,8 +507,8 @@
 
             @if (Model.WasAutoEscalated)
             {
-                <div class="alert alert-warning py-3 px-4 text-start mb-4 animate__animated animate__shakeX" style="border-radius:12px;">
-                    <i class="fas fa-share-square"></i> <strong>تصعيد آلي للحالة:</strong> @Model.EscalationMessage
+                <div class="alert alert-warning py-3 px-4 text-start mb-4 animate__animated animate__shakeX" style="border-radius:16px; border-right: 5px solid #F59E0B;">
+                    <i class="fas fa-share-square me-1"></i> <strong>تصعيد آلي للحالة:</strong> @Model.EscalationMessage
                 </div>
             }
 
@@ -311,8 +516,8 @@
             @if (Model.TriggeredSymptoms.Any())
             {
                 <div class="text-start mb-5">
-                    <h5 class="fw-bold text-dark mb-3 section-header"><i class="fas fa-viruses text-secondary"></i> المؤشرات الحيوية والأعراض التي تم رصدها:</h5>
-                    <div class="d-flex flex-wrap">
+                    <h5 class="section-header-premium"><i class="fas fa-viruses me-2 text-secondary"></i> المؤشرات الحيوية والأعراض التي تم رصدها:</h5>
+                    <div class="d-flex flex-wrap mt-3">
                         @{
                             int delay = 0;
                             foreach (var symptom in Model.TriggeredSymptoms)
@@ -344,7 +549,7 @@
                                            symptom.Contains("تشبع") ? "fa-lungs" : "fa-tint";
                                 }
 
-                                <span class="symptom-tag @tagClass" style="animation-delay: @(delay * 100)ms;">
+                                <span class="symptom-tag-premium @tagClass" style="animation-delay: @(delay * 80)ms;">
                                     <i class="fas @icon"></i> @symptom
                                 </span>
                                 delay++;
@@ -356,34 +561,53 @@
 
             <!-- Clinical Recommendations -->
             <div class="text-start mb-5">
-                <h5 class="fw-bold text-dark mb-3 section-header"><i class="fas fa-file-invoice-dollar text-primary"></i> التوصيات الطبية والنصائح الوقائية:</h5>
-                @if (Model.Recommendations.Any())
-                {
-                    int recDelay = 0;
-                    @foreach (var rec in Model.Recommendations)
+                <h5 class="section-header-premium"><i class="fas fa-shield-virus me-2 text-primary"></i> التوصيات الطبية والنصائح الوقائية:</h5>
+                <div class="mt-3">
+                    @if (Model.Recommendations.Any())
                     {
-                        <div class="recommendation-box" style="animation-delay: @(recDelay * 150)ms;">
-                            <p class="mb-0 fw-bold text-dark"><i class="fas fa-info-circle text-primary me-2"></i> @rec</p>
-                        </div>
-                        recDelay++;
+                        int recDelay = 0;
+                        @foreach (var rec in Model.Recommendations)
+                        {
+                            string recIcon = "fa-info-circle";
+                            if (rec.Contains("احجز") || rec.Contains("طبيب") || rec.Contains("استشارة")) {
+                                recIcon = "fa-user-md";
+                            } else if (rec.Contains("شرب") || rec.Contains("الماء") || rec.Contains("راحة") || rec.Contains("أكل")) {
+                                recIcon = "fa-apple-alt";
+                            } else if (rec.Contains("راقب") || rec.Contains("متابعة") || rec.Contains("تطور")) {
+                                recIcon = "fa-eye";
+                            } else if (rec.Contains("قياس") || rec.Contains("سكر") || rec.Contains("ضغط")) {
+                                recIcon = "fa-stethoscope";
+                            }
+
+                            <div class="rec-card-premium" style="animation-delay: @(recDelay * 120)ms;">
+                                <div class="bg-blue-50 text-primary d-flex align-items-center justify-content-center" style="width:36px; height:36px; border-radius:50%; background: rgba(59, 130, 246, 0.08); flex-shrink:0;">
+                                    <i class="fas @recIcon"></i>
+                                </div>
+                                <p class="mb-0 fw-bold text-slate-700" style="font-size: 0.95rem; line-height: 1.6;">@rec</p>
+                            </div>
+                            recDelay++;
+                        }
                     }
-                }
-                else
-                {
-                    <div class="recommendation-box">
-                        <p class="mb-0 fw-bold text-dark"><i class="fas fa-info-circle text-success me-2"></i> حالتك مستقرة ولا تتطلب أي إجراءات استثنائية، يرجى الاستمرار في المتابعة الدورية.</p>
-                    </div>
-                }
+                    else
+                    {
+                        <div class="rec-card-premium">
+                            <div class="bg-green-50 text-success d-flex align-items-center justify-content-center" style="width:36px; height:36px; border-radius:50%; background: rgba(16, 185, 129, 0.08); flex-shrink:0;">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <p class="mb-0 fw-bold text-slate-700" style="font-size: 0.95rem; line-height: 1.6;">حالتك مستقرة ولا تتطلب أي إجراءات استثنائية، يرجى الاستمرار في المتابعة الدورية.</p>
+                        </div>
+                    }
+                </div>
             </div>
 
             <!-- Nearest Emergency Center suggestion -->
             @if (!string.IsNullOrEmpty(Model.NearestEmergencyCenter))
             {
-                <div class="alert alert-info py-3 px-4 text-start mb-5 d-flex align-items-center gap-3 animate__animated animate__fadeIn" style="border-radius: 12px;">
-                    <div class="fs-3 text-primary"><i class="fas fa-hospital-user"></i></div>
+                <div class="alert alert-info py-3.5 px-4 text-start mb-5 d-flex align-items-center gap-3 animate__animated animate__fadeIn" style="border-radius: 16px; border: none; background: #EFF6FF; border-right: 5px solid #3B82F6;">
+                    <div class="fs-2 text-primary"><i class="fas fa-hospital-alt"></i></div>
                     <div>
-                        <span class="fw-bold d-block">أقرب مركز طوارئ متاح لك:</span>
-                        <span class="small text-muted">المستشفى المقترح: <strong>@Model.NearestEmergencyCenter</strong></span>
+                        <span class="fw-bold d-block text-slate-900" style="font-size: 0.95rem;">أقرب مستشفى أو مركز طوارئ متاح لك:</span>
+                        <span class="small text-slate-600">المستشفى المقترح: <strong class="text-primary">@Model.NearestEmergencyCenter</strong></span>
                     </div>
                 </div>
             }
@@ -391,60 +615,69 @@
             <!-- AI Explanation Panel -->
             @if (Model.Id > 0)
             {
-                <div class="med-card text-start p-4 mb-5 border-primary-light animate__animated animate__fadeInUp" style="background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%); border: 1px solid rgba(26,111,191,0.15); animation-delay: 0.2s;">
-                    <div class="d-flex align-items-center gap-3 mb-3">
-                        <div class="bg-primary text-white d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; border-radius: 12px; font-size: 1.35rem; flex-shrink: 0;">
+                <div class="ai-premium-panel text-start mb-5 animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+                    <div class="d-flex align-items-start align-items-md-center gap-3 mb-4">
+                        <div class="bg-blue-600 text-white d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; border-radius: 14px; font-size: 1.4rem; flex-shrink: 0; background: linear-gradient(135deg, #3B82F6, #8B5CF6);">
                             <i class="fas fa-brain animate__animated animate__pulse animate__infinite"></i>
                         </div>
                         <div>
-                            <h5 class="fw-bold mb-1 text-dark">🧠 التفسير الذكي للحالة (AI Analysis)</h5>
-                            <p class="text-muted small mb-0">احصل على شرح تفصيلي وعلمي دقيق لمؤشراتك الحيوية ومسببات درجة الخطر الحالية.</p>
+                            <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                <h5 class="fw-bold mb-0 text-white" style="font-size: 1.15rem;">التفسير الذكي للحالة (AI Analysis)</h5>
+                                <span class="ai-badge-glowing">BETA</span>
+                            </div>
+                            <p class="text-slate-400 small mb-0" style="color: #94A3B8;">احصل على شرح تفصيلي وعلمي دقيق لمؤشراتك الحيوية ومسببات درجة الخطر الحالية عبر الذكاء الاصطناعي.</p>
                         </div>
                     </div>
                     
                     <div id="aiExplanationWrapper">
-                        <button id="btnFetchAiExplain" class="btn btn-primary fw-bold px-4 py-2" style="border-radius: 10px; font-size: 0.9rem;" onclick="loadAiExplanation(@Model.Id)">
-                            <i class="fas fa-magic"></i> تفسير النتيجة بالذكاء الاصطناعي
+                        <button id="btnFetchAiExplain" class="btn ai-btn-glow" onclick="loadAiExplanation(@Model.Id)">
+                            <i class="fas fa-magic me-1"></i> تفسير النتيجة بالذكاء الاصطناعي
                         </button>
                         
                         <!-- Loading Indicator -->
-                        <div id="aiLoading" class="text-center py-3" style="display: none;">
-                            <div class="spinner-border text-primary" role="status">
+                        <div id="aiLoading" class="text-center py-4" style="display: none;">
+                            <div class="spinner-border text-info" role="status" style="width: 2.5rem; height: 2.5rem;">
                                 <span class="visually-hidden">Loading...</span>
                             </div>
-                            <p class="text-primary fw-bold mt-2 small">جاري تحليل بياناتك الحيوية عبر مساعد اطمئن الذكي...</p>
+                            <p class="text-info fw-bold mt-3 small animate__animated animate__pulse animate__infinite">جاري تحليل بياناتك الحيوية والوبائية لتوليد تفسير مخصّص...</p>
                         </div>
                         
                         <!-- AI Explanation Content -->
-                        <div id="aiContent" style="display: none;" class="animate__animated animate__fadeIn">
-                            <div class="alert alert-light border-0 p-3 mb-3 text-secondary" id="aiSummary" style="font-size: 0.95rem; line-height: 1.7; background: white; border-radius: 12px; border-right: 4px solid var(--primary) !important;"></div>
+                        <div id="aiContent" style="display: none;" class="animate__animated animate__fadeIn mt-2">
+                            <div class="p-3.5 mb-4 text-slate-300" id="aiSummary" style="font-size: 0.95rem; line-height: 1.7; background: rgba(255,255,255,0.03); border-radius: 14px; border: 1px solid rgba(255,255,255,0.05); border-right: 4px solid #3B82F6 !important; color: #E2E8F0;"></div>
                             
                             <!-- Contributions -->
-                            <h6 class="fw-bold text-dark mb-2"><i class="fas fa-chart-bar text-primary"></i> العوامل الأكثر تأثيراً على النتيجة:</h6>
-                            <div id="aiContributions" class="mb-3"></div>
-
+                            <h6 class="fw-bold text-white mb-3"><i class="fas fa-chart-bar text-info me-1"></i> العوامل الأكثر تأثيراً على النتيجة:</h6>
+                            <div id="aiContributions" class="mb-4"></div>
+ 
                             <!-- Actions -->
-                            <h6 class="fw-bold text-dark mb-2"><i class="fas fa-heartbeat text-danger"></i> إجراءات وقائية فورية مقترحة:</h6>
-                            <ul id="aiActions" class="ps-3 mb-0 text-secondary small" style="line-height: 1.8; list-style: none;"></ul>
+                            <h6 class="fw-bold text-white mb-2"><i class="fas fa-heartbeat text-danger me-1"></i> إجراءات وقائية فورية مقترحة:</h6>
+                            <ul id="aiActions" class="ps-0 mb-0 text-slate-300" style="line-height: 1.8; list-style: none;"></ul>
                         </div>
                     </div>
                 </div>
             }
 
             <!-- Action Buttons -->
-            <div class="d-flex gap-2">
-                <a href="/PatientDashboard" class="btn btn-outline-primary flex-fill py-3 fw-bold" style="border-radius:12px;">
-                    <i class="fas fa-chart-pie"></i> لوحة التحكم
-                </a>
+            <div class="row g-2 justify-content-center">
+                <div class="col-md-4">
+                    <a href="/PatientDashboard" class="btn btn-action-premium btn-action-outline w-100">
+                        <i class="fas fa-chart-pie"></i> لوحة التحكم
+                    </a>
+                </div>
                 @if (Model.Id > 0)
                 {
-                    <a href="@Url.Action("DownloadPdf", "RiskAssessment", new { id = Model.Id })" class="btn btn-danger flex-fill py-3 fw-bold" style="border-radius:12px;">
-                        <i class="fas fa-file-pdf"></i> تحميل تقرير PDF
-                    </a>
+                    <div class="col-md-4">
+                        <a href="@Url.Action("DownloadPdf", "RiskAssessment", new { id = Model.Id })" class="btn btn-action-premium btn-action-danger w-100">
+                            <i class="fas fa-file-pdf"></i> تحميل تقرير PDF
+                        </a>
+                    </div>
                 }
-                <a href="/RiskAssessment/History" class="btn btn-primary flex-fill py-3 fw-bold" style="border-radius:12px;">
-                    <i class="fas fa-history"></i> عرض سجل التقييمات
-                </a>
+                <div class="col-md-4">
+                    <a href="/RiskAssessment/History" class="btn btn-action-premium btn-action-primary w-100">
+                        <i class="fas fa-history"></i> عرض سجل التقييمات
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -489,12 +722,12 @@
                         var percent = Math.round(c.weight * 100);
                         var barColor = percent > 50 ? 'bg-danger' : (percent > 25 ? 'bg-warning' : 'bg-success');
                         var itemHtml = `
-                            <div class="mb-2">
+                            <div class="mb-3">
                                 <div class="d-flex justify-content-between small fw-bold mb-1">
-                                    <span class="text-dark">${c.factor} (${c.description})</span>
-                                    <span class="text-muted">${percent}%</span>
+                                    <span class="text-slate-300">${c.factor} (${c.description})</span>
+                                    <span class="text-info">${percent}%</span>
                                 </div>
-                                <div class="progress" style="height: 8px; border-radius: 10px;">
+                                <div class="progress" style="height: 6px; border-radius: 10px; background: rgba(255,255,255,0.08);">
                                     <div class="progress-bar ${barColor}" role="progressbar" style="width: ${percent}%" aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100"></div>
                                 </div>
                             </div>`;
@@ -505,7 +738,7 @@
                     var actionsContainer = $('#aiActions');
                     actionsContainer.empty();
                     response.actions.forEach(function(act) {
-                        actionsContainer.append(`<li><i class="fas fa-check-circle text-success me-2"></i> ${act}</li>`);
+                        actionsContainer.append(`<li class="mb-2 d-flex align-items-start gap-2"><i class="fas fa-check-circle text-success mt-1" style="font-size:0.95rem;"></i> <span style="font-size:0.92rem;">${act}</span></li>`);
                     });
                     
                     $('#aiContent').slideDown(400);

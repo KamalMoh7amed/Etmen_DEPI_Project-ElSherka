@@ -21,7 +21,7 @@ namespace Etmen_PL.Controllers
 
         
         [HttpGet]
-        [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client)]
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public async Task<IActionResult> Index()
         {
             if (User.Identity?.IsAuthenticated == true)

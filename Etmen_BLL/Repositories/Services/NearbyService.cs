@@ -4,6 +4,7 @@ using Etmen_BLL.Repositories.IServices;
 using Etmen_DAL.Repositories.Interfaces;
 using Etmen_Domain.Entities;
 using Mapster;
+using Microsoft.EntityFrameworkCore;
 
 namespace Etmen_BLL.Repositories.Services
 {
@@ -74,28 +75,16 @@ namespace Etmen_BLL.Repositories.Services
                 if (providerId <= 0)
                     return ServiceResult<List<AvailableSlotDto>>.Failure("Valid provider ID is required.");
 
-                // Check if any doctor is linked to this provider center in their onboarding data
-                int targetDoctorProfileId = providerId;
-                var doctors = await _uow.DoctorProfiles.GetAllAsync();
-                foreach (var doc in doctors)
+                var affiliations = await _uow.DoctorProviders.GetByProviderIdAsync(providerId);
+                var doctorIds = affiliations.Select(a => a.DoctorProfileId).ToList();
+
+                if (!doctorIds.Any())
                 {
-                    if (!string.IsNullOrEmpty(doc.OnboardingDataJson))
-                    {
-                        try
-                        {
-                            using var docJson = System.Text.Json.JsonDocument.Parse(doc.OnboardingDataJson);
-                            if (docJson.RootElement.TryGetProperty("HealthcareProviderId", out var prop) && prop.GetInt32() == providerId)
-                            {
-                                targetDoctorProfileId = doc.Id;
-                                break;
-                            }
-                        }
-                        catch { /* ignore invalid JSON formats */ }
-                    }
+                    return ServiceResult<List<AvailableSlotDto>>.Success(new List<AvailableSlotDto>());
                 }
 
-                // Get available slots for the provider
-                var slots = await _uow.AvailableSlots.FindAsync(s => s.DoctorProfileId == targetDoctorProfileId && !s.IsBooked);
+                // Get available slots for the affiliated doctors
+                var slots = await _uow.AvailableSlots.FindAsync(s => doctorIds.Contains(s.DoctorProfileId) && !s.IsBooked);
                 var slotDtos = slots
                     .Select(s => s.Adapt<AvailableSlotDto>())
                     .ToList();
@@ -153,7 +142,14 @@ namespace Etmen_BLL.Repositories.Services
 
                 await _uow.Appointments.AddAsync(appointment);
                 _uow.AvailableSlots.Update(slot);
-                await _uow.CompleteAsync();
+                try
+                {
+                    await _uow.CompleteAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    return ServiceResult.Failure("عذراً، هذا الموعد تم حجزه للتو من قبل مريض آخر.");
+                }
 
                 return ServiceResult.Success(201);
             }

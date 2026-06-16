@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Etmen_DAL.Repositories.Interfaces;
 
 namespace Etmen_PL.Controllers
 {
@@ -22,15 +24,18 @@ namespace Etmen_PL.Controllers
     {
         private readonly IDoctorService _doctorService;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IUnitOfWork _uow;
         private readonly ILogger<DoctorDashboardController> _logger;
 
         public DoctorDashboardController(
             IDoctorService doctorService,
             UserManager<ApplicationUser> userManager,
+            IUnitOfWork uow,
             ILogger<DoctorDashboardController> logger)
         {
             _doctorService = doctorService;
             _userManager = userManager;
+            _uow = uow;
             _logger = logger;
         }
 
@@ -277,6 +282,7 @@ namespace Etmen_PL.Controllers
                 }
 
                 _logger.LogInformation("Doctor {UserId} onboarding completed successfully.", userId);
+                HttpContext.Session.SetInt32($"DoctorOnboarded_{userId}", 1);
                 TempData["Success"] = "تم تفعيل حسابك وإنشاء ملفك الشخصي وعيادتك بنجاح!";
                 
                 return RedirectToAction(nameof(Index));
@@ -286,6 +292,89 @@ namespace Etmen_PL.Controllers
                 _logger.LogError(ex, "Error saving doctor onboarding data");
                 ModelState.AddModelError(string.Empty, "حدث خطأ أثناء حفظ البيانات. يرجى المحاولة مرة أخرى.");
                 return View("Onboarding", input);
+            }
+        }
+
+        [HttpGet]
+        [Route("DoctorDashboard/Schedule")]
+        public async Task<IActionResult> GetSchedule(DateTime date)
+        {
+            try
+            {
+                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized();
+
+                var profileResult = await _doctorService.GetProfileAsync(userId);
+                if (!profileResult.IsSuccess || profileResult.Data == null)
+                    return Json(new { success = false, message = "Doctor profile not found." });
+
+                var doctorId = profileResult.Data.Id;
+                
+                var appointments = await _uow.Appointments.Table
+                    .Include(a => a.PatientProfile)
+                    .Where(a => a.DoctorProfileId == doctorId && a.AppointmentDate.Date == date.Date)
+                    .OrderBy(a => a.StartTime)
+                    .ToListAsync();
+
+                var slots = await _uow.AvailableSlots.Table
+                    .Where(s => s.DoctorProfileId == doctorId && s.SlotDate.Date == date.Date)
+                    .OrderBy(s => s.SlotStart)
+                    .ToListAsync();
+
+                return Json(new
+                {
+                    success = true,
+                    appointments = appointments.Select(a => new
+                    {
+                        id = a.Id,
+                        patientName = a.PatientProfile?.FullName ?? "مريض",
+                        startTime = a.StartTime.ToString(@"hh\:mm"),
+                        endTime = a.EndTime.ToString(@"hh\:mm"),
+                        status = a.Status.ToString(),
+                        notes = a.Notes ?? ""
+                    }),
+                    slots = slots.Select(s => new
+                    {
+                        id = s.Id,
+                        startTime = s.SlotStart.ToString(@"hh\:mm"),
+                        endTime = s.SlotEnd.ToString(@"hh\:mm"),
+                        isBooked = s.IsBooked
+                    })
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting schedule for date {Date}", date);
+                return Json(new { success = false, message = "حدث خطأ أثناء تحميل جدول اليوم." });
+            }
+        }
+
+        [HttpPost]
+        [Route("DoctorDashboard/SaveNotes")]
+        public async Task<IActionResult> SaveNotes(int appointmentId, string notes, string status)
+        {
+            try
+            {
+                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                    return Json(new { success = false, message = "Unauthorized" });
+
+                var statusDto = new Etmen_BLL.DTOs.Doctor.UpdateAppointmentStatusDto
+                {
+                    Status = status,
+                    Notes = notes
+                };
+
+                var result = await _doctorService.UpdateAppointmentStatusAsync(userId, appointmentId, statusDto);
+                if (result.IsSuccess)
+                    return Json(new { success = true, message = "تم حفظ الملاحظات وتحديث الحالة بنجاح." });
+                return Json(new { success = false, message = result.Errors.FirstOrDefault() ?? "فشل تحديث الموعد." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving notes for appointment {AppointmentId}", appointmentId);
+                return Json(new { success = false, message = "حدث خطأ غير متوقع." });
             }
         }
     }

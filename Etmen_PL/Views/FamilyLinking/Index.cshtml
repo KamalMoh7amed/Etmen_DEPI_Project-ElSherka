@@ -339,6 +339,98 @@
 
                     <!-- Left: Links List -->
                     <div class="col-lg-7">
+                        <!-- 1. Received Pending Requests (Incoming) -->
+                        @{
+                            var incoming = ViewBag.IncomingInvites as List<Etmen_BLL.DTOs.Family.FamilyDto>;
+                        }
+                        @if (incoming != null && incoming.Any())
+                        {
+                            <div class="premium-card mb-4" style="border-right: 5px solid var(--warning);">
+                                <h4 class="fw-bold mb-4 text-warning"><i class="fas fa-user-clock"></i> طلبات ارتباط عائلي واردة</h4>
+                                <div class="d-flex flex-column">
+                                    @foreach (var invite in incoming)
+                                    {
+                                        string relAr = invite.Relationship switch {
+                                            "Father" => "أب",
+                                            "Mother" => "أم",
+                                            "Spouse" => "زوج / زوجة",
+                                            "Son" => "ابن",
+                                            "Daughter" => "ابنة",
+                                            "Brother" => "أخ",
+                                            "Sister" => "أخت",
+                                            _ => invite.Relationship
+                                        };
+                                        <div class="family-item d-flex flex-md-row flex-column justify-content-between align-items-md-center gap-3">
+                                            <div>
+                                                <div class="d-flex align-items-center gap-2 mb-2">
+                                                    <span class="fw-bold fs-5 text-dark">@invite.LinkedPatientName</span>
+                                                    <span class="badge bg-warning text-dark">يطلب ربطك كـ: @relAr</span>
+                                                </div>
+                                                <div class="small text-muted mb-2">
+                                                    الصلاحيات المطلوبة: 
+                                                    @(invite.CanViewRecords ? "رؤية الملفات الطبية | " : "")
+                                                    @(invite.CanViewRisk ? "رؤية تقييم المخاطر | " : "")
+                                                    @(invite.CanBookAppointments ? "حجز الاستشارات" : "")
+                                                </div>
+                                            </div>
+                                            <div class="d-flex gap-2 align-items-center">
+                                                <form method="post" asp-controller="FamilyLinking" asp-action="AcceptInvite" asp-route-id="@invite.Id">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-sm btn-success rounded-pill px-3 fw-bold"><i class="fas fa-check"></i> قبول</button>
+                                                </form>
+                                                <form method="post" asp-controller="FamilyLinking" asp-action="Remove" asp-route-id="@invite.Id" onsubmit="return confirm('هل أنت متأكد من رفض طلب الارتباط؟')">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold"><i class="fas fa-times"></i> رفض</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        <!-- 2. Outgoing Pending Invites (Sent) -->
+                        @{
+                            var outgoing = ViewBag.OutgoingInvites as List<Etmen_BLL.DTOs.Family.FamilyDto>;
+                        }
+                        @if (outgoing != null && outgoing.Any())
+                        {
+                            <div class="premium-card mb-4" style="border-right: 5px solid var(--primary);">
+                                <h4 class="fw-bold mb-4 text-primary"><i class="fas fa-paper-plane"></i> دعوات الارتباط المرسلة (قيد الانتظار)</h4>
+                                <div class="d-flex flex-column">
+                                    @foreach (var invite in outgoing)
+                                    {
+                                        string relAr = invite.Relationship switch {
+                                            "Father" => "أب",
+                                            "Mother" => "أم",
+                                            "Spouse" => "زوج / زوجة",
+                                            "Son" => "ابن",
+                                            "Daughter" => "ابنة",
+                                            "Brother" => "أخ",
+                                            "Sister" => "أخت",
+                                            _ => invite.Relationship
+                                        };
+                                        <div class="family-item d-flex flex-md-row flex-column justify-content-between align-items-md-center gap-3">
+                                            <div>
+                                                <div class="d-flex align-items-center gap-2 mb-2">
+                                                    <span class="fw-bold fs-5 text-dark">@invite.LinkedPatientName</span>
+                                                    <span class="badge bg-secondary">صلة القرابة: @relAr</span>
+                                                    <span class="badge bg-warning-subtle text-warning fw-semibold"><i class="fas fa-clock"></i> في انتظار الرد</span>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex gap-2 align-items-center">
+                                                <form method="post" asp-controller="FamilyLinking" asp-action="Remove" asp-route-id="@invite.Id" onsubmit="return confirm('هل أنت متأكد من سحب/إلغاء دعوة الارتباط؟')">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold"><i class="fas fa-trash-alt"></i> إلغاء الدعوة</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        <!-- 3. Currently Linked Family Members -->
                         <div class="premium-card">
                             <h4 class="fw-bold mb-4 text-primary"><i class="fas fa-users-cog"></i> أفراد العائلة المرتبطين حالياً</h4>
 
@@ -361,7 +453,14 @@
                                         <div class="family-item d-flex flex-md-row flex-column justify-content-between align-items-md-center gap-3">
                                             <div>
                                                 <div class="d-flex align-items-center gap-2 mb-2">
-                                                    <span class="fw-bold fs-5 text-dark">@link.LinkedPatientName</span>
+                                                    @if (link.IsAccepted)
+                                                    {
+                                                        <a href="/FamilyLinking/Details/@link.Id" class="fw-bold fs-5 text-dark text-decoration-none" style="transition: color 0.2s;" onmouseover="this.style.color='#1A6FBF'" onmouseout="this.style.color=''"><i class="fas fa-external-link-alt me-1" style="font-size:0.85rem; opacity:0.7;"></i> @link.LinkedPatientName</a>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="fw-bold fs-5 text-dark">@link.LinkedPatientName</span>
+                                                    }
                                                     <span class="badge bg-secondary">@relAr</span>
                                                     @if (link.IsAccepted)
                                                     {

@@ -1,4 +1,4 @@
-﻿using Etmen_DAL.DbContext;
+using Etmen_DAL.DbContext;
 using Etmen_DAL.Repositories.Interfaces;
 using Etmen_Domain.Entities;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -26,6 +26,10 @@ namespace Etmen_DAL.Repositories.Implementations
         private ICrisisConfigurationRepository? _crisisConfigurations;
         private IOutbreakZoneRepository? _outbreakZones;
         private IEmergencyRequestRepository? _emergencyRequests;
+        private IGenericRepository<StaffProfile>? _staffProfiles;
+        private IGenericRepository<StaffActivityLog>? _staffActivityLogs;
+        private IDoctorProviderRepository? _doctorProviders;
+        private IReviewRepository? _reviews;
 
         public UnitOfWork(EtmenDbContext context) => _context = context;
 
@@ -45,6 +49,10 @@ namespace Etmen_DAL.Repositories.Implementations
         public ICrisisConfigurationRepository CrisisConfigurations => _crisisConfigurations ??= new CrisisConfigurationRepository(_context);
         public IOutbreakZoneRepository OutbreakZones => _outbreakZones ??= new OutbreakZoneRepository(_context);
         public IEmergencyRequestRepository EmergencyRequests => _emergencyRequests ??= new EmergencyRequestRepository(_context);
+        public IGenericRepository<StaffProfile> StaffProfiles => _staffProfiles ??= new GenericRepository<StaffProfile>(_context);
+        public IGenericRepository<StaffActivityLog> StaffActivityLogs => _staffActivityLogs ??= new GenericRepository<StaffActivityLog>(_context);
+        public IDoctorProviderRepository DoctorProviders => _doctorProviders ??= new DoctorProviderRepository(_context);
+        public IReviewRepository Reviews => _reviews ??= new ReviewRepository(_context);
 
         public async Task<int> CompleteAsync() => await _context.SaveChangesAsync();
         public async Task BeginTransactionAsync() => _transaction = await _context.Database.BeginTransactionAsync();

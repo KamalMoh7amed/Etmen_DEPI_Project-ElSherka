@@ -1,19 +1,799 @@
+@using Etmen_PL.Models.ViewModels.Emergency
+@model EmergencyCaseDetailViewModel
 @{
-    ViewData["Title"] = "تفاصيل حالة الطوارئ";
+    ViewData["Title"] = $"تفاصيل الحالة #{Model.EmergencyRequestId}";
     Layout = "~/Views/Shared/_DoctorLayout.cshtml";
+
+    var riskClass = Model.RiskLevel.ToString() switch {
+        "Emergency" => "risk-emergency",
+        "Critical"  => "risk-critical",
+        "High"      => "risk-high",
+        _           => "risk-other"
+    };
+    var riskColor = Model.RiskLevel.ToString() switch {
+        "Emergency" => "#dc2626",
+        "Critical"  => "#f59e0b",
+        "High"      => "#f97316",
+        _           => "#6366f1"
+    };
+    var riskLabel = Model.RiskLevel.ToString() switch {
+        "Emergency" => "طارئ جداً",
+        "Critical"  => "خطير",
+        "High"      => "مرتفع",
+        _           => Model.RiskLevel.ToString()
+    };
+    var statusLabel = Model.Status.ToString() switch {
+        "Pending"   => ("قيد الانتظار",   "#fbbf24"),
+        "Accepted"  => ("مقبولة",          "#4ade80"),
+        "Escalated" => ("متصاعدة",         "#f97316"),
+        "Completed" => ("مكتملة",          "#60a5fa"),
+        "Cancelled" => ("ملغاة",           "#9ca3af"),
+        _           => (Model.Status.ToString(), "#9ca3af")
+    };
 }
 
-<div class="row g-4">
-    <div class="col-12">
-        <div class="dr-card animate__animated animate__fadeInUp text-center">
-            <div class="empty-state">
-                <div class="empty-state-icon" style="color:var(--warning);"><i class="fas fa-tools"></i></div>
-                <div class="empty-state-text">صفحة تفاصيل الحالة قيد التطوير</div>
-                <p class="text-muted small mt-2">سيتم إضافة التفاصيل الكاملة قريباً</p>
-                <a href="/DoctorPanicInbox" class="btn-primary-custom mt-3">
-                    <i class="fas fa-arrow-left"></i> العودة لحالات الطوارئ
-                </a>
+<style>
+    .cd-back-btn {
+        display:inline-flex; align-items:center; gap:.5rem;
+        padding:7px 16px; border-radius:10px; font-size:.82rem; font-weight:600;
+        background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);
+        color:#9ca3af; text-decoration:none; transition:all .25s ease;
+    }
+    .cd-back-btn:hover { background:rgba(255,255,255,.1); color:#e5e7eb; transform:translateY(-1px); }
+
+    @@keyframes fadeInDown { from{opacity:0;transform:translateY(-20px);} to{opacity:1;transform:translateY(0);} }
+    @@keyframes fadeInUp   { from{opacity:0;transform:translateY(20px);}  to{opacity:1;transform:translateY(0);} }
+
+    .cd-panel {
+        background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07);
+        border-radius:18px; overflow:hidden; animation:fadeInUp .6s ease both;
+    }
+    .cd-panel-header {
+        display:flex; align-items:center; gap:.7rem;
+        padding:1rem 1.5rem; border-bottom:1px solid rgba(255,255,255,.07);
+        background:rgba(255,255,255,.02); font-size:.9rem; font-weight:700; color:#e5e7eb;
+    }
+    .cd-panel-body { padding:1.4rem 1.5rem; }
+
+    .cd-info-row {
+        display:flex; align-items:flex-start; gap:.9rem;
+        padding:.65rem 0; border-bottom:1px solid rgba(255,255,255,.05);
+    }
+    .cd-info-row:last-child { border-bottom:none; }
+    .cd-info-icon {
+        width:34px; height:34px; border-radius:9px; flex-shrink:0;
+        display:flex; align-items:center; justify-content:center;
+        font-size:.9rem; background:rgba(255,255,255,.06); color:#9ca3af;
+        border:1px solid rgba(255,255,255,.08);
+    }
+    .cd-info-label { font-size:.72rem; color:rgba(255,255,255,.4); margin-bottom:2px; }
+    .cd-info-value { font-size:.88rem; font-weight:600; color:#e5e7eb; }
+
+    .cd-vital {
+        background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07);
+        border-radius:12px; padding:1rem; text-align:center; transition:all .25s ease;
+    }
+    .cd-vital:hover { background:rgba(255,255,255,.07); transform:translateY(-2px); }
+    .cd-vital-value { font-size:1.5rem; font-weight:800; line-height:1; }
+    .cd-vital-label { font-size:.68rem; color:rgba(255,255,255,.45); margin-top:5px; text-transform:uppercase; letter-spacing:.5px; }
+    .cd-vital-unit  { font-size:.75rem; color:rgba(255,255,255,.3); }
+    .cd-vital.warn   .cd-vital-value { color:#fbbf24; }
+    .cd-vital.danger .cd-vital-value { color:#f87171; }
+    .cd-vital.ok     .cd-vital-value { color:#4ade80; }
+
+    .cd-risk-ring {
+        width:120px; height:120px; border-radius:50%;
+        display:flex; flex-direction:column; align-items:center; justify-content:center;
+        border:3px solid var(--ring-color, #dc2626);
+        background:rgba(0,0,0,.3);
+    }
+
+    .cd-assign-btn {
+        display:inline-flex; align-items:center; gap:6px;
+        padding:9px 20px; border-radius:12px; font-size:.85rem; font-weight:700;
+        background:linear-gradient(135deg,#dc2626,#b91c1c); color:white;
+        border:1px solid rgba(220,38,38,.5); cursor:pointer;
+        transition:all .25s ease; box-shadow:0 3px 12px rgba(220,38,38,.3);
+        width:100%; justify-content:center;
+    }
+    .cd-assign-btn:hover { background:linear-gradient(135deg,#b91c1c,#991b1b); transform:translateY(-2px); }
+
+    .cd-chat-btn {
+        display:flex; align-items:center; justify-content:center; gap:6px;
+        padding:9px 20px; border-radius:12px; font-size:.85rem; font-weight:700;
+        background:rgba(99,102,241,.18); color:#a5b4fc;
+        border:1px solid rgba(99,102,241,.35); text-decoration:none; transition:all .25s ease;
+    }
+    .cd-chat-btn:hover { background:rgba(99,102,241,.3); color:#c7d2fe; transform:translateY(-2px); }
+
+    .cd-profile-btn {
+        display:flex; align-items:center; justify-content:center; gap:6px;
+        padding:9px 20px; border-radius:12px; font-size:.85rem; font-weight:700;
+        background:rgba(255,255,255,.06); color:#9ca3af;
+        border:1px solid rgba(255,255,255,.1); text-decoration:none; transition:all .25s ease;
+    }
+    .cd-profile-btn:hover { background:rgba(255,255,255,.1); color:#e5e7eb; transform:translateY(-2px); }
+
+    .cd-suggestion {
+        background:rgba(99,102,241,.1); border:1px solid rgba(99,102,241,.25);
+        border-radius:12px; padding:1rem 1.2rem; font-size:.84rem; color:#c7d2fe;
+        line-height:1.6; direction:ltr; text-align:left;
+    }
+
+    /* ══════════════════════════════════════════
+       LIGHT MODE OVERRIDES
+       Applied when body does NOT have .theme-dark
+       (default / day mode)
+    ══════════════════════════════════════════ */
+    body:not(.theme-dark) .cd-back-btn {
+        background: #f1f5f9;
+        border-color: #cbd5e1;
+        color: #475569;
+    }
+    body:not(.theme-dark) .cd-back-btn:hover {
+        background: #e2e8f0;
+        color: #1e293b;
+    }
+    body:not(.theme-dark) h4.fw-black {
+        color: #0f172a !important;
+    }
+    body:not(.theme-dark) h4.fw-black span {
+        color: #94a3b8 !important;
+    }
+    body:not(.theme-dark) .cd-back-btn + div > div {
+        color: #64748b !important;
+    }
+    body:not(.theme-dark) .cd-panel {
+        background: #ffffff;
+        border-color: #e2e8f0;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+    }
+    body:not(.theme-dark) .cd-panel-header {
+        background: #f8fafc;
+        border-bottom-color: #e2e8f0;
+        color: #1e293b;
+    }
+    body:not(.theme-dark) .cd-info-row {
+        border-bottom-color: #f1f5f9;
+    }
+    body:not(.theme-dark) .cd-info-icon {
+        background: #f8fafc;
+        color: #64748b;
+        border-color: #e2e8f0;
+    }
+    body:not(.theme-dark) .cd-info-label {
+        color: #64748b !important;
+    }
+    body:not(.theme-dark) .cd-info-value {
+        color: #1e293b !important;
+    }
+    body:not(.theme-dark) .cd-vital {
+        background: #f8fafc;
+        border-color: #e2e8f0;
+    }
+    body:not(.theme-dark) .cd-vital:hover {
+        background: #f1f5f9;
+    }
+    body:not(.theme-dark) .cd-vital-label {
+        color: #64748b !important;
+    }
+    body:not(.theme-dark) .cd-vital-unit {
+        color: #94a3b8 !important;
+    }
+    body:not(.theme-dark) .cd-vital-value {
+        color: #0f172a;
+    }
+    body:not(.theme-dark) .cd-vital.ok .cd-vital-value {
+        color: #16a34a;
+    }
+    body:not(.theme-dark) .cd-vital.warn .cd-vital-value {
+        color: #d97706;
+    }
+    body:not(.theme-dark) .cd-vital.danger .cd-vital-value {
+        color: #dc2626;
+    }
+    body:not(.theme-dark) .cd-risk-ring {
+        background: #ffffff;
+    }
+    body:not(.theme-dark) .cd-risk-ring > div:last-child {
+        color: #64748b !important;
+    }
+    body:not(.theme-dark) .cd-suggestion {
+        background: #f5f3ff;
+        border-color: #ddd6fe;
+        color: #5b21b6;
+    }
+    body:not(.theme-dark) .cd-chat-btn {
+        background: #e0e7ff;
+        color: #4338ca;
+        border-color: #c7d2fe;
+    }
+    body:not(.theme-dark) .cd-chat-btn:hover {
+        background: #c7d2fe;
+        color: #312e81;
+    }
+    body:not(.theme-dark) .cd-profile-btn {
+        background: #f1f5f9;
+        color: #475569;
+        border-color: #cbd5e1;
+    }
+    body:not(.theme-dark) .cd-profile-btn:hover {
+        background: #e2e8f0;
+        color: #1e293b;
+    }
+    body:not(.theme-dark) span[style*="rgba(255,255,255"] {
+        color: #64748b !important;
+    }
+    body:not(.theme-dark) div[style*="rgba(255,255,255"] {
+        color: #64748b !important;
+    }
+    body:not(.theme-dark) p[style*="rgba(255,255,255"] {
+        color: #64748b !important;
+    }
+    body:not(.theme-dark) div[style*="background:rgba(22,163,74"] {
+        background: #ecfdf5 !important;
+        border-color: #a7f3d0 !important;
+        color: #065f46 !important;
+    }
+    body:not(.theme-dark) div.cd-info-value[style*="color:#86efac"] {
+        color: #059669 !important;
+    }
+    body:not(.theme-dark) div.cd-info-value[style*="color:#fbbf24"] {
+        color: #d97706 !important;
+    }
+    body:not(.theme-dark) div.cd-info-value[style*="color:#fb923c"] {
+        color: #ea580c !important;
+    }
+    body:not(.theme-dark) div.cd-info-value[style*="color:#f87171"] {
+        color: #dc2626 !important;
+    }
+    body:not(.theme-dark) div.cd-info-value[style*="color:#fca5a5"] {
+        color: #b91c1c !important;
+    }
+    body:not(.theme-dark) div.cd-info-value[style*="color:#fde68a"] {
+        color: #b45309 !important;
+    }
+
+    /* Custom Forms Styling & Daylight overrides */
+    .cd-form-label {
+        font-size: 0.8rem;
+        color: #e5e7eb;
+        font-weight: 700;
+        margin-bottom: 6px;
+        display: block;
+    }
+    .cd-form-input {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.08);
+        color: #fff;
+        font-size: 0.85rem;
+        border-radius: 10px;
+        transition: all 0.2s ease;
+    }
+    .cd-form-input:focus {
+        background: rgba(255,255,255,0.06);
+        border-color: #00C9A7;
+        color: #fff;
+        box-shadow: 0 0 0 3px rgba(0,201,167,0.15);
+    }
+    .cd-form-select {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: #fff;
+        font-size: 0.85rem;
+        border-radius: 10px;
+        transition: all 0.2s ease;
+    }
+    .cd-form-select:focus {
+        background: rgba(255,255,255,0.08);
+        border-color: #00C9A7;
+        color: #fff;
+        box-shadow: 0 0 0 3px rgba(0,201,167,0.15);
+    }
+    .cd-form-select option {
+        background: #1e1e38;
+        color: #fff;
+    }
+
+    body:not(.theme-dark) .cd-form-label {
+        color: #334155;
+    }
+    body:not(.theme-dark) .cd-form-input {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        color: #0f172a;
+    }
+    body:not(.theme-dark) .cd-form-input:focus {
+        background: #fff;
+        border-color: #00c9a7;
+        color: #0f172a;
+        box-shadow: 0 0 0 3px rgba(0,201,167,0.15);
+    }
+    body:not(.theme-dark) .cd-form-input::placeholder {
+        color: #94a3b8;
+    }
+    body:not(.theme-dark) .cd-form-select {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        color: #0f172a;
+    }
+    body:not(.theme-dark) .cd-form-select:focus {
+        background: #fff;
+        border-color: #00c9a7;
+        color: #0f172a;
+        box-shadow: 0 0 0 3px rgba(0,201,167,0.15);
+    }
+    body:not(.theme-dark) .cd-form-select option {
+        background: #fff;
+        color: #0f172a;
+    }
+
+    /* Family Card styles */
+    .cd-family-card {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 12px;
+        padding: 12px;
+        transition: all 0.2s ease;
+    }
+    body:not(.theme-dark) .cd-family-card {
+        background: #f8fafc;
+        border-color: #e2e8f0;
+    }
+    body:not(.theme-dark) .cd-family-card div {
+        color: #334155 !important;
+    }
+    body:not(.theme-dark) .cd-family-card span {
+        color: #0f172a !important;
+    }
+    body:not(.theme-dark) .cd-family-card .badge {
+        color: #10b981 !important;
+        background: rgba(16,185,129,0.1) !important;
+    }
+</style>
+
+<div class="d-flex flex-column gap-4">
+
+    @* Back + header *@
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3" style="animation:fadeInDown .5s ease both;">
+        <div class="d-flex align-items-center gap-3">
+            <a href="/DoctorPanicInbox" class="cd-back-btn">
+                <i class="fas fa-arrow-right"></i> العودة
+            </a>
+            <div>
+                <h4 class="fw-black mb-0" style="color:#fff;font-size:1.2rem;">
+                    تفاصيل حالة الطوارئ
+                    <span style="color:rgba(255,255,255,.35);font-size:.9rem;margin-right:8px;">#@Model.EmergencyRequestId</span>
+                </h4>
+                <div style="font-size:.75rem;color:rgba(255,255,255,.4);margin-top:2px;">
+                    <i class="far fa-clock ms-1"></i> @Model.RequestedAt.ToString("dd/MM/yyyy HH:mm") ·
+                    انتظر @(Model.WaitingMinutes < 60 ? $"{Model.WaitingMinutes} دقيقة" : $"{Model.WaitingMinutes/60} س {Model.WaitingMinutes%60} د")
+                </div>
             </div>
         </div>
+        <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;font-size:.78rem;font-weight:700;background:@(statusLabel.Item2)22;color:@(statusLabel.Item2);border:1px solid @(statusLabel.Item2)44;">
+            <i class="fas fa-circle" style="font-size:.5rem;"></i> @statusLabel.Item1
+        </span>
     </div>
+
+    <div class="row g-4">
+
+        @* ── LEFT ── *@
+        <div class="col-lg-8 d-flex flex-column gap-4">
+
+            @* Case Summary *@
+            <div class="cd-panel" style="animation-delay:.05s;">
+                <div class="cd-panel-header">
+                    <i class="fas fa-heartbeat" style="color:#dc2626;"></i> ملخص الحالة
+                </div>
+                <div class="cd-panel-body">
+                    <div class="row align-items-center g-3">
+                        <div class="col-auto">
+                            <div class="cd-risk-ring" style="--ring-color:@riskColor;">
+                                <div style="font-size:1.6rem;font-weight:900;color:@riskColor;">@((Model.RiskScore * 100).ToString("0"))%</div>
+                                <div style="font-size:.65rem;color:rgba(255,255,255,.45);margin-top:2px;">@riskLabel</div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="cd-info-row">
+                                <div class="cd-info-icon"><i class="fas fa-tag"></i></div>
+                                <div><div class="cd-info-label">نوع الطوارئ</div><div class="cd-info-value">@Model.EmergencyType</div></div>
+                            </div>
+                            <div class="cd-info-row">
+                                <div class="cd-info-icon"><i class="fas fa-arrow-up"></i></div>
+                                <div><div class="cd-info-label">درجة الأولوية</div><div class="cd-info-value" style="color:#fbbf24;">@Model.PriorityScore نقطة</div></div>
+                            </div>
+                            @if (!string.IsNullOrEmpty(Model.Symptoms))
+                            {
+                                <div class="cd-info-row">
+                                    <div class="cd-info-icon"><i class="fas fa-stethoscope"></i></div>
+                                    <div><div class="cd-info-label">الأعراض</div><div class="cd-info-value">@Model.Symptoms</div></div>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.Description))
+                            {
+                                <div class="cd-info-row">
+                                    <div class="cd-info-icon"><i class="fas fa-file-alt"></i></div>
+                                    <div><div class="cd-info-label">وصف الحالة</div><div class="cd-info-value">@Model.Description</div></div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* Latest Vitals *@
+            <div class="cd-panel" style="animation-delay:.1s;">
+                <div class="cd-panel-header">
+                    <i class="fas fa-chart-line" style="color:#60a5fa;"></i> آخر قياسات حيوية
+                    @if (Model.VitalsRecordedAt.HasValue)
+                    {
+                        <span style="margin-right:auto;font-size:.72rem;color:rgba(255,255,255,.35);font-weight:400;">
+                            @Model.VitalsRecordedAt.Value.ToString("dd/MM/yyyy HH:mm")
+                        </span>
+                    }
+                </div>
+                <div class="cd-panel-body">
+                    @if (Model.SystolicBP == null && Model.HeartRate == null && Model.OxygenSaturation == null)
+                    {
+                        <p class="text-center" style="color:rgba(255,255,255,.35);font-size:.85rem;padding:2rem 0;">لا توجد قياسات حيوية مسجّلة</p>
+                    }
+                    else
+                    {
+                        <div class="row g-3">
+                            @if (Model.SystolicBP.HasValue)
+                            {
+                                var bpClass = Model.SystolicBP > 160 ? "danger" : Model.SystolicBP > 140 ? "warn" : "ok";
+                                <div class="col-6 col-md-4">
+                                    <div class="cd-vital @bpClass">
+                                        <div class="cd-vital-value">@Model.SystolicBP/@Model.DiastolicBP</div>
+                                        <div class="cd-vital-unit">mmHg</div>
+                                        <div class="cd-vital-label">ضغط الدم</div>
+                                    </div>
+                                </div>
+                            }
+                            @if (Model.HeartRate.HasValue)
+                            {
+                                var hrClass = Model.HeartRate > 100 || Model.HeartRate < 60 ? "warn" : "ok";
+                                <div class="col-6 col-md-4">
+                                    <div class="cd-vital @hrClass">
+                                        <div class="cd-vital-value">@Model.HeartRate</div>
+                                        <div class="cd-vital-unit">bpm</div>
+                                        <div class="cd-vital-label">معدل النبض</div>
+                                    </div>
+                                </div>
+                            }
+                            @if (Model.OxygenSaturation.HasValue)
+                            {
+                                var o2Class = Model.OxygenSaturation < 90 ? "danger" : Model.OxygenSaturation < 95 ? "warn" : "ok";
+                                <div class="col-6 col-md-4">
+                                    <div class="cd-vital @o2Class">
+                                        <div class="cd-vital-value">@Model.OxygenSaturation%</div>
+                                        <div class="cd-vital-unit">SpO₂</div>
+                                        <div class="cd-vital-label">تشبع الأكسجين</div>
+                                    </div>
+                                </div>
+                            }
+                            @if (Model.Temperature.HasValue)
+                            {
+                                var tempClass = Model.Temperature >= 39 ? "danger" : Model.Temperature >= 38 ? "warn" : "ok";
+                                <div class="col-6 col-md-4">
+                                    <div class="cd-vital @tempClass">
+                                        <div class="cd-vital-value">@Model.Temperature</div>
+                                        <div class="cd-vital-unit">°C</div>
+                                        <div class="cd-vital-label">درجة الحرارة</div>
+                                    </div>
+                                </div>
+                            }
+                            @if (Model.BloodSugar.HasValue)
+                            {
+                                var bsClass = Model.BloodSugar > 200 ? "danger" : Model.BloodSugar > 140 ? "warn" : "ok";
+                                <div class="col-6 col-md-4">
+                                    <div class="cd-vital @bsClass">
+                                        <div class="cd-vital-value">@Model.BloodSugar</div>
+                                        <div class="cd-vital-unit">mg/dL</div>
+                                        <div class="cd-vital-label">سكر الدم</div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            @* Suggested Message *@
+            @if (!string.IsNullOrEmpty(Model.SuggestedFirstMessage))
+            {
+                <div class="cd-panel" style="animation-delay:.15s;">
+                    <div class="cd-panel-header">
+                        <i class="fas fa-comment-dots" style="color:#a5b4fc;"></i> رسالة أولى مقترحة
+                    </div>
+                    <div class="cd-panel-body">
+                        <div class="cd-suggestion">@Model.SuggestedFirstMessage</div>
+                        <div class="mt-3">
+                            <a href="/Chat/Thread?otherUserId=@Model.PatientUserId" class="cd-chat-btn" style="width:fit-content;display:inline-flex;">
+                                <i class="fas fa-paper-plane"></i> فتح المحادثة مع المريض
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @* Recommendations Form (For assigned doctor only) *@
+            @if (Model.IsAssignedToCurrentDoctor)
+            {
+                <div class="cd-panel animate-panel" style="animation-delay:.18s;">
+                    <div class="cd-panel-header">
+                        <i class="fas fa-prescription-bottle-medical" style="color:#00C9A7;"></i> التوصيات والتعليمات الطبية للحالة
+                    </div>
+                    <div class="cd-panel-body">
+                        <form asp-controller="DoctorPanicInbox" asp-action="SaveRecommendations" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.EmergencyRequestId" />
+                            
+                            <!-- Preset Templates Dropdown -->
+                            <div class="mb-3">
+                                <label class="cd-form-label" style="color:#00C9A7;">تعبئة سريعة من النماذج الجاهزة:</label>
+                                <select class="form-select form-select-sm cd-form-select" id="recTemplateSelect" onchange="applyRecommendationTemplate(this.value)">
+                                    <option value="">-- اختر نموذجاً لإدخال توصيات جاهزة --</option>
+                                    <option value="heart">💔 نوبة قلبية / ألم بالصدر</option>
+                                    <option value="sugar">🩸 غيبوبة سكر (ارتفاع أو انخفاض)</option>
+                                    <option value="breath">🫁 ضيق تنفس حاد / ربو</option>
+                                    <option value="fever">🔥 حمى شديدة / ارتفاع حرارة</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="cd-form-label">توصيات للمريض:</label>
+                                <textarea name="patientRecommendations" id="patientRecs" class="form-control cd-form-input" rows="3" placeholder="مثال: الراحة التامة وتجنب أي مجهود...">@Model.PatientRecommendations</textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="cd-form-label">توصيات لعائلة المريض:</label>
+                                <textarea name="familyRecommendations" id="familyRecs" class="form-control cd-form-input" rows="3" placeholder="مثال: مراقبة التنفس، وتجهيز الأوراق للمستشفى...">@Model.FamilyRecommendations</textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="cd-form-label">الأدوية والعلاجات الطارئة:</label>
+                                <textarea name="prescribedMedications" id="medsRecs" class="form-control cd-form-input" rows="3" placeholder="مثال: تناول دواء الضعة المعتاد...">@Model.PrescribedMedications</textarea>
+                            </div>
+
+                            <div class="text-start">
+                                <button type="submit" class="btn btn-sm btn-primary rounded-3 px-4 py-2 fw-bold" style="background:#00C9A7;border-color:#00C9A7;color:#fff;">
+                                    <i class="fas fa-save ms-1"></i> حفظ وإرسال التوصيات
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            }
+
+        </div>
+
+        @* ── RIGHT ── *@
+        <div class="col-lg-4 d-flex flex-column gap-4">
+
+            @* Actions *@
+            <div class="cd-panel" style="animation-delay:.08s;">
+                <div class="cd-panel-header">
+                    <i class="fas fa-bolt" style="color:#fbbf24;"></i> الإجراءات
+                </div>
+                <div class="cd-panel-body d-flex flex-column gap-2">
+                    @if (!Model.IsAssignedToCurrentDoctor)
+                    {
+                        <form asp-controller="DoctorPanicInbox" asp-action="AssignToMe" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.EmergencyRequestId" />
+                            <button type="submit" class="cd-assign-btn">
+                                <i class="fas fa-hand-paper"></i> تولي هذه الحالة
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <div style="background:rgba(22,163,74,.12);border:1px solid rgba(22,163,74,.3);border-radius:12px;padding:10px 14px;text-align:center;color:#86efac;font-size:.85rem;font-weight:700;">
+                            <i class="fas fa-check-circle ms-2"></i> أنت المسؤول عن هذه الحالة
+                        </div>
+                    }
+                    <a href="/Chat/Thread?otherUserId=@Model.PatientUserId" class="cd-chat-btn">
+                        <i class="fas fa-comment-medical"></i> محادثة مع المريض
+                    </a>
+                    <a href="/DoctorPatients/Details/@Model.PatientProfileId" class="cd-profile-btn">
+                        <i class="fas fa-user-md"></i> الملف الطبي الكامل
+                    </a>
+                </div>
+            </div>
+
+            @* Patient Info *@
+            <div class="cd-panel" style="animation-delay:.12s;">
+                <div class="cd-panel-header">
+                    <i class="fas fa-user-injured" style="color:#f87171;"></i> بيانات المريض
+                </div>
+                <div class="cd-panel-body">
+                    <div class="cd-info-row">
+                        <div class="cd-info-icon"><i class="fas fa-user"></i></div>
+                        <div><div class="cd-info-label">الاسم</div><div class="cd-info-value">@Model.PatientName</div></div>
+                    </div>
+                    @if (Model.Age.HasValue)
+                    {
+                        <div class="cd-info-row">
+                            <div class="cd-info-icon"><i class="fas fa-birthday-cake"></i></div>
+                            <div>
+                                <div class="cd-info-label">العمر / الجنس</div>
+                                <div class="cd-info-value">@Model.Age سنة @(Model.Gender != null ? $"· {(Model.Gender == "Male" ? "ذكر" : "أنثى")}" : "")</div>
+                            </div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.BloodType))
+                    {
+                        <div class="cd-info-row">
+                            <div class="cd-info-icon"><i class="fas fa-tint"></i></div>
+                            <div><div class="cd-info-label">فصيلة الدم</div><div class="cd-info-value" style="color:#f87171;">@Model.BloodType</div></div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.PatientPhone))
+                    {
+                        <div class="cd-info-row">
+                            <div class="cd-info-icon"><i class="fas fa-phone"></i></div>
+                            <div><div class="cd-info-label">رقم الهاتف</div><div class="cd-info-value">@Model.PatientPhone</div></div>
+                        </div>
+                    }
+                    @if (Model.HasChronicDiseases)
+                    {
+                        <div class="cd-info-row">
+                            <div class="cd-info-icon" style="color:#f87171;"><i class="fas fa-exclamation-triangle"></i></div>
+                            <div><div class="cd-info-label">أمراض مزمنة</div><div class="cd-info-value" style="color:#fca5a5;">@(Model.ChronicDiseasesNotes ?? "نعم")</div></div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.Allergies))
+                    {
+                        <div class="cd-info-row">
+                            <div class="cd-info-icon" style="color:#fbbf24;"><i class="fas fa-allergies"></i></div>
+                            <div><div class="cd-info-label">الحساسية</div><div class="cd-info-value" style="color:#fde68a;">@Model.Allergies</div></div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.CurrentMedications))
+                    {
+                        <div class="cd-info-row">
+                            <div class="cd-info-icon"><i class="fas fa-pills"></i></div>
+                            <div><div class="cd-info-label">الأدوية الحالية</div><div class="cd-info-value" style="font-size:.82rem;">@Model.CurrentMedications</div></div>
+                        </div>
+                    }
+                    @if (Model.Height.HasValue && Model.Weight.HasValue)
+                    {
+                        <div class="cd-info-row">
+                            <div class="cd-info-icon"><i class="fas fa-weight"></i></div>
+                            <div><div class="cd-info-label">الطول / الوزن</div><div class="cd-info-value">@Model.Height سم · @Model.Weight كغ</div></div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            @* Patient Family Members *@
+            <div class="cd-panel animate-panel" style="animation-delay:.14s;">
+                <div class="cd-panel-header">
+                    <i class="fas fa-users" style="color:#10b981;"></i> أفراد عائلة المريض
+                </div>
+                <div class="cd-panel-body">
+                    @if (Model.PatientFamilyMembers != null && Model.PatientFamilyMembers.Any())
+                    {
+                        <div class="d-flex flex-column gap-3">
+                            @foreach (var relative in Model.PatientFamilyMembers)
+                            {
+                                <div class="cd-family-card">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div>
+                                            <div style="font-weight:700;color:#fff;font-size:0.9rem;">@relative.RelativeName</div>
+                                            <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);">العلاقة: @relative.RelativeRelationship</div>
+                                        </div>
+                                        <span class="badge" style="font-size:0.7rem;background:rgba(16,185,129,0.1) !important;color:#10b981;">عضو عائلة</span>
+                                    </div>
+                                    <a href="/Chat/Thread?otherUserId=@relative.RelativeUserId" class="btn btn-sm w-100 mt-1 d-flex align-items-center justify-content-center gap-2" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:#10b981;font-size:0.8rem;font-weight:600;border-radius:8px;padding:6px 0;transition:all 0.2s ease;" onmouseover="this.style.background='rgba(16,185,129,0.25)'" onmouseout="this.style.background='rgba(16,185,129,0.15)'">
+                                        <i class="fas fa-comments"></i> محادثة مع القريب
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div style="text-align:center;padding:15px 10px;color:rgba(255,255,255,0.4);font-size:0.8rem;">
+                            <i class="fas fa-info-circle mb-1" style="font-size:1.2rem;display:block;"></i>
+                            لا يوجد أفراد عائلة مسجلين لهذا المريض.
+                        </div>
+                    }
+                </div>
+            </div>
+
+            @* Assignment Info *@
+            <div class="cd-panel" style="animation-delay:.16s;">
+                <div class="cd-panel-header">
+                    <i class="fas fa-hospital" style="color:#60a5fa;"></i> التخصيص والمستشفى
+                </div>
+                <div class="cd-panel-body">
+                    @if (!string.IsNullOrEmpty(Model.AssignedDoctorName))
+                    {
+                        <div class="cd-info-row">
+                            <div class="cd-info-icon" style="color:#4ade80;"><i class="fas fa-user-md"></i></div>
+                            <div>
+                                <div class="cd-info-label">الطبيب المسؤول</div>
+                                <div class="cd-info-value" style="color:#86efac;">@Model.AssignedDoctorName</div>
+                                @if (!string.IsNullOrEmpty(Model.AssignedDoctorSpecialization))
+                                {
+                                    <div style="font-size:.72rem;color:rgba(255,255,255,.4);">@Model.AssignedDoctorSpecialization</div>
+                                }
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="cd-info-row">
+                            <div class="cd-info-icon" style="color:#fbbf24;"><i class="fas fa-clock"></i></div>
+                            <div><div class="cd-info-label">حالة التخصيص</div><div class="cd-info-value" style="color:#fbbf24;">في انتظار طبيب</div></div>
+                        </div>
+                    }
+                    @if (Model.DoctorAssignedAt.HasValue)
+                    {
+                        <div class="cd-info-row">
+                            <div class="cd-info-icon"><i class="far fa-clock"></i></div>
+                            <div><div class="cd-info-label">وقت التخصيص</div><div class="cd-info-value">@Model.DoctorAssignedAt.Value.ToString("dd/MM HH:mm")</div></div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.HospitalName))
+                    {
+                        <div class="cd-info-row">
+                            <div class="cd-info-icon" style="color:#60a5fa;"><i class="fas fa-hospital-alt"></i></div>
+                            <div><div class="cd-info-label">المستشفى</div><div class="cd-info-value">@Model.HospitalName</div></div>
+                        </div>
+                    }
+                    @if (Model.AcceptedAt.HasValue)
+                    {
+                        <div class="cd-info-row">
+                            <div class="cd-info-icon" style="color:#4ade80;"><i class="fas fa-check"></i></div>
+                            <div><div class="cd-info-label">قبول المستشفى</div><div class="cd-info-value">@Model.AcceptedAt.Value.ToString("dd/MM HH:mm")</div></div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.EscalationReason))
+                    {
+                        <div class="cd-info-row">
+                            <div class="cd-info-icon" style="color:#f97316;"><i class="fas fa-exclamation-circle"></i></div>
+                            <div><div class="cd-info-label">سبب التصعيد</div><div class="cd-info-value" style="color:#fb923c;font-size:.82rem;">@Model.EscalationReason</div></div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+        </div>
+    </div>
+
 </div>
+
+@section Scripts {
+    <script>
+        function applyRecommendationTemplate(type) {
+            const patientRecs = document.getElementById('patientRecs');
+            const familyRecs = document.getElementById('familyRecs');
+            const medsRecs = document.getElementById('medsRecs');
+            
+            if (!patientRecs || !familyRecs || !medsRecs) return;
+            
+            if (type === 'heart') {
+                patientRecs.value = 'الراحة التامة، وتجنب أي مجهود بدني، والاستلقاء بوضعية شبه جلوس.';
+                familyRecs.value = 'مراقبة النبض والتنفس، وإبقاء المريض هادئاً، والاتصال بالإسعاف فوراً في حال زيادة الألم.';
+                medsRecs.value = 'تناول حبة أسبرين 81 ملغ مضغاً فوراً (إذا لم يكن هناك حساسية).';
+            } else if (type === 'sugar') {
+                patientRecs.value = 'قياس سكر الدم فوراً. تناول عصير محلى أو ملعقة سكر إذا كان منخفضاً.';
+                familyRecs.value = 'مراقبة مستوى وعي المريض. عدم إعطاء أي شيء بالفم في حال فقدان الوعي، وحقن الجلوكاجون إذا توفرت.';
+                medsRecs.value = 'الالتزام بجرعات الإنسولين الموصوفة أو الوجبات المحددة.';
+            } else if (type === 'breath') {
+                patientRecs.value = 'استخدام بخاخ الربو الإسعافي (جرعتين)، والجلوس بوضعية مستقيمة.';
+                familyRecs.value = 'توفير تهوية جيدة، وإبعاد أي مسببات للحساسية، ومساعدته على استخدام البخاخ.';
+                medsRecs.value = 'بخاخ برونكوديل الحركي عند الحاجة.';
+            } else if (type === 'fever') {
+                patientRecs.value = 'تناول خافض الحرارة (باراسيتامول)، وعمل كمادات ماء فاتر (غير بارد).';
+                familyRecs.value = 'قياس الحرارة كل ساعتين، ومراقبة علامات الجفاف.';
+                medsRecs.value = 'باراسيتامول 500 ملغ كل 6 ساعات عند اللزوم.';
+            }
+        }
+    </script>
+}

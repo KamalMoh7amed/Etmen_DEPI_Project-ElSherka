@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 
 namespace Etmen_PL.Controllers
 {
@@ -15,17 +16,20 @@ namespace Etmen_PL.Controllers
         private readonly IDoctorService _doctorService;
         private readonly IUnitOfWork _uow;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IHospitalStaffService _hospitalStaffService;
         private readonly ILogger<DoctorClinicController> _logger;
 
         public DoctorClinicController(
             IDoctorService doctorService,
             IUnitOfWork uow,
             UserManager<ApplicationUser> userManager,
+            IHospitalStaffService hospitalStaffService,
             ILogger<DoctorClinicController> logger)
         {
             _doctorService = doctorService;
             _uow = uow;
             _userManager = userManager;
+            _hospitalStaffService = hospitalStaffService;
             _logger = logger;
         }
 
@@ -100,9 +104,43 @@ namespace Etmen_PL.Controllers
                     await _uow.HealthcareProviders.AddAsync(newProvider);
                     await _uow.CompleteAsync();
 
+                    // Ensure doctor is associated
+                    var existingAff = await _uow.DoctorProviders.Table.FirstOrDefaultAsync(dp => dp.DoctorProfileId == doctor.Id && dp.HealthcareProviderId == newProvider.Id);
+                    if (existingAff == null)
+                    {
+                        var affiliation = new DoctorProvider
+                        {
+                            DoctorProfileId = doctor.Id,
+                            HealthcareProviderId = newProvider.Id,
+                            IsEmergencyDoctor = false,
+                            IsOwner = true,
+                            AffiliationRole = "المالك / طبيب رئيسي"
+                        };
+                        await _uow.DoctorProviders.AddAsync(affiliation);
+                        await _uow.CompleteAsync();
+                    }
+
                     // Update DoctorProfile JSON
                     clinicInfo.HealthcareProviderId = newProvider.Id;
                     await SaveClinicJsonAsync(userId, doctor, clinicInfo);
+                }
+                else if (clinicInfo.HealthcareProviderId.HasValue)
+                {
+                    // Also ensure doctor is associated to existing provider if association is missing
+                    var existingAff = await _uow.DoctorProviders.Table.FirstOrDefaultAsync(dp => dp.DoctorProfileId == doctor.Id && dp.HealthcareProviderId == clinicInfo.HealthcareProviderId.Value);
+                    if (existingAff == null)
+                    {
+                        var affiliation = new DoctorProvider
+                        {
+                            DoctorProfileId = doctor.Id,
+                            HealthcareProviderId = clinicInfo.HealthcareProviderId.Value,
+                            IsEmergencyDoctor = false,
+                            IsOwner = true,
+                            AffiliationRole = "المالك / طبيب رئيسي"
+                        };
+                        await _uow.DoctorProviders.AddAsync(affiliation);
+                        await _uow.CompleteAsync();
+                    }
                 }
 
                 // Get Available Slots
@@ -112,6 +150,17 @@ namespace Etmen_PL.Controllers
                 // Get Appointments
                 var appointmentsResult = await _doctorService.GetAppointmentsAsync(userId);
                 clinicInfo.Appointments = appointmentsResult.IsSuccess ? appointmentsResult.Data?.ToList() ?? new() : new();
+
+                // Get Staff Members
+                if (clinicInfo.HealthcareProviderId.HasValue)
+                {
+                    var staffResult = await _hospitalStaffService.GetStaffMembersAsync(clinicInfo.HealthcareProviderId.Value);
+                    ViewBag.StaffMembers = staffResult.IsSuccess ? staffResult.Data : new List<Etmen_BLL.DTOs.HospitalStaff.StaffProfileDto>();
+                }
+                else
+                {
+                    ViewBag.StaffMembers = new List<Etmen_BLL.DTOs.HospitalStaff.StaffProfileDto>();
+                }
 
                 return View(clinicInfo);
             }
@@ -234,6 +283,22 @@ namespace Etmen_PL.Controllers
                     await _uow.HealthcareProviders.AddAsync(provider);
 
                 await _uow.CompleteAsync();
+
+                // Ensure doctor is associated
+                var existingAff = await _uow.DoctorProviders.Table.FirstOrDefaultAsync(dp => dp.DoctorProfileId == doctor.Id && dp.HealthcareProviderId == provider.Id);
+                if (existingAff == null)
+                {
+                    var affiliation = new DoctorProvider
+                    {
+                        DoctorProfileId = doctor.Id,
+                        HealthcareProviderId = provider.Id,
+                        IsEmergencyDoctor = false,
+                        IsOwner = true,
+                        AffiliationRole = "المالك / طبيب رئيسي"
+                    };
+                    await _uow.DoctorProviders.AddAsync(affiliation);
+                    await _uow.CompleteAsync();
+                }
 
                 // Save updated JSON
                 var updatedInfo = new DoctorClinicViewModel

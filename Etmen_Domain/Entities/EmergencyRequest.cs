@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Etmen_Domain.Enums;
 
@@ -52,5 +52,17 @@ namespace Etmen_Domain.Entities
         public string? AssignedDoctorUserId { get; set; }
         public virtual ApplicationUser? AssignedDoctor { get; set; }
         public DateTime? DoctorAssignedAt { get; set; }
+
+        public string? RespondedByUserId { get; set; }
+        public virtual ApplicationUser? RespondedByUser { get; set; }
+
+        [StringLength(2000)]
+        public string? PatientRecommendations { get; set; }
+
+        [StringLength(2000)]
+        public string? FamilyRecommendations { get; set; }
+
+        [StringLength(2000)]
+        public string? PrescribedMedications { get; set; }
     }
 }

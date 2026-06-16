@@ -1,0 +1,44 @@
+@model dynamic
+@{
+    ViewData["Title"] = "قبول دعوة الانضمام";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-5 d-flex align-items-center justify-content-center" style="min-height: 75vh;">
+    <div class="col-lg-6 col-md-8 col-12 animate__animated animate__fadeIn">
+        <div class="card shadow-lg border-0 rounded-4 overflow-hidden text-center p-5" style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(0,0,0,0.05) !important;">
+            <div class="mb-4 text-primary fs-1">
+                <i class="fas fa-hospital-user animate__animated animate__pulse animate__infinite"></i>
+            </div>
+            
+            <h2 class="fw-black text-dark mb-2" style="font-weight: 900;">مرحباً بك في منصة اطمئن!</h2>
+            <p class="text-muted mb-4">لقد تمت دعوتك للانضمام كـ <strong>@ViewBag.RoleName</strong> في المنشأة الطبية:</p>
+            
+            <div class="p-4 rounded-3 mb-4 bg-primary-light text-primary fw-bold fs-5 shadow-sm" style="background-color: rgba(26, 111, 191, 0.05); border: 1px dashed var(--primary);">
+                @ViewBag.ProviderName
+            </div>
+            
+            <p class="small text-muted mb-4">
+                عند قبول الدعوة، ستتمكن من الوصول للوحة التحكم وإدارة الأسرة المتاحة، وتلقي وتوجيه الحالات الطارئة الواردة للمستشفى.
+            </p>
+            
+            <div class="d-flex flex-column gap-3">
+                <form asp-controller="HospitalQueue" asp-action="ConfirmAccept" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="token" value="@ViewBag.Token" />
+                    <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold py-2.5 shadow">
+                        <i class="fas fa-check-circle me-1"></i> قبول الدعوة والانضمام للطاقم
+                    </button>
+                </form>
+                
+                <form asp-controller="HospitalQueue" asp-action="DeclineInvitation" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="token" value="@ViewBag.Token" />
+                    <button type="submit" class="btn btn-outline-danger btn-sm w-100 rounded-pill fw-bold py-2">
+                        <i class="fas fa-times-circle me-1"></i> رفض الدعوة
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

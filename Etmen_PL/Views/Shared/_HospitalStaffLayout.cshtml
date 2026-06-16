@@ -1,5 +1,26 @@
 @{
     Layout = null;
+
+    string dashboardUrl = "/";
+    if (User?.Identity?.IsAuthenticated == true)
+    {
+        if (User.IsInRole("Doctor"))
+        {
+            dashboardUrl = "/DoctorDashboard";
+        }
+        else if (User.IsInRole("Admin") || User.IsInRole("CrisisAdmin"))
+        {
+            dashboardUrl = "/AdminDashboard";
+        }
+        else if (User.IsInRole("HospitalStaff"))
+        {
+            dashboardUrl = "/HospitalQueue";
+        }
+        else
+        {
+            dashboardUrl = "/PatientDashboard";
+        }
+    }
 }
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -170,7 +191,7 @@
     <!-- Top Navbar -->
     <nav class="hospital-navbar">
         <div class="container-fluid d-flex align-items-center justify-content-between">
-            <a href="/HospitalQueue" class="brand-logo">
+            <a href="@dashboardUrl" class="brand-logo">
                 <div class="logo-box">
                     <i class="fas fa-hospital-user"></i>
                 </div>

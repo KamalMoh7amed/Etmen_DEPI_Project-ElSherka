@@ -22,6 +22,7 @@ namespace Etmen_BLL.Repositories.Services
         private readonly ILogger<LabService> _logger;
         private readonly IServiceProvider _serviceProvider;
         private readonly IConfiguration _configuration;
+        private readonly IBackgroundTaskQueue _taskQueue;
 
         public LabService(
             IUnitOfWork uow,
@@ -29,7 +30,8 @@ namespace Etmen_BLL.Repositories.Services
             IPdfReportService pdfService,
             ILogger<LabService> logger,
             IServiceProvider serviceProvider,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IBackgroundTaskQueue taskQueue)
         {
             _uow          = uow;
             _emailService = emailService;
@@ -37,6 +39,7 @@ namespace Etmen_BLL.Repositories.Services
             _logger       = logger;
             _serviceProvider = serviceProvider;
             _configuration   = configuration;
+            _taskQueue    = taskQueue;
         }
 
         public async Task<ServiceResult<LabResultDto>> GetLabResultByIdAsync(int labResultId)
@@ -90,8 +93,8 @@ namespace Etmen_BLL.Repositories.Services
             await _uow.LabResults.AddAsync(lab);
             await _uow.CompleteAsync();
 
-            // ── Send lab result email with PDF (fire-and-forget) ──────────
-            _ = Task.Run(async () =>
+            // ── Send lab result email with PDF (queued background task) ──
+            await _taskQueue.QueueBackgroundWorkItemAsync(async token =>
             {
                 try
                 {
@@ -164,10 +167,10 @@ namespace Etmen_BLL.Repositories.Services
                                     using var request = new HttpRequestMessage(HttpMethod.Post, url);
                                     request.Content = new StringContent(requestJson, Encoding.UTF8, "application/json");
 
-                                    using var response = await httpClient.SendAsync(request);
+                                    using var response = await httpClient.SendAsync(request, token);
                                     if (response.IsSuccessStatusCode)
                                     {
-                                        var responseText = await response.Content.ReadAsStringAsync();
+                                        var responseText = await response.Content.ReadAsStringAsync(token);
                                         using var doc = JsonDocument.Parse(responseText);
                                         var root = doc.RootElement;
                                         if (root.TryGetProperty("candidates", out var candidates) && candidates.GetArrayLength() > 0)
@@ -197,7 +200,7 @@ namespace Etmen_BLL.Repositories.Services
                                     }
                                     else
                                     {
-                                        var errorContent = await response.Content.ReadAsStringAsync();
+                                        var errorContent = await response.Content.ReadAsStringAsync(token);
                                         _logger.LogError("Gemini OCR API returned error {StatusCode}: {Error}", response.StatusCode, errorContent);
                                     }
                                 }
@@ -234,7 +237,9 @@ namespace Etmen_BLL.Repositories.Services
                     using (var scope = _serviceProvider.CreateScope())
                     {
                         var scopedUow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-                        var patient = await scopedUow.PatientProfiles.GetByIdAsync(lab.PatientProfileId);
+                        var patient = await scopedUow.PatientProfiles.Table
+                            .Include(p => p.ApplicationUser)
+                            .FirstOrDefaultAsync(p => p.Id == lab.PatientProfileId, token);
                         var patientEmail = patient?.ApplicationUser?.Email;
                         var patientName = patient?.FullName ?? "المريض";
 

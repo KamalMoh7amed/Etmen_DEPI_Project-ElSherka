@@ -126,6 +126,7 @@ namespace Etmen_BLL.Repositories.Services
                 {
                     EmergencyRequestId = emergency.Id,
                     PatientProfileId = emergency.PatientProfileId,
+                    PatientUserId = emergency.PatientProfile.ApplicationUserId,
                     PatientName = emergency.PatientProfile.FullName ?? "Unknown patient",
                     RiskScore = emergency.RiskAssessment?.RiskScore ?? 0,
                     RiskLevel = emergency.RiskAssessment?.RiskLevel ?? RiskLevel.Emergency,
@@ -142,6 +143,7 @@ namespace Etmen_BLL.Repositories.Services
             {
                 DoctorUserId = doctorUserId,
                 DoctorName = doctor.FullName ?? "Doctor",
+                IsAvailable = doctor.IsAvailable,
                 TotalCriticalCases = items.Count,
                 AssignedToDoctor = items.Count(i => i.IsAssignedToCurrentDoctor),
                 UnassignedCriticalCases = items.Count(i => !i.IsAssignedToCurrentDoctor),
@@ -149,6 +151,68 @@ namespace Etmen_BLL.Repositories.Services
             };
 
             return ServiceResult<DoctorPanicInboxDto>.Success(dto);
+        }
+
+        public async Task<ServiceResult<bool>> ToggleDoctorAvailabilityAsync(string doctorUserId)
+        {
+            if (string.IsNullOrWhiteSpace(doctorUserId))
+                return ServiceResult<bool>.Failure("Doctor user id is required.");
+
+            var doctor = await _uow.DoctorProfiles.Table
+                .FirstOrDefaultAsync(d => d.ApplicationUserId == doctorUserId);
+            if (doctor is null)
+                return ServiceResult<bool>.NotFound("Doctor profile was not found.");
+
+            doctor.IsAvailable = !doctor.IsAvailable;
+            doctor.UpdatedAt = DateTime.UtcNow;
+            _uow.DoctorProfiles.Update(doctor);
+            await _uow.CompleteAsync();
+
+            return ServiceResult<bool>.Success(doctor.IsAvailable);
+        }
+
+        public async Task<ServiceResult<DoctorAssignmentDto>> AssignCaseToDoctorAsync(int emergencyRequestId, string doctorUserId)
+        {
+            if (string.IsNullOrWhiteSpace(doctorUserId))
+                return ServiceResult<DoctorAssignmentDto>.Failure("Doctor user id is required.");
+
+            var emergency = await LoadCriticalCasesQuery(true)
+                .FirstOrDefaultAsync(e => e.Id == emergencyRequestId);
+            if (emergency is null)
+                return ServiceResult<DoctorAssignmentDto>.NotFound("Critical emergency request was not found.");
+
+            if (!string.IsNullOrWhiteSpace(emergency.AssignedDoctorUserId) && emergency.AssignedDoctorUserId != doctorUserId)
+                return ServiceResult<DoctorAssignmentDto>.Failure("This case is already assigned to another doctor.");
+
+            var doctor = await _uow.DoctorProfiles.Table
+                .Include(d => d.ApplicationUser)
+                .FirstOrDefaultAsync(d => d.ApplicationUserId == doctorUserId);
+            if (doctor is null)
+                return ServiceResult<DoctorAssignmentDto>.NotFound("Doctor profile was not found.");
+
+            emergency.AssignedDoctorUserId = doctorUserId;
+            emergency.DoctorAssignedAt = DateTime.UtcNow;
+            _uow.EmergencyRequests.Update(emergency);
+
+            await AddNotificationAsync(
+                doctorUserId,
+                "تم تكليفك بحالة طارئة",
+                $"{emergency.PatientProfile.FullName ?? "مريض"} بحاجة لمراجعة عاجلة.",
+                $"/DoctorPatients/Details/{emergency.PatientProfileId}");
+
+            await _uow.CompleteAsync();
+
+            return ServiceResult<DoctorAssignmentDto>.Success(new DoctorAssignmentDto
+            {
+                EmergencyRequestId = emergency.Id,
+                DoctorUserId = doctorUserId,
+                DoctorProfileId = doctor.Id,
+                DoctorName = doctor.FullName ?? "Doctor",
+                Specialization = doctor.Specialization,
+                MatchScore = 100,
+                AssignedAt = emergency.DoctorAssignedAt!.Value,
+                Reason = "Manually assigned by the doctor."
+            });
         }
 
         public async Task<ServiceResult<DoctorAssignmentDto>> AssignBestDoctorAsync(int emergencyRequestId)
@@ -617,6 +681,114 @@ namespace Etmen_BLL.Repositories.Services
             });
         }
 
+        public async Task<ServiceResult<EmergencyCaseDetailDto>> GetEmergencyCaseDetailAsync(int emergencyRequestId, string doctorUserId)
+        {
+            if (emergencyRequestId <= 0)
+                return ServiceResult<EmergencyCaseDetailDto>.Failure("Invalid emergency request id.");
+
+            var emergency = await LoadCriticalCasesQuery(true)
+                .FirstOrDefaultAsync(e => e.Id == emergencyRequestId);
+
+            if (emergency is null)
+                return ServiceResult<EmergencyCaseDetailDto>.NotFound("Emergency case was not found.");
+
+            // Latest medical record for vitals
+            var latestRecord = await _uow.MedicalRecords.GetLatestByPatientIdAsync(emergency.PatientProfileId);
+
+            // Assigned doctor name/spec
+            string? assignedDoctorName = null;
+            string? assignedDoctorSpec = null;
+            if (!string.IsNullOrWhiteSpace(emergency.AssignedDoctorUserId))
+            {
+                var assignedDoc = await _uow.DoctorProfiles.Table
+                    .FirstOrDefaultAsync(d => d.ApplicationUserId == emergency.AssignedDoctorUserId);
+                assignedDoctorName = assignedDoc?.FullName;
+                assignedDoctorSpec = assignedDoc?.Specialization;
+            }
+
+            var patient = emergency.PatientProfile;
+
+            // Retrieve family members of the patient
+            var familyLinks = await _uow.FamilyLinks.Table
+                .Include(f => f.PrimaryPatient).ThenInclude(p => p.ApplicationUser)
+                .Include(f => f.LinkedPatient).ThenInclude(p => p.ApplicationUser)
+                .Where(f => (f.PrimaryPatientId == patient.Id || f.LinkedPatientId == patient.Id) && f.IsAccepted)
+                .ToListAsync();
+
+            var familyMemberDtos = familyLinks.Select(f => {
+                var relative = f.PrimaryPatientId == patient.Id ? f.LinkedPatient : f.PrimaryPatient;
+                var relationshipArabic = f.Relationship switch {
+                    "Father" => "أب",
+                    "Mother" => "أم",
+                    "Spouse" => "زوج / زوجة",
+                    "Son" => "ابن",
+                    "Daughter" => "ابنة",
+                    "Brother" => "أخ",
+                    "Sister" => "أخت",
+                    _ => f.Relationship
+                };
+                return new FamilyMemberChatDto
+                {
+                    RelativeName = relative?.FullName ?? "قريب",
+                    RelativeRelationship = relationshipArabic,
+                    RelativeUserId = relative?.ApplicationUserId ?? string.Empty
+                };
+            }).Where(d => !string.IsNullOrEmpty(d.RelativeUserId)).ToList();
+
+            var dto = new EmergencyCaseDetailDto
+            {
+                EmergencyRequestId = emergency.Id,
+                Status = emergency.Status,
+                EmergencyType = emergency.EmergencyType ?? "غير محدد",
+                Description = emergency.Description,
+                PriorityScore = emergency.PriorityScore,
+                RequestedAt = emergency.RequestedAt,
+                AcceptedAt = emergency.AcceptedAt,
+                DoctorAssignedAt = emergency.DoctorAssignedAt,
+                EscalationReason = emergency.EscalationReason,
+                IsAssignedToCurrentDoctor = emergency.AssignedDoctorUserId == doctorUserId,
+
+                RiskScore = emergency.RiskAssessment?.RiskScore ?? 0,
+                RiskLevel = emergency.RiskAssessment?.RiskLevel ?? RiskLevel.Emergency,
+                Symptoms = emergency.RiskAssessment?.Symptoms,
+
+                PatientProfileId = patient.Id,
+                PatientUserId = patient.ApplicationUserId,
+                PatientName = patient.FullName ?? "غير معروف",
+                PatientPhone = patient.ApplicationUser?.PhoneNumber,
+                PatientEmail = patient.ApplicationUser?.Email,
+                Gender = patient.Gender,
+                DateOfBirth = patient.DateOfBirth,
+                BloodType = patient.BloodType,
+                HasChronicDiseases = patient.HasChronicDiseases,
+                ChronicDiseasesNotes = patient.ChronicDiseasesNotes,
+                Allergies = patient.Allergies,
+                CurrentMedications = patient.CurrentMedications,
+                Height = patient.Height,
+                Weight = patient.Weight,
+
+                SystolicBP = latestRecord?.SystolicBP,
+                DiastolicBP = latestRecord?.DiastolicBP,
+                HeartRate = latestRecord?.HeartRate,
+                Temperature = latestRecord?.Temperature,
+                OxygenSaturation = latestRecord?.OxygenSaturation,
+                BloodSugar = latestRecord?.BloodSugar,
+                VitalsRecordedAt = latestRecord?.RecordDate,
+
+                AssignedDoctorName = assignedDoctorName,
+                AssignedDoctorSpecialization = assignedDoctorSpec,
+                HospitalName = emergency.HealthcareProvider?.Name,
+                SuggestedFirstMessage = BuildSuggestedFirstMessage(emergency),
+
+                PatientRecommendations = emergency.PatientRecommendations,
+                FamilyRecommendations = emergency.FamilyRecommendations,
+                PrescribedMedications = emergency.PrescribedMedications,
+                PatientFamilyMembers = familyMemberDtos
+            };
+
+            return ServiceResult<EmergencyCaseDetailDto>.Success(dto);
+        }
+
         private IQueryable<EmergencyRequest> LoadCriticalCasesQuery(bool includeResolved)
         {
             var query = _uow.EmergencyRequests.Table
@@ -831,6 +1003,43 @@ namespace Etmen_BLL.Repositories.Services
             }
 
             return false;
+        }
+
+        public async Task<ServiceResult> SaveRecommendationsAsync(int emergencyRequestId, string? patientRecs, string? familyRecs, string? medications)
+        {
+            try
+            {
+                if (emergencyRequestId <= 0)
+                    return ServiceResult.Failure("Invalid emergency request ID.");
+
+                var emergency = await _uow.EmergencyRequests.GetByIdAsync(emergencyRequestId);
+                if (emergency == null)
+                    return ServiceResult.Failure("Emergency request not found.");
+
+                emergency.PatientRecommendations = patientRecs;
+                emergency.FamilyRecommendations = familyRecs;
+                emergency.PrescribedMedications = medications;
+
+                _uow.EmergencyRequests.Update(emergency);
+                await _uow.CompleteAsync();
+
+                // Send notification
+                var patientProfile = await _uow.PatientProfiles.GetByIdAsync(emergency.PatientProfileId);
+                if (patientProfile != null)
+                {
+                    await AddNotificationAsync(
+                        patientProfile.ApplicationUserId,
+                        "تحديث التوصيات الطبية لحالتك",
+                        "لقد قام الطبيب بتحديث التوصيات والتعليمات الطبية الخاصة بك. يرجى الاطلاع عليها.",
+                        "/PatientDashboard");
+                }
+
+                return ServiceResult.Success();
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult.Failure($"Failed to save recommendations: {ex.Message}");
+            }
         }
     }
 }

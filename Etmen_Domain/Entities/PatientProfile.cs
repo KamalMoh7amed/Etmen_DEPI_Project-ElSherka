@@ -57,6 +57,7 @@ namespace Etmen_Domain.Entities
         public virtual ICollection<FamilyLink> PrimaryLinks { get; set; } = new List<FamilyLink>();
         public virtual ICollection<FamilyLink> LinkedLinks { get; set; } = new List<FamilyLink>();
         public virtual ICollection<EmergencyRequest> EmergencyRequests { get; set; } = new List<EmergencyRequest>();
+        public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
 
         private decimal CalculateBMI()
         {

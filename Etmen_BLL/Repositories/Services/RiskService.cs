@@ -17,19 +17,22 @@ namespace Etmen_BLL.Repositories.Services
         private readonly IEmailService _emailService;
         private readonly IPdfReportService _pdfService;
         private readonly ILogger<RiskService> _logger;
+        private readonly IBackgroundTaskQueue _taskQueue;
 
         public RiskService(
             IUnitOfWork uow,
             ICriticalCareEscalationService criticalCareEscalationService,
             IEmailService emailService,
             IPdfReportService pdfService,
-            ILogger<RiskService> logger)
+            ILogger<RiskService> logger,
+            IBackgroundTaskQueue taskQueue)
         {
             _uow = uow;
             _criticalCareEscalationService = criticalCareEscalationService;
             _emailService = emailService;
             _pdfService   = pdfService;
             _logger       = logger;
+            _taskQueue    = taskQueue;
         }
 
         public async Task<ServiceResult<RiskResultDto>> CalculateRiskAsync(RiskInputDto dto)
@@ -200,7 +203,9 @@ namespace Etmen_BLL.Repositories.Services
             if (riskResult is null)
                 return ServiceResult.Failure("Risk result is required.");
 
-            var patient = await _uow.PatientProfiles.GetByIdAsync(patientProfileId);
+            var patient = await _uow.PatientProfiles.Table
+                .Include(p => p.ApplicationUser)
+                .FirstOrDefaultAsync(p => p.Id == patientProfileId);
             if (patient is null)
                 return ServiceResult.NotFound("Patient profile was not found.");
 
@@ -228,11 +233,11 @@ namespace Etmen_BLL.Repositories.Services
                 Symptoms = assessment.Symptoms
             });
 
-            // ── Send risk alert emails for High / Emergency levels ─────
+            // ── Send risk alert emails for High / Emergency levels (queued background task) ─────
             var alertLevels = new[] { RiskLevel.High, RiskLevel.Emergency };
             if (alertLevels.Contains(assessment.RiskLevel))
             {
-                _ = Task.Run(async () =>
+                await _taskQueue.QueueBackgroundWorkItemAsync(async token =>
                 {
                     try
                     {

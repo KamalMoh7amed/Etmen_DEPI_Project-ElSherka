@@ -65,7 +65,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 
     options.Cookie.Name = "EtmenAuthCookie";
     options.Cookie.HttpOnly = true;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
     options.Cookie.SameSite = SameSiteMode.Lax;
 
     options.ExpireTimeSpan = TimeSpan.FromDays(
@@ -82,9 +82,13 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 // 4. BUSINESS LOGIC LAYER — ALL SERVICES
 // ═══════════════════════════════════════════════════════════════
 
-// ── Mail Services (must be registered first — other services depend on them)
+// Mail Services (must be registered first — other services depend on them)
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IPdfReportService, PdfReportService>();
+
+// Safe background task queue and hosted service
+builder.Services.AddSingleton<IBackgroundTaskQueue>(new BackgroundTaskQueue(100));
+builder.Services.AddHostedService<QueuedHostedService>();
 
 // Appointment reminder background service (checks every 30 minutes)
 builder.Services.AddHostedService<AppointmentReminderHostedService>();
@@ -110,6 +114,8 @@ builder.Services.AddScoped<IAlertService, AlertService>();
 
 // Communications
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
 
 builder.Services.Configure<ChatbotApiOptions>(
         builder.Configuration.GetSection("ChatbotApi"));
@@ -160,6 +166,7 @@ builder.Services.AddControllersWithViews(options =>
     });
 
 builder.Services.AddRazorPages();
+builder.Services.AddSignalR();
 
 // ═══════════════════════════════════════════════════════════════
 // 7. SESSION
@@ -205,7 +212,7 @@ builder.Services.AddAntiforgery(options =>
 {
     options.HeaderName = "X-CSRF-TOKEN";
     options.Cookie.Name = "EtmenAntiForgery";
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
 });
 
 // ═══════════════════════════════════════════════════════════════
@@ -240,7 +247,10 @@ else
 app.UseStatusCodePagesWithReExecute("/Home/Error", "?statusCode={0}");
 
 // ── HTTPS ──────────────────────────────────────────────────────
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 // ── Static Files ───────────────────────────────────────────────
 app.UseStaticFiles();
@@ -257,6 +267,11 @@ app.UseSession();
 // ── Auth ───────────────────────────────────────────────────────
 app.UseAuthentication();
 app.UseAuthorization();
+
+// ── SignalR Hubs ───────────────────────────────────────────────
+app.MapHub<Etmen_PL.Hubs.ChatHub>("/hubs/chat");
+app.MapHub<Etmen_PL.Hubs.QueueHub>("/hubs/queue");
+app.MapHub<Etmen_PL.Hubs.EmergencyHub>("/hubs/emergency");
 
 // ── Controller Routes ──────────────────────────────────────────
 // Areas route (Admin, Doctor, Patient areas)

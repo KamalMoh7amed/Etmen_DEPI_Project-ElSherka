@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Etmen_Domain.Entities;
 
@@ -23,7 +23,8 @@ namespace Etmen_DAL.Configurations
                 .IsRequired();
 
             builder.Property(x => x.IsBooked)
-                .HasDefaultValue(false);
+                .HasDefaultValue(false)
+                .IsConcurrencyToken();
 
             builder.Property(x => x.CreatedAt)
                 .HasDefaultValueSql("GETUTCDATE()");

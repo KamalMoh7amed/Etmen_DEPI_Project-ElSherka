@@ -15,5 +15,15 @@ namespace Etmen_BLL.DTOs.Patient
         public MedicalRecordDto? LatestMedicalRecord { get; set; }
         public List<RecentAppointmentDto> UpcomingAppointments { get; set; } = new();
         public List<RecentAlertDto> RecentAlerts { get; set; } = new();
+
+        // Active Emergency Case Details & Recommendations
+        public bool HasActiveEmergency { get; set; }
+        public int ActiveEmergencyId { get; set; }
+        public string? ActiveEmergencyDoctorName { get; set; }
+        public string? ActiveEmergencyDoctorUserId { get; set; }
+        public string? ActiveEmergencyHospitalName { get; set; }
+        public string? ActiveEmergencyPatientRecommendations { get; set; }
+        public string? ActiveEmergencyFamilyRecommendations { get; set; }
+        public string? ActiveEmergencyPrescribedMedications { get; set; }
     }
 }

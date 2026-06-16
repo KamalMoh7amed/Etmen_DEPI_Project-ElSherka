@@ -8,6 +8,7 @@ namespace Etmen_PL.Models.ViewModels.Patient
         public decimal? Longitude { get; set; }
         public string Type { get; set; } = "Hospital";
         public int RadiusInKm { get; set; } = 5;
+        public bool ShowAll { get; set; } = false;
 
         public List<ProviderDto> SearchResults { get; set; } = new();
     }

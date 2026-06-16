@@ -277,12 +277,17 @@
                                     <div class="d-flex justify-content-between align-items-center">
                                         <span class="badge-status @statusClass">@statusLabel</span>
                                         
-                                        <!-- Only allow downloading PDF for completed ones -->
+                                        <!-- Only allow downloading PDF and review for completed ones -->
                                         @if (appt.Status.ToLower() == "completed")
                                         {
-                                            <a href="/PatientAppointments/DownloadConfirmation/@appt.Id" class="btn btn-link btn-sm text-decoration-none fw-bold p-0 text-danger">
-                                                <i class="fas fa-file-pdf"></i> تحميل التقرير
-                                            </a>
+                                            <div class="d-flex gap-2">
+                                                <a href="/PatientAppointments/DownloadConfirmation/@appt.Id" class="btn btn-link btn-sm text-decoration-none fw-bold p-0 text-danger" title="تحميل التقرير">
+                                                    <i class="fas fa-file-pdf"></i> التقرير
+                                                </a>
+                                                <button class="btn btn-link btn-sm text-decoration-none fw-bold p-0 text-warning animate__animated animate__pulse animate__infinite" onclick="openReviewModal(@appt.DoctorId, 'د. @appt.DoctorName')">
+                                                    <i class="fas fa-star"></i> تقييم
+                                                </button>
+                                            </div>
                                         }
                                     </div>
                                 </div>
@@ -335,6 +340,48 @@
     </div>
 </div>
 
+<!-- REVIEW SUBMISSION MODAL -->
+<div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true" dir="rtl">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header bg-warning text-dark border-0 py-3">
+                <h5 class="modal-title fw-bold" id="reviewModalLabel"><i class="fas fa-star-half-alt"></i> تقييم الطبيب والخدمة</h5>
+                <button type="button" class="btn-close ms-0 me-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <h6 class="fw-bold mb-3">شاركنا رأيك في خدمتنا مع <span id="reviewDoctorName" class="text-primary"></span></h6>
+                
+                <form id="reviewForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="doctorProfileId" id="reviewDoctorId" />
+                    
+                    <!-- Star Rating Selector -->
+                    <div class="d-flex justify-content-center gap-2 mb-3 fs-3" id="starRatingSelector">
+                        <i class="far fa-star star-btn" data-value="1" style="cursor:pointer; color:#F39C12;"></i>
+                        <i class="far fa-star star-btn" data-value="2" style="cursor:pointer; color:#F39C12;"></i>
+                        <i class="far fa-star star-btn" data-value="3" style="cursor:pointer; color:#F39C12;"></i>
+                        <i class="far fa-star star-btn" data-value="4" style="cursor:pointer; color:#F39C12;"></i>
+                        <i class="far fa-star star-btn" data-value="5" style="cursor:pointer; color:#F39C12;"></i>
+                    </div>
+                    <input type="hidden" name="rating" id="reviewRatingValue" value="5" />
+                    
+                    <div class="mb-3 text-end">
+                        <label class="form-label fw-semibold small">تعليقك (اختياري)</label>
+                        <textarea class="form-control" name="comment" id="reviewComment" rows="3" placeholder="اكتب تعليقك هنا..." style="border-radius:12px;"></textarea>
+                    </div>
+                    
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="button" class="btn btn-warning w-100 py-3 fw-bold text-dark" style="border-radius:12px;" onclick="submitReview()">
+                            إرسال التقييم
+                        </button>
+                        <button type="button" class="btn btn-light w-50 py-3 fw-bold" data-bs-dismiss="modal" style="border-radius:12px;">تراجع</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         function confirmCancel(id, doctorName, date) {
@@ -343,6 +390,74 @@
             $('#cancelApptDate').text(date);
             var myModal = new bootstrap.Modal(document.getElementById('cancelApptModal'));
             myModal.show();
+        }
+
+        let selectedRating = 5;
+        
+        function openReviewModal(doctorId, doctorName) {
+            $('#reviewDoctorId').val(doctorId);
+            $('#reviewDoctorName').text(doctorName);
+            $('#reviewComment').val('');
+            setRating(5);
+            var myModal = new bootstrap.Modal(document.getElementById('reviewModal'));
+            myModal.show();
+        }
+
+        function setRating(val) {
+            selectedRating = val;
+            $('#reviewRatingValue').val(val);
+            $('.star-btn').each(function() {
+                let starVal = parseInt($(this).data('value'));
+                if (starVal <= val) {
+                    $(this).removeClass('far').addClass('fas');
+                } else {
+                    $(this).removeClass('fas').addClass('far');
+                }
+            });
+        }
+
+        $(document).ready(function() {
+            $(document).on('click', '.star-btn', function() {
+                let val = parseInt($(this).data('value'));
+                setRating(val);
+            });
+        });
+
+        function submitReview() {
+            const doctorId = $('#reviewDoctorId').val();
+            const rating = $('#reviewRatingValue').val();
+            const comment = $('#reviewComment').val();
+            
+            if (!rating || rating < 1 || rating > 5) {
+                alert('يرجى تحديد تقييم صالح بين 1 و 5 نجوم.');
+                return;
+            }
+
+            // Get anti-forgery token
+            const token = $('#reviewForm input[name="__RequestVerificationToken"]').val();
+
+            $.ajax({
+                url: '/Reviews/AddReview',
+                type: 'POST',
+                data: {
+                    doctorProfileId: doctorId,
+                    rating: rating,
+                    comment: comment,
+                    __RequestVerificationToken: token
+                },
+                success: function(res) {
+                    if (res.success) {
+                        alert(res.message);
+                        $('#reviewModal').modal('hide');
+                        location.reload();
+                    } else {
+                        alert(res.message || 'فشل إضافة التقييم.');
+                    }
+                },
+                error: function() {
+                    alert('حدث خطأ أثناء الاتصال بالخادم.');
+                }
+            });
         }
     </script>
 }

@@ -33,5 +33,7 @@ namespace Etmen_Domain.Entities
 
         public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
         public virtual ICollection<AvailableSlot> AvailableSlots { get; set; } = new List<AvailableSlot>();
+        public virtual ICollection<DoctorProvider> DoctorProviders { get; set; } = new List<DoctorProvider>();
+        public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
     }
 }

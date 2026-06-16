@@ -453,6 +453,31 @@ namespace Etmen_DAL.Seed
                     await context.SaveChangesAsync();
                 }
             }
+
+            // 6️⃣ Link staff@etmen.com to the first Hospital if not already linked
+            var existingStaffUser = await userManager.FindByEmailAsync("staff@etmen.com");
+            if (existingStaffUser != null)
+            {
+                var hasProfile = await context.StaffProfiles.AnyAsync(sp => sp.ApplicationUserId == existingStaffUser.Id);
+                if (!hasProfile)
+                {
+                    var firstHospital = await context.HealthcareProviders.FirstOrDefaultAsync(p => p.Type == "Hospital");
+                    if (firstHospital != null)
+                    {
+                        var staffProfile = new StaffProfile
+                        {
+                            ApplicationUserId = existingStaffUser.Id,
+                            HealthcareProviderId = firstHospital.Id,
+                            RoleType = StaffRoleType.Receptionist,
+                            ActiveShift = StaffShiftType.Morning,
+                            IsInvitationAccepted = true,
+                            JoinedAt = DateTime.UtcNow
+                        };
+                        context.StaffProfiles.Add(staffProfile);
+                        await context.SaveChangesAsync();
+                    }
+                }
+            }
         }
 
         private static string GetHospitalName(int i)

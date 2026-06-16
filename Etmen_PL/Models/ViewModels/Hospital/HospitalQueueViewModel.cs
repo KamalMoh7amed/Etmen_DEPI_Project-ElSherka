@@ -31,5 +31,7 @@ namespace Etmen_PL.Models.ViewModels.Hospital
         public int PriorityScore { get; set; }
         public decimal? Latitude { get; set; }
         public decimal? Longitude { get; set; }
+        public string? ReferringDoctorName { get; set; }
+        public string? Notes { get; set; }
     }
 }

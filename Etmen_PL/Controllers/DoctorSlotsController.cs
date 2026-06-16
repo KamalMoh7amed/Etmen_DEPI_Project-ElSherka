@@ -238,5 +238,123 @@ namespace Etmen_PL.Controllers
                 return RedirectToAction(nameof(Index));
             }
         }
+
+        [HttpPost]
+        [Route("DoctorSlots/ToggleSlot")]
+        public async Task<IActionResult> ToggleSlot(int id, DateTime date, TimeSpan startTime, TimeSpan endTime, bool enable)
+        {
+            try
+            {
+                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                    return Json(new { success = false, message = "Unauthorized" });
+
+                if (enable)
+                {
+                    var slotDto = new Etmen_BLL.DTOs.Doctor.CreateAvailableSlotDto
+                    {
+                        SlotDate = date,
+                        SlotStart = startTime,
+                        SlotEnd = endTime
+                    };
+                    var result = await _doctorService.AddSlotAsync(userId, slotDto);
+                    if (result.IsSuccess)
+                        return Json(new { success = true, action = "created" });
+                    return Json(new { success = false, message = result.Errors.FirstOrDefault() ?? "فشل تفعيل الفترة." });
+                }
+                else
+                {
+                    var result = await _doctorService.DeleteSlotAsync(userId, id);
+                    if (result.IsSuccess)
+                        return Json(new { success = true, action = "deleted" });
+                    return Json(new { success = false, message = result.Errors.FirstOrDefault() ?? "فشل إلغاء الفترة." });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error toggling slot {SlotId}", id);
+                return Json(new { success = false, message = "حدث خطأ غير متوقع." });
+            }
+        }
+
+        [HttpPost]
+        [Route("DoctorSlots/BlockFullDay")]
+        public async Task<IActionResult> BlockFullDay(DateTime date)
+        {
+            try
+            {
+                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                    return Json(new { success = false, message = "Unauthorized" });
+
+                var profileResult = await _doctorService.GetProfileAsync(userId);
+                if (!profileResult.IsSuccess || profileResult.Data == null)
+                    return Json(new { success = false, message = "Doctor profile not found." });
+
+                var doctorId = profileResult.Data.Id;
+
+                var unbookedSlots = await _doctorService.GetAvailableSlotsAsync(doctorId);
+                if (unbookedSlots.IsSuccess && unbookedSlots.Data != null)
+                {
+                    var targetSlots = unbookedSlots.Data
+                        .Where(s => s.Date.Date == date.Date && !s.IsBooked)
+                        .ToList();
+
+                    foreach (var slot in targetSlots)
+                    {
+                        await _doctorService.DeleteSlotAsync(userId, slot.Id);
+                    }
+                }
+
+                return Json(new { success = true, message = "تم إغلاق كافة الفترات الشاغرة لهذا اليوم بنجاح." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error blocking day {Date}", date);
+                return Json(new { success = false, message = "حدث خطأ أثناء إغلاق فترات اليوم." });
+            }
+        }
+
+        [HttpPost]
+        [Route("DoctorSlots/BulkCreateAjax")]
+        public async Task<IActionResult> BulkCreateAjax(BulkCreateSlotsViewModel viewModel)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                return Json(new { success = false, message = string.Join(" | ", errors) });
+            }
+
+            try
+            {
+                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                    return Json(new { success = false, message = "Unauthorized" });
+
+                var bulkDto = new Etmen_BLL.DTOs.Doctor.BulkCreateSlotsDto
+                {
+                    StartDate = viewModel.StartDate,
+                    EndDate = viewModel.EndDate,
+                    DailyStartTime = viewModel.StartTime,
+                    DailyEndTime = viewModel.EndTime,
+                    SlotDurationMinutes = viewModel.SlotDurationMinutes,
+                    ExcludedDays = new List<DayOfWeek>()
+                };
+
+                var result = await _doctorService.BulkAddSlotsAsync(userId, bulkDto);
+
+                if (!result.IsSuccess)
+                {
+                    return Json(new { success = false, message = result.Errors.FirstOrDefault() ?? "فشل توليد الفترات." });
+                }
+
+                return Json(new { success = true, message = "تم توليد الفترات بنجاح!" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error bulk creating slots via AJAX");
+                return Json(new { success = false, message = "حدث خطأ غير متوقع أثناء توليد الفترات." });
+            }
+        }
     }
 }

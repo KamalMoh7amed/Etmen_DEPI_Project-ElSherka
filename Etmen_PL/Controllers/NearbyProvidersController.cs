@@ -22,6 +22,7 @@ namespace Etmen_PL.Controllers
         private readonly INearbyService _nearbyService;
         private readonly IAppointmentService _appointmentService;
         private readonly IPatientService _patientService;
+        private readonly IReviewService _reviewService;
         private readonly IUnitOfWork _uow;
         private readonly ILogger<NearbyProvidersController> _logger;
 
@@ -29,12 +30,14 @@ namespace Etmen_PL.Controllers
             INearbyService nearbyService,
             IAppointmentService appointmentService,
             IPatientService patientService,
+            IReviewService reviewService,
             IUnitOfWork uow,
             ILogger<NearbyProvidersController> logger)
         {
             _nearbyService = nearbyService;
             _appointmentService = appointmentService;
             _patientService = patientService;
+            _reviewService = reviewService;
             _uow = uow;
             _logger = logger;
         }
@@ -66,6 +69,31 @@ namespace Etmen_PL.Controllers
                 if (!viewModel.Latitude.HasValue || !viewModel.Longitude.HasValue)
                 {
                     ModelState.AddModelError(string.Empty, "Location coordinates are required.");
+                    return View(viewModel);
+                }
+
+                if (viewModel.ShowAll)
+                {
+                    var allProviders = await _uow.HealthcareProviders.Table.Where(p => p.IsActive).ToListAsync();
+                    viewModel.SearchResults = allProviders.Select(p => new ProviderDto
+                    {
+                        Id = p.Id,
+                        Name = p.Name,
+                        Type = p.Type,
+                        Address = p.Address,
+                        Phone = p.Phone,
+                        AvailableBeds = p.AvailableBeds,
+                        IsEmergencyCenter = p.IsEmergencyCenter,
+                        Latitude = p.Latitude,
+                        Longitude = p.Longitude,
+                        DistanceKm = (decimal)Etmen_BLL.Helpers.GeoHelper.CalculateDistanceKm(
+                            (double)viewModel.Latitude.Value,
+                            (double)viewModel.Longitude.Value,
+                            (double)p.Latitude,
+                            (double)p.Longitude)
+                    }).OrderBy(p => p.DistanceKm).ToList();
+
+                    _logger.LogInformation("All providers search performed by patient");
                     return View(viewModel);
                 }
 
@@ -137,15 +165,8 @@ namespace Etmen_PL.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
-                var slotsResult = await _nearbyService.GetAvailableSlotsByProviderAsync(selectedDoctorId);
-                if (!slotsResult.IsSuccess || slotsResult.Data == null)
-                {
-                    TempData["Error"] = slotsResult.ErrorMessage ?? "No available slots for this provider.";
-                    return RedirectToAction(nameof(Index));
-                }
-
-                var slot = slotsResult.Data.FirstOrDefault(s => s.Id == slotId);
-                if (slot == null)
+                var slot = await _uow.AvailableSlots.GetByIdAsync(slotId);
+                if (slot == null || slot.IsBooked)
                 {
                     TempData["Error"] = "Selected slot is not available.";
                     return RedirectToAction(nameof(Index));
@@ -154,11 +175,11 @@ namespace Etmen_PL.Controllers
                 var bookingDto = new BookingRequestDto
                 {
                     PatientProfileId = profileResult.Data.Id,
-                    DoctorId = slot.DoctorId,
+                    DoctorId = slot.DoctorProfileId,
                     SlotId = slot.Id,
-                    Date = slot.Date,
-                    StartTime = slot.StartTime,
-                    EndTime = slot.EndTime
+                    Date = slot.SlotDate,
+                    StartTime = slot.SlotStart,
+                    EndTime = slot.SlotEnd
                 };
 
                 var result = await _appointmentService.BookAppointmentAsync(userId, bookingDto);
@@ -180,12 +201,8 @@ namespace Etmen_PL.Controllers
             }
         }
 
-        /// <summary>
-        /// GET: /NearbyProviders/DoctorDetails/{id}
-        /// Premium Vezeeta-style Doctor Details View
-        /// </summary>
         [HttpGet("NearbyProviders/DoctorDetails/{id}")]
-        public async Task<IActionResult> DoctorDetails(int id)
+        public async Task<IActionResult> DoctorDetails(int id, int? doctorId = null)
         {
             try
             {
@@ -200,29 +217,66 @@ namespace Etmen_PL.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
-                // 2. Find doctor linked to this provider in their onboarding JSON
+                // 2. Find doctor linked to this provider
                 Etmen_Domain.Entities.DoctorProfile? doctor = null;
-                var doctors = await _uow.DoctorProfiles.Table.Include(d => d.ApplicationUser).ToListAsync();
-                foreach (var doc in doctors)
+                if (doctorId.HasValue && doctorId.Value > 0)
                 {
-                    if (!string.IsNullOrEmpty(doc.OnboardingDataJson))
+                    doctor = await _uow.DoctorProfiles.Table.Include(d => d.ApplicationUser).FirstOrDefaultAsync(d => d.Id == doctorId.Value);
+                }
+                else
+                {
+                    var affiliations = await _uow.DoctorProviders.GetByProviderIdAsync(id);
+                    var affiliation = affiliations.FirstOrDefault();
+                    if (affiliation != null)
                     {
-                        try
+                        doctor = affiliation.DoctorProfile;
+                    }
+                    else
+                    {
+                        // Fallback to onboarding JSON data
+                        var doctors = await _uow.DoctorProfiles.Table.Include(d => d.ApplicationUser).ToListAsync();
+                        foreach (var doc in doctors)
                         {
-                            using var docJson = System.Text.Json.JsonDocument.Parse(doc.OnboardingDataJson);
-                            if (docJson.RootElement.TryGetProperty("HealthcareProviderId", out var prop) && prop.GetInt32() == id)
+                            if (!string.IsNullOrEmpty(doc.OnboardingDataJson))
                             {
-                                doctor = doc;
-                                break;
+                                try
+                                {
+                                    using var docJson = System.Text.Json.JsonDocument.Parse(doc.OnboardingDataJson);
+                                    if (docJson.RootElement.TryGetProperty("HealthcareProviderId", out var prop) && prop.GetInt32() == id)
+                                    {
+                                        doctor = doc;
+                                        break;
+                                    }
+                                }
+                                catch { }
                             }
                         }
-                        catch { }
                     }
                 }
 
-                // 3. Get available slots
+                // 3. Get average rating and reviews list
+                double avgRating = 0;
+                var reviews = new List<Etmen_BLL.DTOs.Review.ReviewDto>();
+                if (doctor != null)
+                {
+                    var avgResult = await _reviewService.GetDoctorAverageRatingAsync(doctor.Id);
+                    avgRating = avgResult.IsSuccess ? avgResult.Data : 0;
+                    
+                    var reviewsResult = await _reviewService.GetDoctorReviewsAsync(doctor.Id);
+                    reviews = reviewsResult.IsSuccess ? reviewsResult.Data ?? new() : new();
+                }
+                
+                ViewBag.AverageRating = avgRating;
+                ViewBag.Reviews = reviews;
+
+                // 4. Get available slots
                 var slotsResult = await _nearbyService.GetAvailableSlotsByProviderAsync(id);
                 var slots = slotsResult.IsSuccess ? slotsResult.Data ?? new() : new();
+
+                if (doctor != null)
+                {
+                    slots = slots.Where(s => s.DoctorId == doctor.Id).ToList();
+                }
 
                 // Group slots by Date for the 3-day sliding calendar
                 var viewModel = new DoctorDetailsViewModel
@@ -256,5 +310,83 @@ namespace Etmen_PL.Controllers
                 return RedirectToAction(nameof(Index));
             }
         }
+
+        [HttpGet("NearbyProviders/ProviderDoctors/{id}")]
+        public async Task<IActionResult> ProviderDoctors(int id)
+        {
+            try
+            {
+                if (id <= 0)
+                    return BadRequest();
+
+                var provider = await _uow.HealthcareProviders.GetByIdAsync(id);
+                if (provider == null)
+                {
+                    TempData["Error"] = "المنشأة الطبية غير موجودة";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // Get all affiliated doctors
+                var affiliations = await _uow.DoctorProviders.GetByProviderIdAsync(id);
+                var doctorsList = new List<ProviderDoctorDto>();
+
+                foreach (var aff in affiliations)
+                {
+                    var doc = aff.DoctorProfile;
+                    if (doc == null) continue;
+
+                    // Get average rating
+                    var avgResult = await _reviewService.GetDoctorAverageRatingAsync(doc.Id);
+                    double avgRating = avgResult.IsSuccess ? avgResult.Data : 0;
+
+                    // Get review count
+                    var reviewsResult = await _reviewService.GetDoctorReviewsAsync(doc.Id);
+                    int reviewCount = reviewsResult.IsSuccess ? (reviewsResult.Data?.Count ?? 0) : 0;
+
+                    doctorsList.Add(new ProviderDoctorDto
+                    {
+                        DoctorId = doc.Id,
+                        FullName = doc.FullName ?? (doc.ApplicationUser != null ? $"{doc.ApplicationUser.FirstName} {doc.ApplicationUser.LastName}".Trim() : "طبيب"),
+                        Specialization = doc.Specialization ?? "أخصائي عام",
+                        Bio = doc.Bio ?? "أخصائي متميز بخبرة في الرعاية الطبية الشاملة وتقديم الاستشارات المتخصصة للمرضى.",
+                        ConsultationFee = doc.ConsultationFee ?? 150.00m,
+                        YearsOfExperience = doc.YearsOfExperience ?? 5,
+                        LicenseNumber = doc.LicenseNumber ?? string.Empty,
+                        AverageRating = avgRating,
+                        ReviewCount = reviewCount,
+                        IsEmergencyDoctor = aff.IsEmergencyDoctor,
+                        AffiliationRole = aff.AffiliationRole ?? "عضو طاقم"
+                    });
+                }
+
+                ViewBag.ProviderName = provider.Name;
+                ViewBag.ProviderAddress = provider.Address;
+                ViewBag.ProviderType = provider.Type == "Hospital" ? "مستشفى استقبال" : "عيادة تخصصية";
+                ViewBag.ProviderId = id;
+
+                return View(doctorsList);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading provider doctors");
+                TempData["Error"] = "حدث خطأ أثناء تحميل أطباء المنشأة";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+    }
+
+    public class ProviderDoctorDto
+    {
+        public int DoctorId { get; set; }
+        public string FullName { get; set; } = string.Empty;
+        public string Specialization { get; set; } = string.Empty;
+        public string Bio { get; set; } = string.Empty;
+        public decimal ConsultationFee { get; set; }
+        public int YearsOfExperience { get; set; }
+        public string LicenseNumber { get; set; } = string.Empty;
+        public double AverageRating { get; set; }
+        public int ReviewCount { get; set; }
+        public bool IsEmergencyDoctor { get; set; }
+        public string AffiliationRole { get; set; } = string.Empty;
     }
 }

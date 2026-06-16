@@ -74,6 +74,14 @@
                                 <option value="50">50 كيلومتر</option>
                             </select>
                         </div>
+
+                        <!-- Show All Switch -->
+                        <div class="col-12 mt-2">
+                            <div class="form-check form-switch d-flex align-items-center justify-content-between p-0" dir="rtl">
+                                <label class="form-check-label fw-bold text-dark me-5" for="showAllSwitch">عرض كافة المنشآت الطبية</label>
+                                <input class="form-check-input ms-0" type="checkbox" role="switch" id="showAllSwitch" asp-for="ShowAll" />
+                            </div>
+                        </div>
                     </div>
 
                     <div class="mt-4 d-grid">
@@ -112,7 +120,7 @@
                             
                             <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
                                 <span class="text-muted small">الأسرة الشاغرة: <strong class="text-primary">@(item.AvailableBeds ?? 0)</strong></span>
-                                <a href="/NearbyProviders/DoctorDetails/@item.Id" class="btn btn-xs btn-outline-primary py-1 px-3 rounded-pill" style="font-size:0.75rem; text-decoration: none;">
+                                <a href="/NearbyProviders/ProviderDoctors/@item.Id" class="btn btn-xs btn-outline-primary py-1 px-3 rounded-pill" style="font-size:0.75rem; text-decoration: none;">
                                     <i class="fas fa-calendar-check me-1"></i> حجز موعد
                                 </a>
                             </div>
@@ -231,13 +239,30 @@
             // Populate provider markers
             let rawResults = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SearchResults));
             rawResults.forEach(item => {
-                let marker = L.marker([item.Latitude, item.Longitude]).addTo(map);
+                let emoji = "🏢";
+                if (item.Type === "Hospital") {
+                    emoji = "🏥";
+                } else if (item.Type === "Clinic") {
+                    emoji = "🏢";
+                } else if (item.Type === "HealthCenter") {
+                    emoji = "🩺";
+                }
+
+                let markerIcon = L.divIcon({
+                    className: 'custom-emoji-marker',
+                    html: `<div style="font-size: 26px; text-shadow: 0 0 4px rgba(0,0,0,0.3); text-align: center; cursor: pointer;">${emoji}</div>`,
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 15],
+                    popupAnchor: [0, -15]
+                });
+
+                let marker = L.marker([item.Latitude, item.Longitude], { icon: markerIcon }).addTo(map);
                 marker.bindPopup(`
                     <div style="font-family:'Tajawal', sans-serif; text-align:right; direction:rtl; min-width:180px;">
                         <h6 style="font-weight:bold; margin-bottom:5px; color:#1A6FBF;">${item.Name}</h6>
                         <p style="margin:0 0 5px 0; font-size:0.75rem;"><strong>النوع:</strong> ${item.Type}</p>
                         <p style="margin:0 0 5px 0; font-size:0.75rem;"><strong>العنوان:</strong> ${item.Address}</p>
-                        <a href="/NearbyProviders/DoctorDetails/${item.Id}" class="btn btn-xs btn-primary py-1 px-3 mt-2 rounded-pill text-white text-center d-block" style="font-size:0.7rem; width:100%; text-decoration:none;">
+                        <a href="/NearbyProviders/ProviderDoctors/${item.Id}" class="btn btn-xs btn-primary py-1 px-3 mt-2 rounded-pill text-white text-center d-block" style="font-size:0.7rem; width:100%; text-decoration:none;">
                             <i class="fas fa-calendar-check"></i> حجز موعد
                         </a>
                     </div>

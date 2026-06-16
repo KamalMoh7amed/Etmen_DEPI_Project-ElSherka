@@ -44,7 +44,7 @@ namespace Etmen_PL.Controllers
                 {
                     _logger.LogWarning("Failed to retrieve dashboard for user {UserId}: {Message}", userId, result.ErrorMessage);
                     TempData["Error"] = result.ErrorMessage ?? "حدث خطأ أثناء تحميل لوحة التحكم";
-                    return RedirectToAction("Index", "Home");
+                    return RedirectToAction("AccessDenied", "Account");
                 }
 
                 _logger.LogInformation("PatientDashboard Index accessed for user {UserId}", userId);
@@ -69,7 +69,7 @@ namespace Etmen_PL.Controllers
             {
                 _logger.LogError(ex, "Error retrieving patient dashboard");
                 TempData["Error"] = "حدث خطأ أثناء تحميل لوحة التحكم";
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("AccessDenied", "Account");
             }
         }
     }

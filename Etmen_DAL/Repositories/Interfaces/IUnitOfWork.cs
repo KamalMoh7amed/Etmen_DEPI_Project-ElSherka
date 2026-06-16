@@ -1,4 +1,4 @@
-﻿using Etmen_Domain.Entities;
+using Etmen_Domain.Entities;
 
 namespace Etmen_DAL.Repositories.Interfaces
 {
@@ -20,6 +20,10 @@ namespace Etmen_DAL.Repositories.Interfaces
         ICrisisConfigurationRepository CrisisConfigurations { get; }
         IOutbreakZoneRepository OutbreakZones { get; }
         IEmergencyRequestRepository EmergencyRequests { get; }
+        IGenericRepository<StaffProfile> StaffProfiles { get; }
+        IGenericRepository<StaffActivityLog> StaffActivityLogs { get; }
+        IDoctorProviderRepository DoctorProviders { get; }
+        IReviewRepository Reviews { get; }
 
         Task<int> CompleteAsync();
         Task BeginTransactionAsync();

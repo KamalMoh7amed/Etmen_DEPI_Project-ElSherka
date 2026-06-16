@@ -4,6 +4,7 @@ using Etmen_PL.Models.ViewModels.Patient;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Etmen_PL.Controllers
 {
@@ -18,17 +19,20 @@ namespace Etmen_PL.Controllers
         private readonly IPatientService _patientService;
         private readonly IEmailService _emailService;
         private readonly ILogger<EmergencyController> _logger;
+        private readonly Microsoft.AspNetCore.SignalR.IHubContext<Etmen_PL.Hubs.QueueHub> _queueHubContext;
 
         public EmergencyController(
             IEmergencyService emergencyService,
             IPatientService patientService,
             IEmailService emailService,
-            ILogger<EmergencyController> logger)
+            ILogger<EmergencyController> logger,
+            Microsoft.AspNetCore.SignalR.IHubContext<Etmen_PL.Hubs.QueueHub> queueHubContext)
         {
             _emergencyService = emergencyService;
             _patientService   = patientService;
             _emailService     = emailService;
             _logger           = logger;
+            _queueHubContext  = queueHubContext;
         }
 
         /// <summary>
@@ -71,6 +75,9 @@ namespace Etmen_PL.Controllers
                     TempData["Error"] = result.ErrorMessage ?? "فشل إرسال طلب الطوارئ.";
                     return RedirectToAction("Index", "PatientDashboard");
                 }
+
+                // Broadcast alert to all listening hospitals
+                await _queueHubContext.Clients.All.SendAsync("NewEmergencyRequest", result.Data);
 
                 var patientEmail = User.FindFirstValue(ClaimTypes.Email);
                 var patientName  = profileResult.Data.FullName ?? "المريض";

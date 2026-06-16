@@ -1,0 +1,188 @@
+@model IEnumerable<Etmen_PL.Controllers.ProviderDoctorDto>
+@{
+    ViewData["Title"] = "أطباء المنشأة";
+    Layout = "~/Views/Shared/_PatientLayout.cshtml";
+}
+
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #1A6FBF, #3cd5cb);
+        --card-radius: 20px;
+        --border-color: #E2E8F0;
+    }
+
+    .provider-header {
+        background: linear-gradient(135deg, #1a6fbf 0%, #0d4c8a 100%);
+        border-radius: 24px;
+        padding: 2.5rem;
+        box-shadow: 0 10px 30px rgba(26, 111, 191, 0.15);
+        color: white;
+        margin-bottom: 2rem;
+        border: none;
+    }
+
+    .doctor-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: var(--card-radius);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.02);
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+
+    .doctor-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 30px rgba(26, 111, 191, 0.08);
+        border-color: rgba(26, 111, 191, 0.2);
+    }
+
+    .doc-avatar-wrapper {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #1A6FBF, #00E676);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        box-shadow: 0 6px 15px rgba(26,111,191,0.1);
+    }
+
+    .star-rating {
+        color: #F39C12;
+        font-size: 0.9rem;
+    }
+
+    .meta-tag {
+        font-size: 0.8rem;
+        padding: 5px 12px;
+        border-radius: 30px;
+        font-weight: bold;
+    }
+
+    .meta-tag-emergency {
+        background: rgba(231, 76, 60, 0.1);
+        color: #e74c3c;
+    }
+
+    .meta-tag-experience {
+        background: rgba(46, 204, 113, 0.1);
+        color: #2ecc71;
+    }
+
+    .doc-detail-item {
+        font-size: 0.85rem;
+        color: #7F8C8D;
+        margin-bottom: 6px;
+    }
+
+    .doc-detail-item i {
+        color: #1A6FBF;
+        width: 20px;
+        text-align: center;
+    }
+</style>
+
+<div class="container py-4" dir="rtl">
+    <!-- Breadcrumb back -->
+    <div class="mb-4 animate__animated animate__fadeIn">
+        <a href="/NearbyProviders" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+            <i class="fas fa-arrow-right ms-1"></i> العودة للبحث عن المراكز
+        </a>
+    </div>
+
+    <!-- Provider Info Header -->
+    <div class="provider-header animate__animated animate__fadeIn text-right">
+        <span class="badge bg-white text-primary mb-2 px-3 py-2 fw-bold" style="font-size:0.8rem;">@ViewBag.ProviderType</span>
+        <h2 class="fw-black text-white mb-1">🏢 @ViewBag.ProviderName</h2>
+        <p class="text-white-50 mb-0"><i class="fas fa-map-marker-alt ms-1"></i> @ViewBag.ProviderAddress</p>
+    </div>
+
+    <h4 class="fw-bold mb-4 text-dark text-right"><i class="fas fa-user-md text-primary ms-2"></i> الأطباء المتاحة في هذه المنشأة (@Model.Count())</h4>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info border-0 rounded-4 text-center py-5 animate__animated animate__fadeInUp">
+            <i class="fas fa-user-md-slash fa-3x mb-3 text-info"></i>
+            <h5 class="fw-bold">لا يوجد أطباء مسجلين حالياً</h5>
+            <p class="text-muted mb-0">لم يتم ربط أطباء بهذه المنشأة الطبية في الوقت الحالي. يرجى التحقق لاحقاً.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4 text-right">
+            @foreach (var doc in Model)
+            {
+                <div class="col-12 animate__animated animate__fadeInUp">
+                    <div class="doctor-card p-4">
+                        <div class="row align-items-center g-3">
+                            <!-- Right Column: Avatar & Main Info -->
+                            <div class="col-md-7 d-flex align-items-center gap-4 flex-wrap flex-sm-nowrap">
+                                <div class="doc-avatar-wrapper flex-shrink-0">
+                                    <i class="fas fa-user-md"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+                                        <h4 class="fw-bold m-0 text-dark">د. @doc.FullName</h4>
+                                        @if (doc.IsEmergencyDoctor)
+                                        {
+                                            <span class="meta-tag meta-tag-emergency"><i class="fas fa-bolt ms-1"></i>طبيب طوارئ</span>
+                                        }
+                                        <span class="meta-tag meta-tag-experience"><i class="fas fa-user-clock ms-1"></i>خبرة @doc.YearsOfExperience سنة</span>
+                                    </div>
+                                    <h6 class="text-primary fw-bold mb-2">@doc.Specialization <span class="text-muted small fw-semibold">(@doc.AffiliationRole)</span></h6>
+                                    
+                                    <!-- Rating -->
+                                    <div class="d-flex align-items-center gap-2 mb-3">
+                                        <div class="star-rating">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                if (i <= doc.AverageRating)
+                                                {
+                                                    <i class="fas fa-star"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="far fa-star"></i>
+                                                }
+                                            }
+                                        </div>
+                                        <span class="text-muted small fw-semibold">(@doc.ReviewCount تقييم)</span>
+                                    </div>
+
+                                    <p class="text-muted small mb-0 leading-relaxed" style="max-width: 500px;">@doc.Bio</p>
+                                </div>
+                            </div>
+
+                            <!-- Middle Column: Doc Meta details -->
+                            <div class="col-md-3">
+                                <div class="d-flex flex-column gap-1">
+                                    <div class="doc-detail-item">
+                                        <i class="fas fa-money-bill-wave"></i>
+                                        <span>كشف العيادة: <strong>@doc.ConsultationFee.ToString("F0") ج.م.</strong></span>
+                                    </div>
+                                    <div class="doc-detail-item">
+                                        <i class="fas fa-clock"></i>
+                                        <span>مدة الانتظار: <strong>15 دقيقة</strong></span>
+                                    </div>
+                                    <div class="doc-detail-item">
+                                        <i class="fas fa-id-card"></i>
+                                        <span>ترخيص رقم: <strong>@(string.IsNullOrEmpty(doc.LicenseNumber) ? "معتمد" : doc.LicenseNumber)</strong></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Left Column: Action Button -->
+                            <div class="col-md-2 text-center text-md-left">
+                                <a href="/NearbyProviders/DoctorDetails/@ViewBag.ProviderId?doctorId=@doc.DoctorId" class="btn btn-primary bg-gradient rounded-pill px-4 py-2 w-100 fw-bold shadow-sm">
+                                    <i class="fas fa-calendar-check ms-1"></i> احجز كشف
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

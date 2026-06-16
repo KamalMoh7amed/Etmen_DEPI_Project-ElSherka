@@ -2,6 +2,27 @@
 @{
     var activeCrisisResult = await CrisisService.GetActiveCrisisAsync();
     var isCrisisActive = activeCrisisResult.IsSuccess && activeCrisisResult.Data != null && activeCrisisResult.Data.IsActive && activeCrisisResult.Data.SystemMode == Etmen_Domain.Enums.SystemMode.Crisis;
+
+    string dashboardUrl = "/";
+    if (User?.Identity?.IsAuthenticated == true)
+    {
+        if (User.IsInRole("Doctor"))
+        {
+            dashboardUrl = "/DoctorDashboard";
+        }
+        else if (User.IsInRole("Admin") || User.IsInRole("CrisisAdmin"))
+        {
+            dashboardUrl = "/AdminDashboard";
+        }
+        else if (User.IsInRole("HospitalStaff"))
+        {
+            dashboardUrl = "/HospitalQueue";
+        }
+        else
+        {
+            dashboardUrl = "/PatientDashboard";
+        }
+    }
 }
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -29,7 +50,7 @@
             --dark:          #0F1923;
             --dark-2:        #1B2A38;
             --text:          #2C3E50;
-            --text-muted:    #7F8C8D;
+            --text-muted:    #556270;
             --border:        #DDE3EC;
             --border-focus:  rgba(26,111,191,0.4);
             --white:         #FFFFFF;
@@ -300,7 +321,12 @@
         body.theme-dark .med-card,
         body.theme-dark .dashboard-card,
         body.theme-dark .form-group-medical,
-        body.theme-dark .card-checkbox {
+        body.theme-dark .card-checkbox,
+        body.theme-dark .dashboard-panel,
+        body.theme-dark .service-card,
+        body.theme-dark .record-details,
+        body.theme-dark .detail-box,
+        body.theme-dark .record-form-shell {
             background-color: #151A22 !important;
             border-color: #21262D !important;
             color: #ECF0F1 !important;
@@ -308,8 +334,10 @@
         }
         body.theme-dark .med-card:hover,
         body.theme-dark .dashboard-card:hover,
-        body.theme-dark .card-checkbox:hover {
+        body.theme-dark .card-checkbox:hover,
+        body.theme-dark .service-card:hover {
             border-color: #00E676 !important;
+            background-color: #1c232e !important;
         }
         body.theme-dark .card-checkbox.checked {
             background-color: rgba(0, 230, 118, 0.1) !important;
@@ -322,8 +350,12 @@
         body.theme-dark h4,
         body.theme-dark h5,
         body.theme-dark h6,
-        body.theme-dark span:not(.badge),
-        body.theme-dark label {
+        body.theme-dark span:not(.badge):not(.btn *):not(a *),
+        body.theme-dark label,
+        body.theme-dark .metric-value,
+        body.theme-dark .panel-title,
+        body.theme-dark .form-section-label,
+        body.theme-dark .detail-box strong {
             color: #ECF0F1 !important;
         }
         body.theme-dark .text-muted,
@@ -381,7 +413,7 @@
     <nav class="navbar navbar-expand-lg patient-navbar">
         <div class="container-fluid">
             <!-- Brand Logo -->
-            <a href="/" class="nav-logo">
+            <a href="@dashboardUrl" class="nav-logo">
                 <div class="nav-logo-icon"><i class="fas fa-heartbeat"></i></div>
                 <span class="nav-logo-text">إط<span>من</span></span>
             </a>
@@ -443,6 +475,11 @@
                     <!-- Emergency Call Modal Button -->
                     <button type="button" class="btn nav-menu-link btn-nav-emergency" data-bs-toggle="modal" data-bs-target="#emergencyAmbulanceModal">
                         <i class="fas fa-ambulance"></i> إسعاف طارئ
+                    </button>
+
+                    <!-- Theme Toggle Button -->
+                    <button type="button" id="themeToggleBtn" class="btn nav-menu-link px-3 py-2 text-white" title="تبديل الوضع الليلي/النهاري" style="background: rgba(255,255,255,0.08); border-radius: 10px; border: 1px solid rgba(255,255,255,0.15);">
+                        <i class="fas fa-moon fs-5" id="themeToggleIcon"></i>
                     </button>
 
                     <!-- Notification Bell -->
@@ -607,6 +644,33 @@
         }
 
         $(document).ready(function() {
+            // Initialize persisted theme
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            if (currentTheme === 'dark') {
+                document.body.classList.add('theme-dark');
+                document.body.classList.remove('theme-light');
+                $('#themeToggleIcon').removeClass('fa-moon').addClass('fa-sun');
+            } else {
+                document.body.classList.add('theme-light');
+                document.body.classList.remove('theme-dark');
+                $('#themeToggleIcon').removeClass('fa-sun').addClass('fa-moon');
+            }
+
+            // Theme Toggle Click Handler
+            $('#themeToggleBtn').on('click', function() {
+                if (document.body.classList.contains('theme-dark')) {
+                    document.body.classList.remove('theme-dark');
+                    document.body.classList.add('theme-light');
+                    $('#themeToggleIcon').removeClass('fa-sun').addClass('fa-moon');
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    document.body.classList.remove('theme-light');
+                    document.body.classList.add('theme-dark');
+                    $('#themeToggleIcon').removeClass('fa-moon').addClass('fa-sun');
+                    localStorage.setItem('theme', 'dark');
+                }
+            });
+
             updateNavbarAlertBadge();
             updatePatientChatBadge();
             setInterval(updateNavbarAlertBadge, 30000);
