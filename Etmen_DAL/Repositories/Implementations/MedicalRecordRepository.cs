@@ -1,9 +1,4 @@
-﻿using Etmen_DAL.DbContext;
-using Etmen_DAL.Repositories.Interfaces;
-using Etmen_Domain.Entities;
-using Microsoft.EntityFrameworkCore;
-
-namespace Etmen_DAL.Repositories.Implementations
+﻿namespace Etmen_DAL.Repositories.Implementations
 {
     public class MedicalRecordRepository : GenericRepository<MedicalRecord>, IMedicalRecordRepository
     {

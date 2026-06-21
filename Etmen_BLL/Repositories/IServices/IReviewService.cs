@@ -1,7 +1,4 @@
 using Etmen_BLL.DTOs.Review;
-using Etmen_BLL.Helpers;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Etmen_BLL.Repositories.IServices
 {

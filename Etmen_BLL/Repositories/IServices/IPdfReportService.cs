@@ -1,8 +1,6 @@
 namespace Etmen_BLL.Repositories.IServices
 {
-    /// <summary>
-    /// Generates PDF reports for lab results, risk assessments, and appointments.
-    /// </summary>
+   
     public interface IPdfReportService
     {
         /// <summary>Generates a PDF report for a lab/radiology result.</summary>

@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Etmen_BLL.DTOs.Lab;
-using Etmen_BLL.Helpers;
+
 
 namespace Etmen_BLL.Repositories.IServices
 {

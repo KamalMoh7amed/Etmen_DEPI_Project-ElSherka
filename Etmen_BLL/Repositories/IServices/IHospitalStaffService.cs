@@ -1,8 +1,4 @@
 using Etmen_BLL.DTOs.HospitalStaff;
-using Etmen_BLL.Helpers;
-using Etmen_Domain.Enums;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Etmen_BLL.Repositories.IServices
 {

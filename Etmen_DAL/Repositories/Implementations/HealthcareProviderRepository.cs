@@ -1,9 +1,4 @@
-using Etmen_DAL.Repositories.Interfaces;
 using Etmen_DAL.Helpers;
-using Etmen_Domain.Entities;
-using Microsoft.EntityFrameworkCore;
-using Etmen_DAL.DbContext;
-
 namespace Etmen_DAL.Repositories.Implementations
 {
     public class HealthcareProviderRepository : GenericRepository<HealthcareProvider>, IHealthcareProviderRepository

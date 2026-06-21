@@ -1,5 +1,4 @@
-﻿using Etmen_Domain.Entities;
-
+﻿
 namespace Etmen_DAL.Repositories.Interfaces
 {
     public interface IChatMessageRepository : IGenericRepository<ChatMessage>

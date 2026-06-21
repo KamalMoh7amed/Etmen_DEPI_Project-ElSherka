@@ -1,11 +1,5 @@
-using Etmen_BLL.DTOs.Auth;
-using Etmen_BLL.Helpers;
-using Etmen_BLL.Repositories.IServices;
-using Etmen_DAL.Repositories.Interfaces;
-using Etmen_Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
 namespace Etmen_BLL.Repositories.Services
 {

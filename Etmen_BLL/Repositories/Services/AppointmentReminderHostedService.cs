@@ -1,10 +1,4 @@
-using Etmen_BLL.Repositories.IServices;
-using Etmen_DAL.Repositories.Interfaces;
-using Etmen_Domain.Enums;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore;
+
 
 namespace Etmen_BLL.Repositories.Services
 {

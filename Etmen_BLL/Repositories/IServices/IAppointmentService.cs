@@ -1,12 +1,6 @@
-using Etmen_BLL.DTOs.Nearby;
-using Etmen_BLL.Helpers;
-
 namespace Etmen_BLL.Repositories.IServices
 {
-    /// <summary>
-    /// Contract for appointment booking, management, and cancellation from the patient's perspective.
-    /// </summary>
-    public interface IAppointmentService
+        public interface IAppointmentService
     {
         Task<ServiceResult<AppointmentDto>> BookAppointmentAsync(string userId, BookingRequestDto dto);
 

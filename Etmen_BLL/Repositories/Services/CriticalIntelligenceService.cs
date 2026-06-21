@@ -1,12 +1,5 @@
 using Etmen_BLL.DTOs.CriticalIntelligence;
-using Etmen_BLL.DTOs.Risk;
-using Etmen_BLL.Helpers;
-using Etmen_BLL.Repositories.IServices;
-using Etmen_DAL.Repositories.Interfaces;
-using Etmen_Domain.Entities;
-using Etmen_Domain.Enums;
-using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
+
 
 namespace Etmen_BLL.Repositories.Services
 {

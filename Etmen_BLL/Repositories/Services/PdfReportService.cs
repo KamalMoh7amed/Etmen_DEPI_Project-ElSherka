@@ -1,9 +1,7 @@
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using System;
-using System.Linq;
-using System.Collections.Generic;
+
 
 namespace Etmen_BLL.Repositories.Services
 {

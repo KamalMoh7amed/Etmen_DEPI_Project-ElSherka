@@ -1,5 +1,4 @@
-﻿using Etmen_Domain.Enums;
-
+﻿
 namespace Etmen_BLL.DTOs.Admin
 {
     public class AdminCrisisDto

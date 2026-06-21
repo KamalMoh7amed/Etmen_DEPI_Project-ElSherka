@@ -1,7 +1,3 @@
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using System.Net;
-using System.Net.Mail;
 
 namespace Etmen_BLL.Repositories.Services
 {

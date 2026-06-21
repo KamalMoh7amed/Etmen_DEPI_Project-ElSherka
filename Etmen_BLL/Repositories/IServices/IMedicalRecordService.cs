@@ -1,11 +1,8 @@
-using Etmen_BLL.DTOs.Medical;
-using Etmen_BLL.Helpers;
+
 
 namespace Etmen_BLL.Repositories.IServices
 {
-    /// <summary>
-    /// Contract for medical record CRUD and historical trend queries.
-    /// </summary>
+   
     public interface IMedicalRecordService
     {
         Task<ServiceResult<IEnumerable<MedicalRecordDto>>> GetByPatientAsync(string userId);

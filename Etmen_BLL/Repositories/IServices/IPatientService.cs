@@ -1,7 +1,4 @@
-using Etmen_BLL.DTOs.Medical;
-using Etmen_BLL.DTOs.Patient;
-using Etmen_BLL.DTOs.Risk;
-using Etmen_BLL.Helpers;
+
 
 namespace Etmen_BLL.Repositories.IServices
 {

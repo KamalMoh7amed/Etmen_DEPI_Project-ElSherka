@@ -1,26 +1,7 @@
-using Etmen_BLL.DTOs.Alert;
-using Etmen_BLL.DTOs.Doctor;
-using Etmen_BLL.DTOs.Emergency;
-using Etmen_BLL.DTOs.Family;
-using Etmen_BLL.DTOs.Lab;
-using Etmen_BLL.DTOs.Medical;
-using Etmen_BLL.DTOs.Nearby;
-using Etmen_BLL.DTOs.Notification;
-using Etmen_BLL.DTOs.Patient;
-using Etmen_BLL.DTOs.Risk;
-using Etmen_BLL.Helpers;
-using Etmen_Domain.Entities;
-using Mapster;
-using System.Text.Json;
-using MedicalRecordCreateDto = Etmen_BLL.DTOs.Medical.MedicalRecordCreateDto;
-using PatientAlertDto = Etmen_BLL.DTOs.Alert.PatientAlertDto;
 
 namespace Etmen_BLL.Mapping
 {
-    /// <summary>
-    /// Centralised Mapster mapping configuration for the BLL layer.
-    /// Register via: TypeAdapterConfig.GlobalSettings.Scan(Assembly.GetExecutingAssembly())
-    /// </summary>
+    
     public class BLLMappingProfile : IRegister
     {
         public void Register(TypeAdapterConfig config)
@@ -71,7 +52,7 @@ namespace Etmen_BLL.Mapping
                 .Ignore(dest => dest.CreatedAt);
         }
 
-        // ── Doctor ────────────────────────────────────────────────────────────────
+        //  Doctor 
 
         private static void RegisterDoctorMappings(TypeAdapterConfig config)
         {
@@ -93,7 +74,7 @@ namespace Etmen_BLL.Mapping
                 .Map(dest => dest.UpdatedAt,           src => src.UpdatedAt);
         }
 
-        // ── Appointment ───────────────────────────────────────────────────────────
+        //  Appointment 
 
         private static void RegisterAppointmentMappings(TypeAdapterConfig config)
         {
@@ -156,7 +137,7 @@ namespace Etmen_BLL.Mapping
                 .Ignore(dest => dest.UpdatedAt!);
         }
 
-        // ── Medical Records ───────────────────────────────────────────────────────
+        //  Medical Records 
 
         private static void RegisterMedicalRecordMappings(TypeAdapterConfig config)
         {
@@ -190,7 +171,7 @@ namespace Etmen_BLL.Mapping
                 .Ignore(dest => dest.CreatedAt);
         }
 
-        // ── Alerts ────────────────────────────────────────────────────────────────
+        //  Alerts 
 
         private static void RegisterAlertMappings(TypeAdapterConfig config)
         {
@@ -208,7 +189,7 @@ namespace Etmen_BLL.Mapping
                 .Map(dest => dest.CreatedAt,  src => src.CreatedAt);
         }
 
-        // ── Lab Results ───────────────────────────────────────────────────────────
+        //  Lab Results 
 
         private static void RegisterLabResultMappings(TypeAdapterConfig config)
         {
@@ -223,7 +204,7 @@ namespace Etmen_BLL.Mapping
                 .Map(dest => dest.CreatedAt,           src => src.CreatedAt);
         }
 
-        // ── Emergency ─────────────────────────────────────────────────────────────
+        //  Emergency 
 
         private static void RegisterEmergencyMappings(TypeAdapterConfig config)
         {
@@ -244,7 +225,7 @@ namespace Etmen_BLL.Mapping
                 .Ignore(dest => dest.ResponseNotes!);
         }
 
-        // ── Family ────────────────────────────────────────────────────────────────
+        //  Family 
 
         private static void RegisterFamilyMappings(TypeAdapterConfig config)
         {
@@ -259,7 +240,7 @@ namespace Etmen_BLL.Mapping
                 .Map(dest => dest.CreatedAt,            src => src.CreatedAt);
         }
 
-        // ── Risk Assessment ───────────────────────────────────────────────────────
+        //  Risk Assessment 
 
         private static void RegisterRiskAssessmentMappings(TypeAdapterConfig config)
         {
@@ -277,7 +258,7 @@ namespace Etmen_BLL.Mapping
                 .Map(dest => dest.NearestEmergencyCenter, src => (string?)null);
         }
 
-        // ── Slots & Providers ─────────────────────────────────────────────────────
+        //  Slots & Providers 
 
         private static void RegisterSlotAndProviderMappings(TypeAdapterConfig config)
         {
@@ -296,7 +277,7 @@ namespace Etmen_BLL.Mapping
                 .Map(dest => dest.Longitude, src => src.Longitude);
         }
 
-        // ── Notifications ─────────────────────────────────────────────────────────
+        //  Notifications 
 
         private static void RegisterNotificationMappings(TypeAdapterConfig config)
         {

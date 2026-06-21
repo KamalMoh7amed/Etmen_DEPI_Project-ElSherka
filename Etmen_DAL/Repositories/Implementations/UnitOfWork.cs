@@ -1,6 +1,3 @@
-using Etmen_DAL.DbContext;
-using Etmen_DAL.Repositories.Interfaces;
-using Etmen_Domain.Entities;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Etmen_DAL.Repositories.Implementations

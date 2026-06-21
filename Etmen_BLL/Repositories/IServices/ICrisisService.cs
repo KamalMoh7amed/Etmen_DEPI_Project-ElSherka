@@ -3,19 +3,16 @@ using Etmen_BLL.Helpers;
 
 namespace Etmen_BLL.Repositories.IServices
 {
-    /// <summary>
-    /// Manages all crisis-related operations including creation, modification, deletion, and symptom management.
-    /// Only Admins can perform administrative operations (Create, Update, Delete, Manage Symptoms, Activate/Deactivate).
-    /// </summary>
+ 
     public interface ICrisisService
     {
-        // ========== READ OPERATIONS (جميع المستخدمين) ==========
+        //  READ OPERATIONS (جميع المستخدمين) 
         Task<ServiceResult<CrisisConfigurationDto>> GetActiveCrisisAsync();
         Task<ServiceResult<List<CrisisConfigurationDto>>> GetAllCrisesAsync();
         Task<ServiceResult<CrisisConfigurationDto>> GetCrisisByIdAsync(int crisisId);
         Task<ServiceResult<CrisisStatsDto>> GetCrisisStatsAsync(int crisisId);
 
-        // ========== ADMIN OPERATIONS (الادمن فقط) ==========
+        //  ADMIN OPERATIONS (الادمن فقط) 
         // Crisis Management
         Task<ServiceResult<CrisisConfigurationDto>> CreateCrisisAsync(CreateCrisisDto dto);
         Task<ServiceResult<CrisisConfigurationDto>> UpdateCrisisAsync(int crisisId, EditCrisisDto dto);

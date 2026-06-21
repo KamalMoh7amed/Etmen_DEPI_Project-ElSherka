@@ -1,15 +1,10 @@
 namespace Etmen_BLL.Repositories.IServices
 {
-    /// <summary>
-    /// Service for sending emails across the Etmen platform.
-    /// Covers all transactional emails: verification, welcome, lab reports, appointments, risk alerts, etc.
-    /// </summary>
+    
     public interface IEmailService
     {
-        /// <summary>Sends a plain HTML email.</summary>
         Task SendEmailAsync(string toEmail, string toName, string subject, string htmlBody);
 
-        /// <summary>Sends an email with a PDF attachment provided as a byte array.</summary>
         Task SendEmailWithPdfAttachmentAsync(
             string toEmail,
             string toName,

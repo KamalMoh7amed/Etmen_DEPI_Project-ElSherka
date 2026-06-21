@@ -1,6 +1,3 @@
-using Etmen_BLL.DTOs.Alert;
-using Etmen_BLL.Helpers;
-
 namespace Etmen_BLL.Repositories.IServices
 {
     public interface IAlertService

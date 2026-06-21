@@ -1,6 +1,4 @@
-﻿using Etmen_Domain.Entities;
-using Etmen_Domain.Enums;
-
+﻿
 namespace Etmen_DAL.Repositories.Interfaces
 {
     public interface ICrisisConfigurationRepository : IGenericRepository<CrisisConfiguration>

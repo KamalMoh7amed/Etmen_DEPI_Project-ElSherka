@@ -1,10 +1,5 @@
-using Etmen_BLL.Helpers;
-using Etmen_BLL.Repositories.IServices;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Text;
-using System.Text.Json;
-
 namespace Etmen_BLL.Repositories.Services
 {
     public class ChatbotService : IChatbotService

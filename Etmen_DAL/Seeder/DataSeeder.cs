@@ -1,8 +1,6 @@
-using Etmen_DAL.DbContext;
-using Etmen_Domain.Entities;
-using Etmen_Domain.Enums;
+
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
+
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Etmen_DAL.Seed

@@ -1,6 +1,5 @@
 using Etmen_BLL.DTOs.CriticalIntelligence;
-using Etmen_BLL.DTOs.Risk;
-using Etmen_BLL.Helpers;
+
 
 namespace Etmen_BLL.Repositories.IServices
 {

@@ -1,16 +1,4 @@
-using Etmen_BLL.DTOs.Lab;
-using Etmen_BLL.Helpers;
-using Etmen_BLL.Repositories.IServices;
-using Etmen_DAL.Repositories.Interfaces;
-using Etmen_Domain.Entities;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
-using System.Text;
-using System.Text.Json;
-using System.IO;
-using System.Net.Http;
+
 
 namespace Etmen_BLL.Repositories.Services
 {

@@ -1,6 +1,4 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
-using Etmen_Domain.Entities;
 using System.Reflection;
 
 namespace Etmen_DAL.DbContext

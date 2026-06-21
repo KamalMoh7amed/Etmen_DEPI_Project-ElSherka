@@ -1,15 +1,5 @@
 using Etmen_BLL.DTOs.Review;
-using Etmen_BLL.Helpers;
-using Etmen_BLL.Repositories.IServices;
-using Etmen_DAL.Repositories.Interfaces;
-using Etmen_Domain.Entities;
-using Etmen_Domain.Enums;
-using Mapster;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+
 
 namespace Etmen_BLL.Repositories.Services
 {

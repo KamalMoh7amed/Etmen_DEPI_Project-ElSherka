@@ -1,0 +1,11 @@
+global using System;
+global using System.Collections.Generic;
+global using System.Linq;
+global using System.Threading.Tasks;
+global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.AspNetCore.Http;
+global using Microsoft.Extensions.Logging;
+global using Etmen_Domain.Entities;
+global using Etmen_Domain.Enums;
+global using Etmen_BLL.Repositories.IServices;
+global using Etmen_BLL.Helpers;

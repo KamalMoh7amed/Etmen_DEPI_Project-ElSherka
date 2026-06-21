@@ -1,6 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Etmen_Domain.Entities;
 
 namespace Etmen_DAL.Configurations
 {
@@ -10,7 +7,7 @@ namespace Etmen_DAL.Configurations
         {
             builder.ToTable("DoctorProviders");
 
-            // Composite Key
+            
             builder.HasKey(dp => new { dp.DoctorProfileId, dp.HealthcareProviderId });
 
             builder.Property(dp => dp.IsEmergencyDoctor)
@@ -22,7 +19,6 @@ namespace Etmen_DAL.Configurations
             builder.Property(dp => dp.AffiliationRole)
                 .HasMaxLength(100);
 
-            // Relationships
             builder.HasOne(dp => dp.DoctorProfile)
                 .WithMany(d => d.DoctorProviders)
                 .HasForeignKey(dp => dp.DoctorProfileId)

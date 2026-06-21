@@ -1,4 +1,3 @@
-using Etmen_Domain.Entities;
 
 namespace Etmen_DAL.Repositories.Interfaces
 {

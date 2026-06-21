@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using Etmen_Domain.Entities;
 
 namespace Etmen_DAL.Helpers
 {

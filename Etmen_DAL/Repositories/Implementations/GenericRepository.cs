@@ -1,7 +1,4 @@
-﻿using Etmen_DAL.DbContext;
-using Etmen_DAL.Repositories.Interfaces;
-using Microsoft.EntityFrameworkCore;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 
 namespace Etmen_DAL.Repositories.Implementations
 {

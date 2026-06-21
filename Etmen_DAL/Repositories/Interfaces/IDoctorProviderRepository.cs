@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Etmen_Domain.Entities;
 
 namespace Etmen_DAL.Repositories.Interfaces
 {

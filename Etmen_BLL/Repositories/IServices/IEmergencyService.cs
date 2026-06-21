@@ -1,5 +1,3 @@
-using Etmen_BLL.DTOs.Emergency;
-using Etmen_BLL.Helpers;
 
 namespace Etmen_BLL.Repositories.IServices
 {

@@ -1,14 +1,8 @@
-using Etmen_BLL.DTOs.Doctor;
-using Etmen_BLL.DTOs.Medical;
-using Etmen_BLL.DTOs.Nearby;
-using Etmen_BLL.Helpers;
-using MedicalRecordCreateDto = Etmen_BLL.DTOs.Medical.MedicalRecordCreateDto;
+
 
 namespace Etmen_BLL.Repositories.IServices
 {
-    /// <summary>
-    /// Contract for doctor-profile management, slot management, and appointment handling from the doctor's perspective.
-    /// </summary>
+    
     public interface IDoctorService
     {
         // ── Profile ───────────────────────────────────────────────────────────────

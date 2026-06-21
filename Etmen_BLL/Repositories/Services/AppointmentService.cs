@@ -1,12 +1,3 @@
-using Etmen_BLL.DTOs.Nearby;
-using Etmen_BLL.Helpers;
-using Etmen_BLL.Repositories.IServices;
-using Etmen_DAL.Repositories.Interfaces;
-using Etmen_Domain.Entities;
-using Etmen_Domain.Enums;
-using Mapster;
-using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore;
 
 namespace Etmen_BLL.Repositories.Services
 {

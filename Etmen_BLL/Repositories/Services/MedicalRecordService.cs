@@ -1,8 +1,4 @@
-using Etmen_BLL.DTOs.Medical;
-using Etmen_BLL.Helpers;
-using Etmen_BLL.Repositories.IServices;
-using Etmen_Domain.Entities;
-using Etmen_DAL.Repositories.Interfaces;
+
 
 namespace Etmen_BLL.Repositories.Services
 {
