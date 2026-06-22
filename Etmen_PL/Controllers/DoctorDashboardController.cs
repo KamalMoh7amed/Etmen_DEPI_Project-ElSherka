@@ -254,6 +254,8 @@ namespace Etmen_PL.Controllers
                     BranchArabicName = input.BranchArabicName,
                     City = input.City,
                     Area = input.Area,
+                    Latitude = input.Latitude ?? 30.0444m,
+                    Longitude = input.Longitude ?? 31.2357m,
                     BranchMobile = input.BranchMobile,
                     SmsMobile = input.SmsMobile,
                     TaxId = input.TaxId,
@@ -402,6 +404,8 @@ namespace Etmen_PL.Controllers
         public string BranchArabicName { get; set; } = string.Empty;
         public string City { get; set; } = string.Empty;
         public string Area { get; set; } = string.Empty;
+        public decimal? Latitude { get; set; }
+        public decimal? Longitude { get; set; }
         public string BranchMobile { get; set; } = string.Empty;
         public string SmsMobile { get; set; } = string.Empty;
         public string TaxId { get; set; } = string.Empty;

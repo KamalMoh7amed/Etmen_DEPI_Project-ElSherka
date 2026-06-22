@@ -19,7 +19,6 @@ global using Etmen_BLL.DTOs.Notification;
 global using Etmen_BLL.DTOs.Patient;
 global using Etmen_BLL.DTOs.Risk;
 global using Etmen_BLL.Helpers;
-global using Etmen_Domain.Entities;
 global using Mapster;
 global using System.Text.Json;
 global using MedicalRecordCreateDto = Etmen_BLL.DTOs.Medical.MedicalRecordCreateDto;

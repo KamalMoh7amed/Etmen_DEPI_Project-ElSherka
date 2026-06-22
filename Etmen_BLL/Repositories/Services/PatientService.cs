@@ -223,7 +223,7 @@ namespace Etmen_BLL.Repositories.Services
             var alertDtos = recentAlerts
                 .OrderByDescending(a => a.CreatedAt)
                 .Take(5)
-                .Select(a => new RecentAlertDto
+                .Select(a => new DTOs.Patient.RecentAlertDto
                 {
                     Id = a.Id,
                     Title = a.Title,

@@ -14,6 +14,8 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.rtl.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <style>
         :root {
@@ -548,11 +550,35 @@
                     </div>
 
                     <div class="col-md-6">
-                        <label asp-for="City" class="form-label">المدينة *</label>
+                        <label asp-for="City" class="form-label">المحافظة *</label>
                         <select asp-for="City" class="form-select" id="citySelect" onchange="updateAreas()" required>
                             <option value="القاهرة">القاهرة</option>
                             <option value="الجيزة">الجيزة</option>
                             <option value="الأسكندرية">الأسكندرية</option>
+                            <option value="الدقهلية">الدقهلية</option>
+                            <option value="البحر الأحمر">البحر الأحمر</option>
+                            <option value="البحيرة">البحيرة</option>
+                            <option value="الفيوم">الفيوم</option>
+                            <option value="الغربية">الغربية</option>
+                            <option value="الإسماعيلية">الإسماعيلية</option>
+                            <option value="المنوفية">المنوفية</option>
+                            <option value="المنيا">المنيا</option>
+                            <option value="القليوبية">القليوبية</option>
+                            <option value="الوادي الجديد">الوادي الجديد</option>
+                            <option value="السويس">السويس</option>
+                            <option value="أسوان">أسوان</option>
+                            <option value="أسيوط">أسيوط</option>
+                            <option value="بني سويف">بني سويف</option>
+                            <option value="بورسعيد">بورسعيد</option>
+                            <option value="دمياط">دمياط</option>
+                            <option value="الشرقية">الشرقية</option>
+                            <option value="جنوب سيناء">جنوب سيناء</option>
+                            <option value="كفر الشيخ">كفر الشيخ</option>
+                            <option value="مطروح">مطروح</option>
+                            <option value="قنا">قنا</option>
+                            <option value="شمال سيناء">شمال سيناء</option>
+                            <option value="سوهاج">سوهاج</option>
+                            <option value="الأقصر">الأقصر</option>
                         </select>
                         <span asp-validation-for="City" class="text-danger small fw-bold"></span>
                     </div>
@@ -585,6 +611,28 @@
                         <input asp-for="CommercialRegistration" class="form-control mask-code" placeholder="123-456-789" required />
                         <span asp-validation-for="CommercialRegistration" class="text-danger small fw-bold"></span>
                     </div>
+
+                    <!-- Map selection area -->
+                    <div class="col-md-12 mt-3">
+                        <label class="form-label text-dark fw-bold">تحديد موقع العيادة الجغرافي على الخريطة *</label>
+                        <p class="text-muted small">ابحث عن منطقتك أو اسحب المؤشر لتحديد موقع العيادة بدقة لتمكين المرضى من العثور عليها بسهولة.</p>
+                        
+                        <!-- Map Search Bar -->
+                        <div class="input-group mb-2">
+                            <input type="text" id="mapSearchInput" class="form-control" placeholder="ابحث عن اسم الشارع أو المنطقة أو المعلم..." />
+                            <button type="button" class="btn btn-primary px-3" onclick="searchLocation()"><i class="fas fa-search"></i> ابحث</button>
+                        </div>
+                        <div id="locationSearchSpinner" class="text-primary small mb-2" style="display:none;">
+                            <i class="fas fa-spinner fa-spin me-1"></i> جاري البحث عن الموقع...
+                        </div>
+                        
+                        <!-- Map container -->
+                        <div id="onboardingMap" class="border rounded" style="height: 320px; width: 100%; z-index: 100;"></div>
+                        
+                        <!-- Hidden inputs to submit coordinates -->
+                        <input type="hidden" asp-for="Latitude" id="latitudeInput" value="30.0444" />
+                        <input type="hidden" asp-for="Longitude" id="longitudeInput" value="31.2357" />
+                    </div>
                 </div>
             </section>
 
@@ -610,15 +658,99 @@
         const totalSteps = 4;
 
         const areaMap = {
-            "القاهرة": ["مصر الجديدة", "مدينة نصر", "المعادي", "التجمع الخامس", "شبرا"],
-            "الجيزة": ["الدقي", "المهندسين", "الشيخ زايد", "الهرم", "6 أكتوبر"],
-            "الأسكندرية": ["سموحة", "مصر الجديدة", "ميامي", "لوران", "المنشية"]
+            "القاهرة": ["مصر الجديدة", "مدينة نصر", "المعادي", "التجمع الخامس", "شبرا", "وسط البلد", "حلوان", "الزيتون"],
+            "الجيزة": ["الدقي", "المهندسين", "الشيخ زايد", "الهرم", "6 أكتوبر", "فيصل", "العجوزة", "إمبابة"],
+            "الأسكندرية": ["سموحة", "ميامي", "لوران", "المنشية", "العجمي", "سيدي بشر", "محرم بك", "الشاطبي"],
+            "الدقهلية": ["المنصورة", "ميت غمر", "السنبلاوين", "دكرنس", "طلخا", "شربين"],
+            "البحر الأحمر": ["الغردقة", "سفاجا", "القصير", "مرسى علم", "شلاتين", "الجونة"],
+            "البحيرة": ["دمنهور", "كفر الدوار", "رشيد", "إدكو", "أبو حمص", "كوم حمادة"],
+            "الفيوم": ["الفيوم الجديدة", "سنورس", "إطسا", "طامية", "يوسف الصديق", "أبشواي"],
+            "الغربية": ["طنطا", "المحلة الكبرى", "كفر الزيات", "زفتى", "بسيون", "سمنود"],
+            "الإسماعيلية": ["الإسماعيلية", "التل الكبير", "فايد", "القنطرة شرق", "القنطرة غرب", "أبو صوير"],
+            "المنوفية": ["شبين الكوم", "أشمون", "منوف", "السادات", "باجور", "قويسنا"],
+            "المنيا": ["المنيا", "ملوي", "بني مزار", "مغاغة", "أبو قرقاص", "سمالوط"],
+            "القليوبية": ["بنها", "شبرا الخيمة", "قليوب", "الخانكة", "العبور", "طوخ"],
+            "الوادي الجديد": ["الخارجة", "الداخلة", "الفرافرة", "باريس", "بلاط"],
+            "السويس": ["السويس", "الأربعين", "عتاقة", "الجناين", "فيصل (السويس)"],
+            "أسوان": ["أسوان", "كوم أمبو", "إدفو", "نصر النوبة", "أبو سمبل"],
+            "أسيوط": ["أسيوط", "ديروط", "منفلوط", "أبو تيج", "أبنوب", "البداري"],
+            "بني سويف": ["بني سويف", "الواسطى", "ببا", "الفشن", "ناصر", "اهناسيا"],
+            "بورسعيد": ["بورسعيد", "بورفؤاد", "الزهور", "الشرق", "العرب", "الضواحي"],
+            "دمياط": ["دمياط", "رأس البر", "دمياط الجديدة", "فارسكور", "الزرقا", "كفر سعد"],
+            "الشرقية": ["الزقازيق", "العاشر من رمضان", "بلبيس", "منيا القمح", "فاقوس", "أبو حماد"],
+            "جنوب سيناء": ["طور سيناء", "شرم الشيخ", "دهب", "نويبع", "طابا", "سانت كاترين"],
+            "كفر الشيخ": ["كفر الشيخ", "دسوق", "مطوبس", "فوه", "قلين", "سيدي سالم"],
+            "مطروح": ["مرسى مطروح", "العلمين", "الضبعة", "سيوة", "الحمام", "السلوم"],
+            "قنا": ["قنا", "نجع حمادي", "دشنا", "أبو تشت", "قوص", "نقادة"],
+            "شمال سيناء": ["العريش", "الشيخ زويد", "رفح", "بئر العبد", "الحسنة"],
+            "سوهاج": ["سوهاج", "طما", "طهطا", "جرجا", "البلينا", "أخميم"],
+            "الأقصر": ["الأقصر", "إسنا", "أرمنت", "القرنة", "الطود"]
         };
+
+        const cityCoordinates = {
+            "القاهرة": [30.0444, 31.2357],
+            "الجيزة": [30.0131, 31.2089],
+            "الأسكندرية": [31.2001, 29.9187],
+            "الدقهلية": [31.0409, 31.3785],
+            "البحر الأحمر": [27.2579, 33.8116],
+            "البحيرة": [31.0364, 30.4688],
+            "الفيوم": [29.3084, 30.8428],
+            "الغربية": [30.7865, 31.0004],
+            "الإسماعيلية": [30.6043, 32.2723],
+            "المنوفية": [30.5510, 31.0120],
+            "المنيا": [28.0871, 30.7618],
+            "القليوبية": [30.4591, 31.1856],
+            "الوادي الجديد": [25.4390, 30.5486],
+            "السويس": [29.9668, 32.5498],
+            "أسوان": [24.0889, 32.8998],
+            "أسيوط": [27.1783, 31.1859],
+            "بني سويف": [29.0744, 31.0979],
+            "بورسعيد": [31.2653, 32.3019],
+            "دمياط": [31.4175, 31.8144],
+            "الشرقية": [30.5877, 31.5020],
+            "جنوب سيناء": [28.2403, 33.6231],
+            "كفر الشيخ": [31.1107, 30.9388],
+            "مطروح": [31.3543, 27.2373],
+            "قنا": [26.1551, 32.7160],
+            "شمال سيناء": [31.1321, 33.8032],
+            "سوهاج": [26.5591, 31.6948],
+            "الأقصر": [25.6872, 32.6396]
+        };
+
+        let map = null;
+        let marker = null;
 
         // Initialize Area dropdown on page load
         $(document).ready(function() {
             updateAreas();
             setupMasks();
+
+            $("#areaSelect").on("change", function() {
+                const city = $("#citySelect").val();
+                const area = $(this).val();
+                if (city && area && map !== null) {
+                    const query = area + ", " + city + ", Egypt";
+                    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`)
+                        .then(r => r.json())
+                        .then(d => {
+                            if (d && d.length > 0) {
+                                const lat = parseFloat(d[0].lat);
+                                const lon = parseFloat(d[0].lon);
+                                map.setView([lat, lon], 13);
+                                marker.setLatLng([lat, lon]);
+                                $("#latitudeInput").val(lat.toFixed(6));
+                                $("#longitudeInput").val(lon.toFixed(6));
+                            }
+                        });
+                }
+            });
+
+            $("#mapSearchInput").on("keypress", function(e) {
+                if (e.which === 13) { // Enter key
+                    e.preventDefault();
+                    searchLocation();
+                }
+            });
         });
 
         function updateAreas() {
@@ -629,6 +761,115 @@
             areas.forEach(a => {
                 areaSelect.append(`<option value="${a}">${a}</option>`);
             });
+
+            // Center map on city coordinates if map is initialized
+            if (map !== null && cityCoordinates[city]) {
+                const coords = cityCoordinates[city];
+                map.setView(coords, 12);
+                marker.setLatLng(coords);
+                $("#latitudeInput").val(coords[0].toFixed(6));
+                $("#longitudeInput").val(coords[1].toFixed(6));
+            }
+        }
+
+        function initMap() {
+            if (map !== null) {
+                setTimeout(() => {
+                    map.invalidateSize();
+                }, 200);
+                return;
+            }
+
+            const initialLat = 30.0444;
+            const initialLng = 31.2357;
+
+            // Create Leaflet Map
+            map = L.map('onboardingMap').setView([initialLat, initialLng], 12);
+
+            // Add OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Create Draggable Marker
+            marker = L.marker([initialLat, initialLng], {
+                draggable: true
+            }).addTo(map);
+
+            // Update hidden inputs on dragend
+            marker.on('dragend', function(event) {
+                const position = marker.getLatLng();
+                $("#latitudeInput").val(position.lat.toFixed(6));
+                $("#longitudeInput").val(position.lng.toFixed(6));
+            });
+
+            // Update hidden inputs and marker position on map click
+            map.on('click', function(event) {
+                const latlng = event.latlng;
+                marker.setLatLng(latlng);
+                $("#latitudeInput").val(latlng.lat.toFixed(6));
+                $("#longitudeInput").val(latlng.lng.toFixed(6));
+            });
+
+            // Invalidate size in case of rendering glitch
+            setTimeout(() => {
+                map.invalidateSize();
+                const city = $("#citySelect").val();
+                if (city && cityCoordinates[city]) {
+                    const coords = cityCoordinates[city];
+                    map.setView(coords, 12);
+                    marker.setLatLng(coords);
+                    $("#latitudeInput").val(coords[0].toFixed(6));
+                    $("#longitudeInput").val(coords[1].toFixed(6));
+                }
+            }, 200);
+        }
+
+        function searchLocation() {
+            const query = $("#mapSearchInput").val();
+            if (!query) {
+                alert("يرجى إدخال اسم المنطقة أو الشارع للبحث.");
+                return;
+            }
+
+            $("#locationSearchSpinner").show();
+            const searchQuery = query + ", Egypt";
+
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=1`)
+                .then(response => response.json())
+                .then(data => {
+                    $("#locationSearchSpinner").hide();
+                    if (data && data.length > 0) {
+                        const lat = parseFloat(data[0].lat);
+                        const lon = parseFloat(data[0].lon);
+                        map.setView([lat, lon], 14);
+                        marker.setLatLng([lat, lon]);
+                        $("#latitudeInput").val(lat.toFixed(6));
+                        $("#longitudeInput").val(lon.toFixed(6));
+                    } else {
+                        // Retry without Egypt prefix just in case
+                        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`)
+                            .then(r => r.json())
+                            .then(d => {
+                                if (d && d.length > 0) {
+                                    const lat = parseFloat(d[0].lat);
+                                    const lon = parseFloat(d[0].lon);
+                                    map.setView([lat, lon], 14);
+                                    marker.setLatLng([lat, lon]);
+                                    $("#latitudeInput").val(lat.toFixed(6));
+                                    $("#longitudeInput").val(lon.toFixed(6));
+                                } else {
+                                    alert("لم يتم العثور على نتائج للموقع المدخل. يرجى المحاولة بصيغة أخرى.");
+                                }
+                            });
+                    }
+                })
+                .catch(error => {
+                    $("#locationSearchSpinner").hide();
+                    console.error("Geocoding error:", error);
+                    alert("حدث خطأ أثناء الاتصال بخدمة البحث.");
+                });
         }
 
         // Automatic format input masking (e.g. 123-456-789)
@@ -733,6 +974,7 @@
                 if (currentStepNum === totalSteps) {
                     $("#nextBtn span").text("تفعيل الحساب والاشتراك");
                     $("#nextBtn i").attr("class", "fas fa-check-circle");
+                    initMap();
                 } else {
                     $("#nextBtn span").text("متابعة");
                     $("#nextBtn i").attr("class", "fas fa-arrow-left");
