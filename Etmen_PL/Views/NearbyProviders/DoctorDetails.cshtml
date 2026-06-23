@@ -134,28 +134,13 @@
         overflow-y: auto;
     }
 
-    .slots-container::-webkit-scrollbar {
-        width: 5px;
-    }
-    .slots-container::-webkit-scrollbar-track {
-        background: #f8fafc;
-        border-radius: 10px;
-    }
-    .slots-container::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 10px;
-    }
-    .slots-container::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
-    }
-
     .slot-time-btn {
         width: 100%;
-        padding: 8px 4px;
+        padding: 6px 4px;
         border: 1px solid var(--border-color);
         background-color: #F8FAFC;
-        border-radius: 8px;
-        font-size: 0.8rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
         font-weight: bold;
         color: #2C3E50;
         transition: all 0.2s;
@@ -168,10 +153,10 @@
     }
 
     .slot-time-btn.active {
-        background-color: #27ae60;
+        background-color: #00E676;
         color: white;
-        border-color: #27ae60;
-        box-shadow: 0 4px 12px rgba(39, 174, 96, 0.25);
+        border-color: #00E676;
+        box-shadow: 0 4px 10px rgba(0, 230, 118, 0.2);
     }
 
     .calendar-nav-btn {
@@ -219,7 +204,8 @@
 
     <div class="row g-4">
         <!-- Right Column: Doctor Profile Info -->
-             <div class="doctor-header-card p-4 mb-4">
+        <div class="col-lg-8 col-12">
+            <div class="doctor-header-card p-4 mb-4">
                 <div class="d-flex align-items-center gap-4 flex-wrap flex-md-nowrap mb-4">
                     <!-- Profile image/avatar replacement -->
                     <div class="doctor-avatar-box flex-shrink-0" style="position: relative; overflow: hidden; border: 3px solid #fff; box-shadow: 0 8px 25px rgba(26,111,191,0.15);">
