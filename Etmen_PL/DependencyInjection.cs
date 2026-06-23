@@ -82,7 +82,12 @@ namespace Etmen_PL
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             // ═══════════════════════════════════════════════════════════════
-            // 4. BUSINESS LOGIC LAYER — ALL SERVICES
+            // 4. HTTP CONTEXT ACCESSOR (required for dynamic base URL in AuthService)
+            // ═══════════════════════════════════════════════════════════════
+            services.AddHttpContextAccessor();
+
+            // ═══════════════════════════════════════════════════════════════
+            // 5. BUSINESS LOGIC LAYER — ALL SERVICES
             // ═══════════════════════════════════════════════════════════════
 
             // Mail Services (must be registered first — other services depend on them)

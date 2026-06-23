@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 
@@ -11,7 +12,8 @@ namespace Etmen_BLL.Repositories.Services
         private readonly ILogger<AuthService> _logger;
         private readonly IEmailService _emailService;
         private readonly IBackgroundTaskQueue _taskQueue;
-        private readonly string _baseUrl;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly string _fallbackBaseUrl;
 
         public AuthService(
             UserManager<ApplicationUser> userManager,
@@ -20,15 +22,29 @@ namespace Etmen_BLL.Repositories.Services
             ILogger<AuthService> logger,
             IEmailService emailService,
             IConfiguration configuration,
-            IBackgroundTaskQueue taskQueue)
+            IBackgroundTaskQueue taskQueue,
+            IHttpContextAccessor httpContextAccessor)
         {
-            _userManager   = userManager;
-            _signInManager = signInManager;
-            _uow           = uow;
-            _logger        = logger;
-            _emailService  = emailService;
-            _baseUrl       = configuration["AppSettings:BaseUrl"] ?? "https://localhost:7001";
-            _taskQueue    = taskQueue;
+            _userManager          = userManager;
+            _signInManager        = signInManager;
+            _uow                  = uow;
+            _logger               = logger;
+            _emailService         = emailService;
+            _fallbackBaseUrl      = configuration["AppSettings:BaseUrl"] ?? "https://localhost:7001";
+            _taskQueue            = taskQueue;
+            _httpContextAccessor  = httpContextAccessor;
+        }
+
+        /// <summary>
+        /// Dynamically resolves the base URL from the current HTTP request.
+        /// Falls back to the configured value if no request context is available (e.g., background jobs).
+        /// </summary>
+        private string GetBaseUrl()
+        {
+            var request = _httpContextAccessor.HttpContext?.Request;
+            if (request != null)
+                return $"{request.Scheme}://{request.Host}";
+            return _fallbackBaseUrl;
         }
 
 
@@ -87,7 +103,7 @@ namespace Etmen_BLL.Repositories.Services
 
             // Build activation link and send email
             var encodedToken  = Uri.EscapeDataString(token);
-            var activationLink = $"{_baseUrl}/Account/VerifyEmail?userId={user.Id}&token={encodedToken}";
+            var activationLink = $"{GetBaseUrl()}/Account/VerifyEmail?userId={user.Id}&token={encodedToken}";
 
             await _taskQueue.QueueBackgroundWorkItemAsync(async token => 
                 await _emailService.SendAccountActivationEmailAsync(
@@ -127,7 +143,7 @@ namespace Etmen_BLL.Repositories.Services
 
                 // Build activation link and send email
                 var encodedToken  = Uri.EscapeDataString(token);
-                var activationLink = $"{_baseUrl}/Account/VerifyEmail?userId={user.Id}&token={encodedToken}";
+                var activationLink = $"{GetBaseUrl()}/Account/VerifyEmail?userId={user.Id}&token={encodedToken}";
 
                 // Find role
                 var userRoles = await _userManager.GetRolesAsync(user);
@@ -210,7 +226,7 @@ namespace Etmen_BLL.Repositories.Services
             // Build reset link and send email
             var encodedToken = Uri.EscapeDataString(token);
             var encodedEmail = Uri.EscapeDataString(dto.Email);
-            var resetLink    = $"{_baseUrl}/Account/ResetPassword?token={encodedToken}&email={encodedEmail}";
+            var resetLink    = $"{GetBaseUrl()}/Account/ResetPassword?token={encodedToken}&email={encodedEmail}";
             var name         = $"{user.FirstName} {user.LastName}".Trim();
 
             await _taskQueue.QueueBackgroundWorkItemAsync(async token => 
@@ -272,7 +288,7 @@ namespace Etmen_BLL.Repositories.Services
 
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var encodedToken = Uri.EscapeDataString(token);
-            var activationLink = $"{_baseUrl}/Account/VerifyEmail?userId={user.Id}&token={encodedToken}";
+            var activationLink = $"{GetBaseUrl()}/Account/VerifyEmail?userId={user.Id}&token={encodedToken}";
 
             await _taskQueue.QueueBackgroundWorkItemAsync(async token =>
                 await _emailService.SendAccountActivationEmailAsync(
