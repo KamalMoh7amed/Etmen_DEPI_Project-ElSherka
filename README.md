@@ -652,14 +652,6 @@ Etmen_DEPI_Project/
 
 ---
 
-### 🎨 الأصول البصرية والهوية البصرية للمشروع
-* **أيقونة حماية الطبيب البصرية (Landing Page Visual):**  
-  ![Doctor Shield Hero Image](file:///c:/Users/Kozmo0_2/source/repos/Etmen_DEPI_Project-ElSherka/Etmen_PL/wwwroot/images/hero_doctor_shield.png)
-  
-* **واجهة التفاعل اللوحي للطبيب والمستشفى (Modern Visual Asset):**  
-  ![Doctor Tablet Visual Asset](file:///c:/Users/Kozmo0_2/source/repos/Etmen_DEPI_Project-ElSherka/Etmen_PL/wwwroot/images/hero_doctor_tablet.png)
-
----
 
 ## ⚠️ التحديات التي واجهتنا أثناء التنفيذ
 خلال مرحلة بناء وتطوير نظام **إطمن**، واجهنا مجموعة من التحديات الهندسية والتقنية الصعبة، وتمكننا بفضل التخطيط الجيد وتوجيهات المبادرة من التغلب عليها بالكامل:
