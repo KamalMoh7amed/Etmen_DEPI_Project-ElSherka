@@ -6,13 +6,15 @@
   [![GitHub Repository](https://img.shields.io/badge/GitHub_Repository-ItcProjects--R4-black?style=for-the-badge&logo=github&logoColor=white&color=24292e)](https://github.com/ItcProjects-R4/SHR4_SWD5_S1_PROJECT3)
   [![Build Status](https://img.shields.io/badge/Build-Success-brightgreen?style=for-the-badge)](https://github.com/ItcProjects-R4/SHR4_SWD5_S1_PROJECT3)
   [![Architecture](https://img.shields.io/badge/Architecture-Clean_Architecture-red?style=for-the-badge)](https://github.com/ItcProjects-R4/SHR4_SWD5_S1_PROJECT3)
+  [![Qabilah Hackathon](https://img.shields.io/badge/🏆_هكاثون_قبيلة-مشروع_إطمن-FF6B35?style=for-the-badge)](https://qabilah.com/hackathon/255665101472799432/projects/256289137156423680)
 
 </div>
 
 > [!IMPORTANT]
+> 🏆 **صفحة المشروع على هكاثون قبيلة:** [https://qabilah.com/hackathon/255665101472799432/projects/256289137156423680](https://qabilah.com/hackathon/255665101472799432/projects/256289137156423680)  
 > 🌐 **رابط تشغيل المشروع الفعلي (Live App):** [https://etmen.runasp.net/](https://etmen.runasp.net/)  
 > 📦 **مستودع الكود البرمجي (GitHub Repository):** [https://github.com/ItcProjects-R4/SHR4_SWD5_S1_PROJECT3](https://github.com/ItcProjects-R4/SHR4_SWD5_S1_PROJECT3)  
-> *مشروع تخرج متكامل ومتميز لـ "مبادرة رواد مصر الرقمية (DEPI)" التابعة لوزارة الاتصالات وتكنولوجيا المعلومات.*
+> *مشروع تخرج متكامل ومتميز لـ "مبادرة رواد مصر الرقمية (DEPI)" التابعة لوزارة الاتصالات وتكنولوجيا المعلومات — مُقدَّم لهكاثون قبيلة.*
 
 ---
 
@@ -352,7 +354,7 @@ Etmen_DEPI_Project/
    git clone https://github.com/ItcProjects-R4/SHR4_SWD5_S1_PROJECT3.git
    ```
 2. **إعداد قاعدة البيانات:**
-   * افتح ملف [appsettings.json](file:///c:/Users/Kozmo0_2/source/repos/Etmen_DEPI_Project-ElSherka/Etmen_PL/appsettings.json) في مشروع `Etmen_PL`.
+   * افتح ملف [appsettings.json](Etmen_PL/appsettings.json) في مشروع `Etmen_PL`.
    * تم تجهيز نص اتصال افتراضي متصل بقاعدة بيانات مستضافة مسبقاً، وإذا كنت تريد تشغيلها محلياً، قم بتعديل نص الاتصال `DefaultConnection` ليناسب خادم قاعدة بيانات SQL Server الخاص بك.
 3. **تطبيق الـ Migrations وإنشاء الجداول وتجهيز البيانات (Seeding):**
    افتح واجهة الأوامر (Terminal) في مسار المشروع الرئيسي وقم بتشغيل الأمر التالي لتحديث قاعدة البيانات وتوليد الجداول تلقائياً:
@@ -687,35 +689,35 @@ Etmen_DEPI_Project/
 * **المسؤوليات والمهام التفصيلية في التطوير:**
   * **تأسيس البنية المعمارية للنظام (System Architect):** التخطيط الهندسي وتأسيس المشروع بالكامل وفق نمط (Clean Architecture) لربط وتكامل المشاريع الأربعة الأساسية، وإعداد سياق البيانات الرئيسي `EtmenDbContext` وتطبيق الـ Migrations، وإنشاء مستودعات البيانات العامة (`GenericRepository` و `UnitOfWork` و `BLLMappingProfile` عبر Mapster).
   * **المنظومة الجغرافية والخرائط الذكية التفاعلية (Geographical System):** تطوير وتكامل كافة الخرائط التفاعلية حية المصدر بالنظام، بما في ذلك خريطة تتبع سيارات الإسعاف اللحظية وجدول إحداثيات `GetActiveDispatchMap` ومزامنتها عبر الـ Hubs، وخريطة بؤر انتشار الأوبئة والأزمات (Crisis Heatmap)، وخريطة أقرب مستشفى ومقدم خدمة للمرضى (Nearby Providers Finder Map)، والمسار الجغرافي الشامل للشبكة الطبية (Telemetry Map).
-  * **مركز التحكم بالأزمات والأوبئة (Crisis Command Center):** بناء نظام مكافحة الأوبئة الوبائية بالكامل، والتحكم بالأعراض وأوزانها الطبية واحتساب معامل التفشي الجغرافي ([AdminCrisisController.cs](file:///c:/Users/Kozmo0_2/source/repos/Etmen_DEPI_Project-ElSherka/Etmen_PL/Controllers/AdminCrisisController.cs)، و `CrisisService.cs` و `CrisisRiskEngineService.cs` و `OutbreakZoneRepository`).
-  * **محرك تقييم المخاطر الصحية والفرز الذاتي (Self-Risk Engine):** تطوير الكنترولر المسؤول والخدمات وحسابات مستويات الخطورة الطبية للمرضى ([RiskAssessmentController.cs](file:///c:/Users/Kozmo0_2/source/repos/Etmen_DEPI_Project-ElSherka/Etmen_PL/Controllers/RiskAssessmentController.cs) و `RiskService.cs`).
-  * **نظام الطوارئ والاستجابة الطبية الفورية (Emergency Management):** تطوير زر الاستغاثة وتلقي البلاغات الفورية وتتبعها ([EmergencyController.cs](file:///c:/Users/Kozmo0_2/source/repos/Etmen_DEPI_Project-ElSherka/Etmen_PL/Controllers/EmergencyController.cs) و [DoctorPanicInboxController.cs](file:///c:/Users/Kozmo0_2/source/repos/Etmen_DEPI_Project-ElSherka/Etmen_PL/Controllers/DoctorPanicInboxController.cs)، وخدمات الفرز الأوتوماتيكي وتصعيد الحالات الحرجة للمستشفيات القريبة والمستعدة `CriticalCareEscalationService.cs`).
-  * **دمج الذكاء الاصطناعي وقراءة التحاليل بصریاً (AI & OCR Integration):** دمج محرك جوجل الاستشاري (`Gemini-1.5-Flash`) في المحادثات الاستشارية الطبية ([ChatbotController.cs](file:///c:/Users/Kozmo0_2/source/repos/Etmen_DEPI_Project-ElSherka/Etmen_PL/Controllers/ChatbotController.cs) و `AIChatService.cs`)، وبرمجة نظام رفع التحاليل الطبية وفك شيفرة نصوصها ومطابقتها مع الحدود الآمنة برمجياً ([LabResultsController.cs](file:///c:/Users/Kozmo0_2/source/repos/Etmen_DEPI_Project-ElSherka/Etmen_PL/Controllers/LabResultsController.cs) و `LabService.cs`).
-  * **التحكم والتقارير الإدارية (Admin Dashboards & Systems):** تطوير بوابة إحصائيات الإدارة والنشاط والـ KPIs ([AdminDashboardController.cs](file:///c:/Users/Kozmo0_2/source/repos/Etmen_DEPI_Project-ElSherka/Etmen_PL/Controllers/AdminDashboardController.cs)) وتراخيص الكيانات ([AdminProvidersController.cs](file:///c:/Users/Kozmo0_2/source/repos/Etmen_DEPI_Project-ElSherka/Etmen_PL/Controllers/AdminProvidersController.cs)) وإدارة الحسابات الطبية ([AdminUsersController.cs](file:///c:/Users/Kozmo0_2/source/repos/Etmen_DEPI_Project-ElSherka/Etmen_PL/Controllers/AdminUsersController.cs)) وتصدير تقارير الأداء الطبي في النظام بصيغة PDF وجداول إحصائية ([AdminReportsController.cs](file:///c:/Users/Kozmo0_2/source/repos/Etmen_DEPI_Project-ElSherka/Etmen_PL/Controllers/AdminReportsController.cs)).
-  * **إعداد قنوات الاتصال الحي والخدمات الخلفية المجدولة:** إنشاء الـ SignalR Hubs بالكامل (`ChatHub`, `QueueHub`, `EmergencyHub`) ونظام تنبيهات المستخدمين ([AlertsController.cs](file:///c:/Users/Kozmo0_2/source/repos/Etmen_DEPI_Project-ElSherka/Etmen_PL/Controllers/AlertsController.cs))، والـ Identity والأمان والتحقق والتسجيل ([AccountController.cs](file:///c:/Users/Kozmo0_2/source/repos/Etmen_DEPI_Project-ElSherka/Etmen_PL/Controllers/AccountController.cs)).
+  * **مركز التحكم بالأزمات والأوبئة (Crisis Command Center):** بناء نظام مكافحة الأوبئة الوبائية بالكامل، والتحكم بالأعراض وأوزانها الطبية واحتساب معامل التفشي الجغرافي ([AdminCrisisController.cs](Etmen_PL/Controllers/AdminCrisisController.cs)، و `CrisisService.cs` و `CrisisRiskEngineService.cs` و `OutbreakZoneRepository`).
+  * **محرك تقييم المخاطر الصحية والفرز الذاتي (Self-Risk Engine):** تطوير الكنترولر المسؤول والخدمات وحسابات مستويات الخطورة الطبية للمرضى ([RiskAssessmentController.cs](Etmen_PL/Controllers/RiskAssessmentController.cs) و `RiskService.cs`).
+  * **نظام الطوارئ والاستجابة الطبية الفورية (Emergency Management):** تطوير زر الاستغاثة وتلقي البلاغات الفورية وتتبعها ([EmergencyController.cs](Etmen_PL/Controllers/EmergencyController.cs) و [DoctorPanicInboxController.cs](Etmen_PL/Controllers/DoctorPanicInboxController.cs)، وخدمات الفرز الأوتوماتيكي وتصعيد الحالات الحرجة للمستشفيات القريبة والمستعدة `CriticalCareEscalationService.cs`).
+  * **دمج الذكاء الاصطناعي وقراءة التحاليل بصریاً (AI & OCR Integration):** دمج محرك جوجل الاستشاري (`Gemini-1.5-Flash`) في المحادثات الاستشارية الطبية ([ChatbotController.cs](Etmen_PL/Controllers/ChatbotController.cs) و `AIChatService.cs`)، وبرمجة نظام رفع التحاليل الطبية وفك شيفرة نصوصها ومطابقتها مع الحدود الآمنة برمجياً ([LabResultsController.cs](Etmen_PL/Controllers/LabResultsController.cs) و `LabService.cs`).
+  * **التحكم والتقارير الإدارية (Admin Dashboards & Systems):** تطوير بوابة إحصائيات الإدارة والنشاط والـ KPIs ([AdminDashboardController.cs](Etmen_PL/Controllers/AdminDashboardController.cs)) وتراخيص الكيانات ([AdminProvidersController.cs](Etmen_PL/Controllers/AdminProvidersController.cs)) وإدارة الحسابات الطبية ([AdminUsersController.cs](Etmen_PL/Controllers/AdminUsersController.cs)) وتصدير تقارير الأداء الطبي في النظام بصيغة PDF وجداول إحصائية ([AdminReportsController.cs](Etmen_PL/Controllers/AdminReportsController.cs)).
+  * **إعداد قنوات الاتصال الحي والخدمات الخلفية المجدولة:** إنشاء الـ SignalR Hubs بالكامل (`ChatHub`, `QueueHub`, `EmergencyHub`) ونظام تنبيهات المستخدمين ([AlertsController.cs](Etmen_PL/Controllers/AlertsController.cs))، والـ Identity والأمان والتحقق والتسجيل ([AccountController.cs](Etmen_PL/Controllers/AccountController.cs)).
   * **النشر والرفع والدمج (Deployment & Operations):** الإشراف على عمليات بناء الأكواد، وإدارة دمج فروع العمل، ونشر ورفع المنصة حياً على الويب لتشغيلها على رابط: [https://etmen.runasp.net/](https://etmen.runasp.net/).
 
 ### 👥 باقي أعضاء الفريق (مطورين مساعدين في بوابات الأطباء والمرضى)
 
 #### 👤 عبد الحميد أحمد عبد الحميد علي (Abdelhamid Ahmed Abdelhamid Ali)
 * **المسؤوليات والمهام التفصيلية في التطوير:**
-  * تطوير الملف الشخصي والمهني للطبيب لتسجيل بيانات الترخيص والتخصص الطبي وتفعيلها في قاعدة البيانات ([DoctorProfileController.cs](file:///c:/Users/Kozmo0_2/source/repos/Etmen_DEPI_Project-ElSherka/Etmen_PL/Controllers/DoctorProfileController.cs) والخدمة البرمجية `DoctorService.cs`).
-  * تطوير شاشات إعداد بيانات عيادات الطبيب ومواقع تواجدها الجغرافية لربطها بالحجوزات الطبية ونسب التقييمات ([DoctorClinicController.cs](file:///c:/Users/Kozmo0_2/source/repos/Etmen_DEPI_Project-ElSherka/Etmen_PL/Controllers/DoctorClinicController.cs)).
+  * تطوير الملف الشخصي والمهني للطبيب لتسجيل بيانات الترخيص والتخصص الطبي وتفعيلها في قاعدة البيانات ([DoctorProfileController.cs](Etmen_PL/Controllers/DoctorProfileController.cs) والخدمة البرمجية `DoctorService.cs`).
+  * تطوير شاشات إعداد بيانات عيادات الطبيب ومواقع تواجدها الجغرافية لربطها بالحجوزات الطبية ونسب التقييمات ([DoctorClinicController.cs](Etmen_PL/Controllers/DoctorClinicController.cs)).
 
 #### 👤 أحمد أحمد محمد محمود (ahmed ahmed mohamed mahmoud)
 * **المسؤوليات والمهام التفصيلية في التطوير:**
-  * تطوير الكنترولر المشرف على جدولة فترات عمل الطبيب المتاحة للمرضى، وإضافتها بشكل فردي أو إضافة جماعية وتوزيع الفترات الزمنية ([DoctorSlotsController.cs](file:///c:/Users/Kozmo0_2/source/repos/Etmen_DEPI_Project-ElSherka/Etmen_PL/Controllers/DoctorSlotsController.cs)).
-  * إدارة وتحديث حالات المواعيد الطبية المحجوزة لدى الأطباء (مقبول، ملغي، قيد الانتظار) وإرسال الإشعارات للطبيب ([DoctorAppointmentsController.cs](file:///c:/Users/Kozmo0_2/source/repos/Etmen_DEPI_Project-ElSherka/Etmen_PL/Controllers/DoctorAppointmentsController.cs)).
+  * تطوير الكنترولر المشرف على جدولة فترات عمل الطبيب المتاحة للمرضى، وإضافتها بشكل فردي أو إضافة جماعية وتوزيع الفترات الزمنية ([DoctorSlotsController.cs](Etmen_PL/Controllers/DoctorSlotsController.cs)).
+  * إدارة وتحديث حالات المواعيد الطبية المحجوزة لدى الأطباء (مقبول، ملغي، قيد الانتظار) وإرسال الإشعارات للطبيب ([DoctorAppointmentsController.cs](Etmen_PL/Controllers/DoctorAppointmentsController.cs)).
 
 #### 👤 عبد الرحمن رشدي حسن عبد العاطي (Abdelrahman Roshdy Hassan Abdelaty)
 * **المسؤوليات والمهام التفصيلية في التطوير:**
-  * تطوير لوحة التحكم الخاصة بالمرضى ومتابعة مؤشراتهم الصحية الحيوية وعرض الملخصات الطبية الفورية ([PatientDashboardController.cs](file:///c:/Users/Kozmo0_2/source/repos/Etmen_DEPI_Project-ElSherka/Etmen_PL/Controllers/PatientDashboardController.cs)).
-  * تطوير وتصميم شاشات الملف الطبي للمريض وإدخال قياسات الضغط والسكر والحرارة ومتابعة السجل التاريخي للعلامات الحيوية ([PatientProfileController.cs](file:///c:/Users/Kozmo0_2/source/repos/Etmen_DEPI_Project-ElSherka/Etmen_PL/Controllers/PatientProfileController.cs)).
+  * تطوير لوحة التحكم الخاصة بالمرضى ومتابعة مؤشراتهم الصحية الحيوية وعرض الملخصات الطبية الفورية ([PatientDashboardController.cs](Etmen_PL/Controllers/PatientDashboardController.cs)).
+  * تطوير وتصميم شاشات الملف الطبي للمريض وإدخال قياسات الضغط والسكر والحرارة ومتابعة السجل التاريخي للعلامات الحيوية ([PatientProfileController.cs](Etmen_PL/Controllers/PatientProfileController.cs)).
 
 #### 👤 كريم حسام يحيى عبد المنعم (Karim Hossam Yehia Abdelmoniem)
 * **المسؤوليات والمهام التفصيلية في التطوير:**
-  * تطوير بوابة حجز ومتابعة المواعيد الخاصة بالمرضى وتسهيل تصفح مقدمي الخدمة والأطباء المتاحين للحجز الفوري ([PatientAppointmentsController.cs](file:///c:/Users/Kozmo0_2/source/repos/Etmen_DEPI_Project-ElSherka/Etmen_PL/Controllers/PatientAppointmentsController.cs)).
-  * تطوير نظام ربط الحسابات العائلية وإدارة صلاحيات المتابعة وحذف أو قبول الإضافات للأقارب والمكلفين وتتبع حالاتهم الطبية الطارئة ([FamilyLinkingController.cs](file:///c:/Users/Kozmo0_2/source/repos/Etmen_DEPI_Project-ElSherka/Etmen_PL/Controllers/FamilyLinkingController.cs) و `FamilyService.cs`).
+  * تطوير بوابة حجز ومتابعة المواعيد الخاصة بالمرضى وتسهيل تصفح مقدمي الخدمة والأطباء المتاحين للحجز الفوري ([PatientAppointmentsController.cs](Etmen_PL/Controllers/PatientAppointmentsController.cs)).
+  * تطوير نظام ربط الحسابات العائلية وإدارة صلاحيات المتابعة وحذف أو قبول الإضافات للأقارب والمكلفين وتتبع حالاتهم الطبية الطارئة ([FamilyLinkingController.cs](Etmen_PL/Controllers/FamilyLinkingController.cs) و `FamilyService.cs`).
 
 ---
 
