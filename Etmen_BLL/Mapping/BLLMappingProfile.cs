@@ -19,7 +19,7 @@ namespace Etmen_BLL.Mapping
             RegisterNotificationMappings(config);
         }
 
-        // ── Patient ───────────────────────────────────────────────────────────────
+        //  Patient 
 
         private static void RegisterPatientMappings(TypeAdapterConfig config)
         {

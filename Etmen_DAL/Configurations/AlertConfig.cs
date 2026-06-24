@@ -5,7 +5,6 @@ namespace Etmen_DAL.Configurations
     {
         public void Configure(EntityTypeBuilder<Alert> builder)
         {
-            // AlertConfiguration
             builder.ToTable("Alerts");
 
             builder.HasKey(x => x.Id);
