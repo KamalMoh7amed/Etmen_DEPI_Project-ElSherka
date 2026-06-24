@@ -13,6 +13,8 @@
 > [!IMPORTANT]
 > 🏆 **صفحة المشروع على هكاثون قبيلة:** [https://qabilah.com/hackathon/255665101472799432/projects/256289137156423680](https://qabilah.com/hackathon/255665101472799432/projects/256289137156423680)  
 > 🌐 **رابط تشغيل المشروع الفعلي (Live App):** [https://etmen.runasp.net/](https://etmen.runasp.net/)  
+> 📦 **مستودع الكود البرمجي (GitHub Repository):** [https://github.com/ItcProjects-R4/SHR4_SWD5_S1_PROJECT3](https://github.com/ItcProjects-R4/SHR4_SWD5_S1_PROJECT3)  
+
 ---
 
 ## 🔐 بيانات الدخول الأولية للتجربة (Demo Credentials)
@@ -722,7 +724,6 @@ Etmen_DEPI_Project/
 تم تسجيل فيديو شرح متكامل يستعرض الفكرة النظرية للمشروع، مع عرض حي وتفصيلي لكافة الواجهات والعمليات البرمجية على النظام الفعلي (المرضى، الأطباء، المستشفيات، الإدارة، والأزمات):
 
 📺 **لمشاهدة فيديو الشرح التفصيلي للمشروع على اليوتيوب:**  
-👉 **[اضغط هنا لمشاهدة فيديو عرض مشروع إطمن (Etmen)](https://www.youtube.com/watch?v=your-video-link-here)**  
-*(ملاحظة للجنة التقييم: يرجى استبدال الرابط أعلاه بالرابط المباشر للفيديو المرفوع على يوتيوب أو جوجل درايف للوصول المباشر).*
+👉 **[اضغط هنا لمشاهدة فيديو عرض مشروع إطمن (Etmen)](https://youtu.be/mMyOvQonlpo)**
 
 ---
