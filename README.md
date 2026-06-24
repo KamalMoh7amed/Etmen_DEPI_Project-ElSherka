@@ -6,13 +6,14 @@
   [![GitHub Repository](https://img.shields.io/badge/GitHub_Repository-ItcProjects--R4-black?style=for-the-badge&logo=github&logoColor=white&color=24292e)](https://github.com/ItcProjects-R4/SHR4_SWD5_S1_PROJECT3)
   [![Build Status](https://img.shields.io/badge/Build-Success-brightgreen?style=for-the-badge)](https://github.com/ItcProjects-R4/SHR4_SWD5_S1_PROJECT3)
   [![Architecture](https://img.shields.io/badge/Architecture-Clean_Architecture-red?style=for-the-badge)](https://github.com/ItcProjects-R4/SHR4_SWD5_S1_PROJECT3)
+  [![Qabilah Hackathon](https://img.shields.io/badge/🏆_هكاثون_قبيلة-مشروع_إطمن-FF6B35?style=for-the-badge)](https://qabilah.com/hackathon/255665101472799432/projects/256289137156423680)
 
 </div>
 
 > [!IMPORTANT]
+> 🏆 **صفحة المشروع على هكاثون قبيلة:** [https://qabilah.com/hackathon/255665101472799432/projects/256289137156423680](https://qabilah.com/hackathon/255665101472799432/projects/256289137156423680)  
 > 🌐 **رابط تشغيل المشروع الفعلي (Live App):** [https://etmen.runasp.net/](https://etmen.runasp.net/)  
 > 📦 **مستودع الكود البرمجي (GitHub Repository):** [https://github.com/ItcProjects-R4/SHR4_SWD5_S1_PROJECT3](https://github.com/ItcProjects-R4/SHR4_SWD5_S1_PROJECT3)  
-> *مشروع تخرج متكامل ومتميز لـ "مبادرة رواد مصر الرقمية (DEPI)" التابعة لوزارة الاتصالات وتكنولوجيا المعلومات.*
 
 ---
 
@@ -727,5 +728,3 @@ Etmen_DEPI_Project/
 *(ملاحظة للجنة التقييم: يرجى استبدال الرابط أعلاه بالرابط المباشر للفيديو المرفوع على يوتيوب أو جوجل درايف للوصول المباشر).*
 
 ---
-> **شكر وتقدير:**  
-> يتقدم فريق عمل مشروع **إطمن** بخالص الشكر والتقدير لوزارة الاتصالات وتكنولوجيا المعلومات وإدارة مبادرة **رواد مصر الرقمية (DEPI)** وكافة السادة الموجهين والمدربين على الدعم المستمر والتوجيه التقني الراقي الذي ساهم في إخراج هذا المشروع للنور بأعلى كفاءة وجودة برمجية.
