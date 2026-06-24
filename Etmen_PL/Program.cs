@@ -5,16 +5,13 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Register application services via DependencyInjection extension method
+//   DependencyInjection 
 builder.Services.AddApplicationServices(builder.Configuration, builder.Environment);
 
 var app = builder.Build();
 
-// ═══════════════════════════════════════════════════════════════
-// MIDDLEWARE PIPELINE
-// ═══════════════════════════════════════════════════════════════
 
-// ── Error Handling ─────────────────────────────────────────────
+//  Error Handling 
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
@@ -27,34 +24,34 @@ else
 
 app.UseStatusCodePagesWithReExecute("/Home/Error", "?statusCode={0}");
 
-// ── HTTPS ──────────────────────────────────────────────────────
+//  HTTPS 
 if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
 
-// ── Static Files ───────────────────────────────────────────────
+//  Static Files 
 app.UseStaticFiles();
 
-// ── Routing ────────────────────────────────────────────────────
+//  Routing 
 app.UseRouting();
 
-// ── CORS ───────────────────────────────────────────────────────
+//  CORS 
 app.UseCors("AllowSpecificOrigin");
 
-// ── Session ────────────────────────────────────────────────────
+//  Session 
 app.UseSession();
 
-// ── Auth ───────────────────────────────────────────────────────
+//  Auth 
 app.UseAuthentication();
 app.UseAuthorization();
 
-// ── SignalR Hubs ───────────────────────────────────────────────
+//  SignalR Hubs 
 app.MapHub<Etmen_PL.Hubs.ChatHub>("/hubs/chat");
 app.MapHub<Etmen_PL.Hubs.QueueHub>("/hubs/queue");
 app.MapHub<Etmen_PL.Hubs.EmergencyHub>("/hubs/emergency");
 
-// ── Controller Routes ──────────────────────────────────────────
+//  Controller Routes 
 // Areas route (Admin, Doctor, Patient areas)
 app.MapControllerRoute(
     name: "areas",

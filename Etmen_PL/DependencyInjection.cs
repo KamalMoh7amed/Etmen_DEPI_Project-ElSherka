@@ -17,9 +17,7 @@ namespace Etmen_PL
     {
         public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment)
         {
-            // ═══════════════════════════════════════════════════════════════
             // 1. DATABASE CONTEXT
-            // ═══════════════════════════════════════════════════════════════
             services.AddDbContext<EtmenDbContext>(options =>
                 options.UseSqlServer(
                     configuration.GetConnectionString("DefaultConnection"),
@@ -31,10 +29,7 @@ namespace Etmen_PL
                     }
                 )
             );
-
-            // ═══════════════════════════════════════════════════════════════
             // 2. IDENTITY
-            // ═══════════════════════════════════════════════════════════════
             services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
                 // Password rules
@@ -59,7 +54,7 @@ namespace Etmen_PL
             .AddEntityFrameworkStores<EtmenDbContext>()
             .AddDefaultTokenProviders();
 
-            // ── Cookie authentication ──────────────────────────────────────
+            //  Cookie authentication 
             services.ConfigureApplicationCookie(options =>
             {
                 options.LoginPath = "/Account/Login";
@@ -76,19 +71,13 @@ namespace Etmen_PL
                 options.SlidingExpiration = true;
             });
 
-            // ═══════════════════════════════════════════════════════════════
             // 3. DATA ACCESS (Unit of Work)
-            // ═══════════════════════════════════════════════════════════════
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-            // ═══════════════════════════════════════════════════════════════
             // 4. HTTP CONTEXT ACCESSOR (required for dynamic base URL in AuthService)
-            // ═══════════════════════════════════════════════════════════════
             services.AddHttpContextAccessor();
 
-            // ═══════════════════════════════════════════════════════════════
             // 5. BUSINESS LOGIC LAYER — ALL SERVICES
-            // ═══════════════════════════════════════════════════════════════
 
             // Mail Services (must be registered first — other services depend on them)
             services.AddScoped<IEmailService, EmailService>();
@@ -150,18 +139,14 @@ namespace Etmen_PL
             // Admin
             services.AddScoped<IAdminService, AdminService>();
 
-            // ═══════════════════════════════════════════════════════════════
-            // 5. MAPSTER — تسجيل الـ Mapping Profiles من BLL
-            // ═══════════════════════════════════════════════════════════════
+            // 5. MAPSTER
             var mapsterConfig = TypeAdapterConfig.GlobalSettings;
-            mapsterConfig.Scan(typeof(BLLMappingProfile).Assembly);   // BLL assembly
-            mapsterConfig.Compile();                                    // Early error detection
+            mapsterConfig.Scan(typeof(BLLMappingProfile).Assembly);   
+            mapsterConfig.Compile();                                    
 
             services.AddSingleton(mapsterConfig);
 
-            // ═══════════════════════════════════════════════════════════════
             // 6. MVC
-            // ═══════════════════════════════════════════════════════════════
             services.AddControllersWithViews(options =>
             {
                 options.Filters.Add<Etmen_PL.Filters.DoctorOnboardingFilter>();
@@ -178,9 +163,7 @@ namespace Etmen_PL
             services.AddRazorPages();
             services.AddSignalR();
 
-            // ═══════════════════════════════════════════════════════════════
             // 7. SESSION
-            // ═══════════════════════════════════════════════════════════════
             services.AddDistributedMemoryCache();
             services.AddSession(options =>
             {
@@ -192,19 +175,14 @@ namespace Etmen_PL
                 options.Cookie.Name = "EtmenSession";
             });
 
-            // ═══════════════════════════════════════════════════════════════
             // 8. CACHING
-            // ═══════════════════════════════════════════════════════════════
             services.AddMemoryCache();
 
-            // ═══════════════════════════════════════════════════════════════
+         
             // 9. HTTP CLIENT (for external APIs: OCR, AI, etc.)
-            // ═══════════════════════════════════════════════════════════════
             services.AddHttpClient();
 
-            // ═══════════════════════════════════════════════════════════════
             // 10. CORS
-            // ═══════════════════════════════════════════════════════════════
             services.AddCors(options =>
             {
                 options.AddPolicy("AllowSpecificOrigin", policy =>
@@ -215,9 +193,7 @@ namespace Etmen_PL
                         .AllowCredentials());
             });
 
-            // ═══════════════════════════════════════════════════════════════
             // 11. ANTI-FORGERY
-            // ═══════════════════════════════════════════════════════════════
             services.AddAntiforgery(options =>
             {
                 options.HeaderName = "X-CSRF-TOKEN";
@@ -225,9 +201,7 @@ namespace Etmen_PL
                 options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
             });
 
-            // ═══════════════════════════════════════════════════════════════
             // 12. FILE UPLOAD LIMIT (10 MB)
-            // ═══════════════════════════════════════════════════════════════
             services.Configure<FormOptions>(options =>
             {
                 int maxMb = configuration.GetValue<int>("FileUpload:MaxFileSizeInMB", 10);

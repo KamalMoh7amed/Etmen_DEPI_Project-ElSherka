@@ -103,7 +103,7 @@ font-family: 'Tajawal', sans-serif;
         }
         .nav-logo {
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             gap: 12px;
         }
         .nav-logo-icon {
@@ -123,8 +123,11 @@ font-family: 'Tajawal', sans-serif;
         }
         .nav-logo-text span { color: var(--primary); }
 
-  
-      .nav-links {
+        .nav-mobile-actions {
+            display: none;
+        }
+
+        .nav-links {
             display: flex;
             align-items: center;
             gap: 2rem;
@@ -949,6 +952,40 @@ erflow: hidden;
             line-height: 1.8;
             margin-bottom: 2.5rem;
         }
+        /* Coming-soon app notice */
+        .coming-soon-app-notice {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: rgba(255,255,255,0.06);
+            border: 1px dashed rgba(94,234,212,0.4);
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin-top: 0.5rem;
+        }
+        .coming-soon-app-icon {
+            width: 48px; height: 48px;
+            border-radius: 12px;
+            background: rgba(16,118,110,0.25);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem;
+            color: #5eead4;
+            flex-shrink: 0;
+        }
+        .coming-soon-app-text { display: flex; flex-direction: column; gap: 4px; }
+        .coming-soon-app-label {
+            font-size: 0.82rem;
+            font-weight: 800;
+            color: #5eead4;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .coming-soon-app-text p {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.65);
+            margin-bottom: 0;
+        }
+        .coming-soon-app-text p strong { color: rgba(255,255,255,0.9); }
         .showcase-visual {
             flex: 0.8;
             display: flex;
@@ -1036,12 +1073,178 @@ erflow: hidden;
         }
 
         /* ═══════════════════════════════════════════════════
+           VIDEO SHOWCASE SECTION
+        ═══════════════════════════════════════════════════ */
+        .video-section {
+            padding: 100px 0 110px;
+            background: linear-gradient(160deg, #0f172a 0%, #0d2038 50%, #0f2a24 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        .video-section__bg-glow {
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 70% 60% at 20% 40%, rgba(16,118,110,0.18) 0%, transparent 65%),
+                radial-gradient(ellipse 60% 50% at 80% 60%, rgba(2,132,199,0.15) 0%, transparent 65%);
+            pointer-events: none;
+        }
+        .video-section .section-header { position: relative; z-index: 2; }
+        .video-section .section-tag {
+            background: rgba(16,118,110,0.25);
+            border: 1px solid rgba(16,118,110,0.5);
+            color: #5eead4;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            padding: 6px 18px;
+            border-radius: 50px;
+            display: inline-block;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+        }
+        .video-section .section-main-title {
+            color: #f1f5f9;
+            font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+            font-weight: 800;
+        }
+        .video-section .section-main-title span { color: #5eead4; }
+        .video-section .section-sub-title { color: #94a3b8; max-width: 600px; margin: 0 auto; }
+
+        /* Wrapper */
+        .video-wrapper {
+            position: relative;
+            z-index: 2;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* Card */
+        .video-card {
+            position: relative;
+            border-radius: 24px;
+            padding: 3px;                          /* glow border thickness */
+            background: linear-gradient(135deg, #10766e, #0284c7, #10766e);
+            background-size: 200% 200%;
+            animation: borderFlow 4s linear infinite;
+            box-shadow:
+                0 0 60px rgba(16,118,110,0.35),
+                0 0 120px rgba(2,132,199,0.18);
+        }
+        @@keyframes borderFlow {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Ambient glow pulse behind card */
+        .video-card__glow {
+            position: absolute;
+            inset: -30px;
+            background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(16,118,110,0.25), transparent 70%);
+            border-radius: 50%;
+            animation: glowPulse 3s ease-in-out infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+        @@keyframes glowPulse {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50%       { opacity: 1;   transform: scale(1.06); }
+        }
+
+        /* Inner dark glass surface */
+        .video-card__inner {
+            background: #0f172a;
+            border-radius: 22px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Corner accent decorations */
+        .vid-corner {
+            position: absolute;
+            width: 20px; height: 20px;
+            z-index: 5;
+            pointer-events: none;
+        }
+        .vid-corner--tl { top: 10px; right: 10px;  border-top: 2px solid #5eead4;   border-right: 2px solid #5eead4; }
+        .vid-corner--tr { top: 10px; left: 10px;   border-top: 2px solid #38bdf8;   border-left: 2px solid #38bdf8; }
+        .vid-corner--bl { bottom: 10px; right: 10px; border-bottom: 2px solid #5eead4; border-right: 2px solid #5eead4; }
+        .vid-corner--br { bottom: 10px; left: 10px;  border-bottom: 2px solid #38bdf8; border-left: 2px solid #38bdf8; }
+
+        /* 16:9 responsive iframe */
+        .video-embed-box {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%;
+            height: 0;
+        }
+        .video-embed-box iframe {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
+        /* Meta strip below video */
+        .video-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+            padding: 16px 20px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+            backdrop-filter: blur(8px);
+        }
+        .video-meta__info { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .video-meta__badge {
+            background: rgba(16,118,110,0.25);
+            border: 1px solid rgba(94,234,212,0.3);
+            color: #5eead4;
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 4px 14px;
+            border-radius: 50px;
+            white-space: nowrap;
+        }
+        .video-meta__title { color: #94a3b8; font-size: 0.9rem; }
+        .video-meta__btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #ff0000;
+            color: #fff !important;
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 8px 20px;
+            border-radius: 50px;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        .video-meta__btn:hover {
+            background: #cc0000;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255,0,0,0.3);
+        }
+
+        @@media (max-width: 576px) {
+            .video-meta { flex-direction: column; align-items: flex-start; }
+        }
+
+        /* ═══════════════════════════════════════════════════
            SERVICES GRID SECTION
         ═══════════════════════════════════════════════════ */
         .services-section {
             padding: 100px 0;
             background: #f8fafc;
         }
+
         .service-card {
             background: var(--white);
             border: 1px solid var(--border);
@@ -1140,6 +1343,57 @@ rgin-bottom: 1.5rem;
         .pricing-section {
             padding: 100px 0;
             background: var(--white);
+        }
+        /* Free first-year banner */
+        .pricing-free-banner {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 28px;
+            padding: 18px 24px;
+            background: linear-gradient(135deg, #ecfdf5, #f0f9ff);
+            border: 2px solid #10b981;
+            border-radius: 18px;
+            animation: bannerPulse 3s ease-in-out infinite;
+        }
+        @@keyframes bannerPulse {
+            0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+            50%      { box-shadow: 0 0 0 6px rgba(16,185,129,0.12); }
+        }
+        .pricing-free-banner__icon {
+            font-size: 2rem;
+            line-height: 1;
+        }
+        .pricing-free-banner__body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            text-align: right;
+        }
+        .pricing-free-banner__body strong {
+            font-size: 1.05rem;
+            color: #065f46;
+            font-weight: 800;
+        }
+        .pricing-free-banner__body span {
+            font-size: 0.88rem;
+            color: #047857;
+        }
+        .pricing-free-banner__badge {
+            background: #10b981;
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 5px 14px;
+            border-radius: 50px;
+            white-space: nowrap;
+            letter-spacing: 0.5px;
+        }
+        @@media (max-width: 576px) {
+            .pricing-free-banner { flex-direction: column; text-align: center; }
+            .pricing-free-banner__body { text-align: center; }
         }
         .pricing-card {
             background: var(--white);
@@ -1762,28 +2016,88 @@ NIMATIONS & RESPONSIVE
 
         
 @@media (max-width: 991px) {
-            .etmen-nav { padding: 0 1.5rem; position: relative; flex-wrap: wrap; }
+            .etmen-nav { padding: 0 1.5rem; }
+            .etmen-nav .btn-nav-login, 
+            .etmen-nav .btn-nav-register { 
+                display: none !important; 
+            }
             .nav-links { 
                 display: none; 
                 flex-direction: column;
-                width: 100%;
+                position: absolute;
+                top: 80px;
+                left: 0;
+                right: 0;
                 background: var(--white);
                 border-top: 1px solid var(--border);
-                padding: 1rem 0;
+                padding: 0.5rem 0;
                 gap: 0;
                 list-style: none;
                 margin: 0;
+                box-shadow: var(--shadow-lg);
+                z-index: 1001;
+            }
+            .etmen-nav.scrolled .nav-links {
+                top: 70px;
             }
             .nav-links.mobile-open { display: flex; }
             .nav-links li a {
                 display: block;
-                padding: 0.75rem 1.5rem;
+                padding: 1rem 1.5rem;
                 color: var(--text);
                 text-decoration: none;
-                font-weight: 600;
+                font-weight: 700;
                 border-bottom: 1px solid var(--border);
+                transition: all 0.2s ease;
+            }
+            .nav-links li a:hover {
+                background: var(--primary-light);
+                color: var(--primary);
+                padding-right: 2rem;
             }
             .nav-links li:last-child a { border-bottom: none; }
+            
+            .nav-mobile-actions {
+                display: flex;
+                flex-direction: column;
+                gap: 0.75rem;
+                padding: 1.5rem;
+                background: #fafafb;
+                border-top: 1px solid var(--border);
+            }
+            .btn-nav-login-mobile {
+                display: block;
+                text-align: center;
+                padding: 12px;
+                border: 2px solid var(--primary);
+                background: transparent;
+                color: var(--primary) !important;
+                border-radius: 10px;
+                font-weight: 700;
+                font-size: 0.95rem;
+                transition: all 0.25s;
+            }
+            .btn-nav-login-mobile:hover {
+                background: var(--primary-light);
+            }
+            .btn-nav-register-mobile {
+                display: block;
+                text-align: center;
+                padding: 12px;
+                background: linear-gradient(135deg, var(--primary), var(--secondary));
+                color: white !important;
+                border: none;
+                border-radius: 10px;
+                font-weight: 800;
+                font-size: 0.95rem;
+                box-shadow: 0 4px 12px rgba(16, 118, 110, 0.2);
+                transition: all 0.25s;
+            }
+            .btn-nav-register-mobile:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 16px rgba(16, 118, 110, 0.3);
+            }
+
             .nav-hamburger {
                 display: flex;
                 align-items: center;
@@ -1799,6 +2113,16 @@ NIMATIONS & RESPONSIVE
             }
             .nav-hamburger:hover { background: var(--primary-light); color: var(--primary); }
             .nav-actions { order: 3; }
+            
+            .crisis-banner {
+                padding: 8px 1rem;
+                font-size: 0.85rem;
+                gap: 0.5rem;
+            }
+            .crisis-pulse {
+                width: 10px; height: 10px;
+            }
+            
             .hero-cards-row { flex-direction: column; }
             .showcase-content { flex-direction: column; text-align: center; }
             .showcase-visual { margin-top: 2rem; }
@@ -1816,7 +2140,7 @@ NIMATIONS & RESPONSIVE
                 left: -10px;
             }
             .hero-promo-title { font-size: 1.8rem; }
-            .hero { padding-top: 130px; }
+            .hero { padding-top: 140px; }
             .section-main-title { font-size: 1.8rem; }
         }
     </style>
@@ -1841,6 +2165,12 @@ NIMATIONS & RESPONSIVE
             <li><a href="#pricing" onclick="closeMobileNav()">الباقات والاشتراكات</a></li>
             <li><a href="#articles" onclick="closeMobileNav()">النصائح والمقالات</a></li>
             <li><a href="#faqs" onclick="closeMobileNav()">الأسئلة الشائعة</a></li>
+            <li class="nav-mobile-actions">
+                <a href="/Account/Login" class="btn-nav-login-mobile">تسجيل الدخول</a>
+                <a href="/Account/Register" class="btn-nav-register-mobile">
+                    <i class="fas fa-user-plus me-1"></i> انضم الآن
+                </a>
+            </li>
         </ul>
 
         <div class="nav-actions">
@@ -1877,8 +2207,8 @@ NIMATIONS & RESPONSIVE
             <i class="fas fa-exclamation-triangle"></i>
             <strong>وضع الأزمة نشط ومفعّل:</strong>
             <span>@Model.ActiveCrisisName</span>
-            <span style="opacity:0.7;">—</span>
-            <span>اتبع الإرشادات الوقائية الواردة من المسؤولين</span>
+            <span class="d-none d-md-inline" style="opacity:0.7;">—</span>
+            <span class="d-none d-md-inline">اتبع الإرشادات الوقائية الواردة من المسؤولين</span>
         </div>
     }
 
@@ -2070,6 +2400,59 @@ NIMATIONS & RESPONSIVE
         </div>
     </section>
 
+    <!-- ═══ VIDEO SHOWCASE SECTION ══════════════════════════ -->
+    <section class="video-section" id="video-showcase">
+        <div class="video-section__bg-glow"></div>
+        <div class="container">
+            <div class="section-header" data-animate>
+                <span class="section-tag">🎬 شاهد المشروع</span>
+                <h2 class="section-main-title">فيديو الشرح التفصيلي لمنصة <span>إطمن</span></h2>
+                <p class="section-sub-title">
+                    تعرّف على كيفية عمل النظام بالكامل — من استغاثة المريض حتى وصول الإسعاف والتتبع الجغرافي الحي.
+                </p>
+            </div>
+
+            <div class="video-wrapper" data-animate>
+                <div class="video-card">
+                    <div class="video-card__glow"></div>
+                    <div class="video-card__inner">
+                        <!-- Corner accents -->
+                        <span class="vid-corner vid-corner--tl"></span>
+                        <span class="vid-corner vid-corner--tr"></span>
+                        <span class="vid-corner vid-corner--bl"></span>
+                        <span class="vid-corner vid-corner--br"></span>
+
+                        <!-- YouTube embed -->
+                        <div class="video-embed-box">
+                            <iframe
+                                id="etmen-promo-video"
+                                src="https://www.youtube.com/embed/mMyOvQonlpo?rel=0&modestbranding=1&color=white"
+                                title="فيديو شرح مشروع إطمن"
+                                frameborder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                allowfullscreen
+                                loading="lazy">
+                            </iframe>
+                        </div>
+                    </div>
+
+                    <!-- Video meta strip -->
+                    <div class="video-meta">
+                        <div class="video-meta__info">
+                            <span class="video-meta__badge"><i class="fas fa-play-circle"></i> عرض المشروع</span>
+                            <span class="video-meta__title">Etmen Platform — Demo &amp; Walkthrough</span>
+                        </div>
+                        <a href="https://youtu.be/mMyOvQonlpo"
+                           target="_blank" rel="noopener"
+                           class="video-meta__btn">
+                            <i class="fab fa-youtube"></i> شاهد على يوتيوب
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- ═══ HOW IT WORKS SECTION (4 STEPS) ══════════════════ -->
     <section class="steps-section" id="how">
         <div class="container">
@@ -2134,22 +2517,14 @@ NIMATIONS & RESPONSIVE
                         يوفر لك تطبيق إطمن واجهة متكاملة تتيح لك قراءة نتائج تحاليل المختبر ورفعها تلقائياً بتقنية OCR، 
                         وتتبع قياسات مؤشراتك الحيوية كالسكر وضغط الدم يومياً بمؤشرات بيانية دقيقة، لضمان البقاء تحت إشراف طبي آمن.
                     </p>
-                    <div class="d-flex gap-3 flex-wrap">
-                        <a href="#" class="footer-download-btn mb-0">
-                            <i class="fab fa-apple"></i>
-                            <div class="footer-download-text">
-                                <spa
-n>حمل التطبيق من</span>
-                                <strong>App Store</strong>
-                            </div>
-                        </a>
-                        <a href="#" class="footer-download-btn mb-0">
-                            <i class="fab fa-google-play"></i>
-                            <div class="footer-download-text">
-                                <span>حمل التطبيق من</span>
-                                <strong>Google Play</strong>
-                            </div>
-                        </a>
+                    <div class="coming-soon-app-notice">
+                        <div class="coming-soon-app-icon">
+                            <i class="fas fa-mobile-screen-button"></i>
+                        </div>
+                        <div class="coming-soon-app-text">
+                            <span class="coming-soon-app-label">📲 قريباً على الهواتف الذكية</span>
+                            <p>سيتم إطلاق تطبيق إطمن على <strong>App Store</strong> و<strong>Google Play</strong> قريباً — ترقّب!</p>
+                        </div>
                     </div>
                 </div>
                 <!-- Graphic Smartphone -->
@@ -2182,8 +2557,10 @@ card-body"><strong>37.2 °C</strong><br/>تاريخ الفحص: أمس 6:00 م</
         </div>
     </section>
 
+
     <!-- ═══ SERVICES SECTION (8 CORE FEATURES) ══════════════ -->
     <section class="services-section" id="services">
+
         <div class="container">
             <div class="section-header" data-animate>
                 <span class="section-tag">خدماتنا الطبية المبتكرة</span>
@@ -2328,6 +2705,14 @@ card-body"><strong>37.2 °C</strong><br/>تاريخ الفحص: أمس 6:00 م</
                 <span class="section-tag">اشتراكات إطمن</span>
                 <h2 class="section-main-title">اختر الباقة الصحية الأنسب لك ولعائلتك</h2>
                 <p class="section-sub-title">أسعار مناسبة توفر لك رعاية طبية متكاملة على مدار الساعة بدون عوائق.</p>
+                <div class="pricing-free-banner" data-animate>
+                    <span class="pricing-free-banner__icon">🎉</span>
+                    <div class="pricing-free-banner__body">
+                        <strong>التطبيق مجاناً السنة الأولى!</strong>
+                        <span>استمتع بكامل مزايا منصة إطمن بدون أي رسوم خلال السنة الأولى.</span>
+                    </div>
+                    <span class="pricing-free-banner__badge">عرض محدود</span>
+                </div>
             </div>
 
             <div class="row g-4 align-items-stretch">
