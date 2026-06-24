@@ -1036,12 +1036,178 @@ erflow: hidden;
         }
 
         /* ═══════════════════════════════════════════════════
+           VIDEO SHOWCASE SECTION
+        ═══════════════════════════════════════════════════ */
+        .video-section {
+            padding: 100px 0 110px;
+            background: linear-gradient(160deg, #0f172a 0%, #0d2038 50%, #0f2a24 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        .video-section__bg-glow {
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 70% 60% at 20% 40%, rgba(16,118,110,0.18) 0%, transparent 65%),
+                radial-gradient(ellipse 60% 50% at 80% 60%, rgba(2,132,199,0.15) 0%, transparent 65%);
+            pointer-events: none;
+        }
+        .video-section .section-header { position: relative; z-index: 2; }
+        .video-section .section-tag {
+            background: rgba(16,118,110,0.25);
+            border: 1px solid rgba(16,118,110,0.5);
+            color: #5eead4;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            padding: 6px 18px;
+            border-radius: 50px;
+            display: inline-block;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+        }
+        .video-section .section-main-title {
+            color: #f1f5f9;
+            font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+            font-weight: 800;
+        }
+        .video-section .section-main-title span { color: #5eead4; }
+        .video-section .section-sub-title { color: #94a3b8; max-width: 600px; margin: 0 auto; }
+
+        /* Wrapper */
+        .video-wrapper {
+            position: relative;
+            z-index: 2;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* Card */
+        .video-card {
+            position: relative;
+            border-radius: 24px;
+            padding: 3px;                          /* glow border thickness */
+            background: linear-gradient(135deg, #10766e, #0284c7, #10766e);
+            background-size: 200% 200%;
+            animation: borderFlow 4s linear infinite;
+            box-shadow:
+                0 0 60px rgba(16,118,110,0.35),
+                0 0 120px rgba(2,132,199,0.18);
+        }
+        @keyframes borderFlow {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Ambient glow pulse behind card */
+        .video-card__glow {
+            position: absolute;
+            inset: -30px;
+            background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(16,118,110,0.25), transparent 70%);
+            border-radius: 50%;
+            animation: glowPulse 3s ease-in-out infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+        @keyframes glowPulse {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50%       { opacity: 1;   transform: scale(1.06); }
+        }
+
+        /* Inner dark glass surface */
+        .video-card__inner {
+            background: #0f172a;
+            border-radius: 22px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Corner accent decorations */
+        .vid-corner {
+            position: absolute;
+            width: 20px; height: 20px;
+            z-index: 5;
+            pointer-events: none;
+        }
+        .vid-corner--tl { top: 10px; right: 10px;  border-top: 2px solid #5eead4;   border-right: 2px solid #5eead4; }
+        .vid-corner--tr { top: 10px; left: 10px;   border-top: 2px solid #38bdf8;   border-left: 2px solid #38bdf8; }
+        .vid-corner--bl { bottom: 10px; right: 10px; border-bottom: 2px solid #5eead4; border-right: 2px solid #5eead4; }
+        .vid-corner--br { bottom: 10px; left: 10px;  border-bottom: 2px solid #38bdf8; border-left: 2px solid #38bdf8; }
+
+        /* 16:9 responsive iframe */
+        .video-embed-box {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%;
+            height: 0;
+        }
+        .video-embed-box iframe {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
+        /* Meta strip below video */
+        .video-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+            padding: 16px 20px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+            backdrop-filter: blur(8px);
+        }
+        .video-meta__info { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .video-meta__badge {
+            background: rgba(16,118,110,0.25);
+            border: 1px solid rgba(94,234,212,0.3);
+            color: #5eead4;
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 4px 14px;
+            border-radius: 50px;
+            white-space: nowrap;
+        }
+        .video-meta__title { color: #94a3b8; font-size: 0.9rem; }
+        .video-meta__btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #ff0000;
+            color: #fff !important;
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 8px 20px;
+            border-radius: 50px;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        .video-meta__btn:hover {
+            background: #cc0000;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255,0,0,0.3);
+        }
+
+        @media (max-width: 576px) {
+            .video-meta { flex-direction: column; align-items: flex-start; }
+        }
+
+        /* ═══════════════════════════════════════════════════
            SERVICES GRID SECTION
         ═══════════════════════════════════════════════════ */
         .services-section {
             padding: 100px 0;
             background: #f8fafc;
         }
+
         .service-card {
             background: var(--white);
             border: 1px solid var(--border);
@@ -2182,8 +2348,62 @@ card-body"><strong>37.2 °C</strong><br/>تاريخ الفحص: أمس 6:00 م</
         </div>
     </section>
 
+    <!-- ═══ VIDEO SHOWCASE SECTION ══════════════════════════ -->
+    <section class="video-section" id="video-showcase">
+        <div class="video-section__bg-glow"></div>
+        <div class="container">
+            <div class="section-header" data-animate>
+                <span class="section-tag">🎬 شاهد المشروع</span>
+                <h2 class="section-main-title">فيديو الشرح التفصيلي لمنصة <span>إطمن</span></h2>
+                <p class="section-sub-title">
+                    تعرّف على كيفية عمل النظام بالكامل — من استغاثة المريض حتى وصول الإسعاف والتتبع الجغرافي الحي.
+                </p>
+            </div>
+
+            <div class="video-wrapper" data-animate>
+                <div class="video-card">
+                    <div class="video-card__glow"></div>
+                    <div class="video-card__inner">
+                        <!-- Corner accents -->
+                        <span class="vid-corner vid-corner--tl"></span>
+                        <span class="vid-corner vid-corner--tr"></span>
+                        <span class="vid-corner vid-corner--bl"></span>
+                        <span class="vid-corner vid-corner--br"></span>
+
+                        <!-- YouTube embed -->
+                        <div class="video-embed-box">
+                            <iframe
+                                id="etmen-promo-video"
+                                src="https://www.youtube.com/embed/mMyOvQonlpo?rel=0&modestbranding=1&color=white"
+                                title="فيديو شرح مشروع إطمن"
+                                frameborder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                allowfullscreen
+                                loading="lazy">
+                            </iframe>
+                        </div>
+                    </div>
+
+                    <!-- Video meta strip -->
+                    <div class="video-meta">
+                        <div class="video-meta__info">
+                            <span class="video-meta__badge"><i class="fas fa-play-circle"></i> عرض المشروع</span>
+                            <span class="video-meta__title">Etmen Platform — Demo & Walkthrough</span>
+                        </div>
+                        <a href="https://youtu.be/mMyOvQonlpo"
+                           target="_blank" rel="noopener"
+                           class="video-meta__btn">
+                            <i class="fab fa-youtube"></i> شاهد على يوتيوب
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- ═══ SERVICES SECTION (8 CORE FEATURES) ══════════════ -->
     <section class="services-section" id="services">
+
         <div class="container">
             <div class="section-header" data-animate>
                 <span class="section-tag">خدماتنا الطبية المبتكرة</span>
