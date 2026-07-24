@@ -3694,304 +3694,305 @@ ding: 10px 18px;
 
         ═══════════════════════════════════════════════════ */
 
+        /* ═══ MODERN CHATBOT WIDGET STYLES ═════════════════════ */
         .etmen-chatbot {
-
             position: fixed;
-
-            left: 30px;
-
-            bottom: 30px;
-
+            left: 25px;
+            bottom: 25px;
             z-index: 99999;
-
+            direction: rtl;
         }
 
         .chatbot-toggle {
-
-            width: 60px;
-
-            height: 60px;
-
-  
-
-          border: 0;
-
+            width: 62px;
+            height: 62px;
+            border: none;
             border-radius: 50%;
-
-            background: var(--primary);
-
-            color: #fff;
-
-            font-size: 24px;
-
-            box-shadow: 0 8px 30px rgba(16, 118, 110, 0.3);
-
+            background: linear-gradient(135deg, #0d9488, #0f766e);
+            color: #ffffff;
+            font-size: 26px;
+            box-shadow: 0 10px 25px rgba(13, 148, 136, 0.4);
             display: inline-flex;
-
             align-items: center;
-
             justify-content: center;
-
-            transition: all .25s ease;
-
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
             cursor: pointer;
-
+            position: relative;
         }
 
         .chatbot-toggle:hover {
+            transform: scale(1.08) rotate(5deg);
+            box-shadow: 0 15px 30px rgba(13, 148, 136, 0.55);
+        }
 
-            transform: translateY(-3px);
-
-            background: var(--primary-dark);
-
-            box-shadow: 0 12px 35px rgba(16, 118, 110, 0.4);
-
+        .chatbot-toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 14px;
+            height: 14px;
+            background: #22c55e;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
         }
 
         .chatbot-panel {
-
-            width: 370px;
-
-            height: 500px;
-
-            background: #fff;
-
-            border-radius: 20px;
-
+            width: 380px;
+            height: 540px;
+            background: #ffffff;
+            border-radius: 24px;
             overflow: hidden;
-
             display: none;
-
             flex-direction: column;
-
             position: absolute;
-
             left: 0;
-
             bottom: 75px;
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.2);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            animation: slideUpChat 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
 
-            box-shadow: var(--shadow-xl);
-
-            border: 1px solid var(--border);
-
+        @@keyframes slideUpChat {
+            from { opacity: 0; transform: translateY(20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         .chatbot-panel.show {
-
-      
-
-      display: flex;
-
+            display: flex;
         }
 
         .chatbot-header {
-
-            background: var(--primary);
-
-            color: #fff;
-
+            background: linear-gradient(135deg, #0d9488, #0f766e);
+            color: #ffffff;
             padding: 16px 20px;
-
             display: flex;
-
             justify-content: space-between;
-
             align-items: center;
+            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.15);
+        }
 
+        .chatbot-header-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .chatbot-avatar-circle {
+            width: 42px;
+            height: 42px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: #ffffff;
         }
 
         .chatbot-header h4 {
-
             margin: 0;
-
             font-size: 1.05rem;
-
             font-weight: 800;
-
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .chatbot-header p {
-
             margin: 2px 0 0;
+            font-size: 0.78rem;
+            color: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
 
-            font-size: .78rem;
-
-            opacity: .85;
-
+        .status-dot-green {
+            width: 8px;
+            height: 8px;
+            background: #4ade80;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 8px #4ade80;
         }
 
         .chatbot-header button {
-
-            width: 32px;
-
-            height: 32px;
-
-            border: 0;
-
-            border-radius: 8px;
-
-            background: rgba(255,255,255,.18);
-
-            color: #fff;
-
+            width: 34px;
+            height: 34px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
             cursor: pointer;
-
             display: flex;
-
             align-items: center;
-
             justify-content: center;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
 
-            font-size: 0.9rem;
-
+        .chatbot-header button:hover {
+            background: rgba(255, 255, 255, 0.35);
+            transform: rotate(90deg);
         }
 
         .chatbot-messages {
-
             flex: 1;
-
             overflow-y: auto;
-
             padding: 16px;
-
-            background: 
-
-#f8fafc;
-
+            background: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
 
         .chat-msg {
-
             display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 4px;
+            animation: fadeInMsg 0.2s ease;
+        }
 
-            margin-bottom: 12px;
-
+        @@keyframes fadeInMsg {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .chat-msg.user {
+            justify-content: flex-start;
+            flex-direction: row-reverse;
+        }
 
-            justify-content: flex-end;
+        .chat-msg-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #ccfbf1;
+            color: #0f766e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+            margin-top: 4px;
+        }
 
+        .chat-msg.user .chat-msg-icon {
+            background: #e2e8f0;
+            color: #475569;
         }
 
         .chat-bubble {
-
-            max-width: 82%;
-
-            padding: 12px 14px;
-
-            border-radius: 16px;
-
-            font-size: .92rem;
-
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 0.93rem;
             line-height: 1.6;
-
             word-break: break-word;
-
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
         }
 
         .chat-msg.bot .chat-bubble {
-
-            background: #fff;
-
-            color: var(--dark);
-
-            border: 1px solid var(--border);
-
+            background: #ffffff;
+            color: #1e293b;
+            border: 1px solid #e2e8f0;
             border-top-right-radius: 4px;
-
-            box-shadow: var(--shadow-sm);
-
         }
 
         .chat-msg.user .chat-bubble {
-
-            background: var(--primary);
-
-            color: #fff;
-
+            background: linear-gradient(135deg, #0d9488, #0f766e);
+            color: #ffffff;
             border-top-left-radius: 4px;
-
         }
 
         .chat-msg.loading .chat-bubble {
-
+            background: #ffffff;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
             font-style: italic;
-
-            color: var(--text-muted);
-
         }
 
-        .chat-bubble.arabic {
+        .chatbot-suggestions {
+            display: flex;
+            gap: 6px;
+            padding: 8px 14px;
+            background: #ffffff;
+            border-top: 1px solid #f1f5f9;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
 
-            text-align: right;
+        .chatbot-suggestions::-webkit-scrollbar {
+            height: 3px;
+        }
 
+        .suggestion-chip {
+            background: #f1f5f9;
+            color: #0f766e;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: 50px;
+            border: 1px solid #e2e8f0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .suggestion-chip:hover {
+            background: #ccfbf1;
+            border-color: #0d9488;
+            transform: translateY(-1px);
         }
 
         .chatbot-form {
-
-          
-
-  display: flex;
-
-            gap: 10px;
-
-            padding: 14px;
-
-            border-top: 1px solid var(--border);
-
-            background: #fff;
-
+            display: flex;
+            gap: 8px;
+            padding: 12px 14px;
+            border-top: 1px solid #e2e8f0;
+            background: #ffffff;
         }
 
         .chatbot-form input {
-
             flex: 1;
-
-            border: 1px solid var(--border);
-
-            border-radius: 12px;
-
-            padding: 12px 14px;
-
+            border: 1px solid #cbd5e1;
+            border-radius: 50px;
+            padding: 10px 16px;
             outline: none;
-
-            font-size: .9rem;
-
+            font-size: 0.92rem;
+            transition: all 0.2s ease;
+            background: #f8fafc;
         }
 
         .chatbot-form input:focus {
-
-            border-color: var(--primary);
-
-            box-shadow: 0 0 0 3px rgba(16, 118, 110, 0.1);
-
+            background: #ffffff;
+            border-color: #0d9488;
+            box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
         }
 
         .chatbot-form button {
-
-            width: 46px;
-
-            border: 0;
-
-            border-radius: 12px;
-
-            background: var(--primary);
-
-            color: #fff;
-
+            width: 44px;
+            height: 44px;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0d9488, #0f766e);
+            color: #ffffff;
             cursor: pointer;
-
-            display: flex; align-items: center; justify-content: center;
-
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 1rem;
-
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(13, 148, 136, 0.25);
         }
 
         .chatbot-form button:hover {
-
-            background: var(--primary-dark);
-
+            transform: scale(1.06);
+            box-shadow: 0 6px 14px rgba(13, 148, 136, 0.35);
         }
 
 
@@ -6172,495 +6173,11 @@ is Mode) -->
 
                     </a>
 
-                </div>
-
-            </div>
-
-
-
-            <hr class="footer-divider" />
-
-
-
-            <div class="footer-bottom">
-
-                <span>© 2025 إطمن — جميع الحقوق محفوظة | مشروع تخرج DEPI</span>
-
-                <div class="social-links">
-
-                    <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
-
-                    <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
-
-                    <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
-
-                </div>
-
-
-
-            </div>
-
-        </div>
-
-    </footer>
-
-
-
-    <!-- ═══ CHATBOT WIDGET Preserved & Integrations ════════ -->
-
-    <div class="etmen-chatbot">
-
-        <button type="button" class="chatbot-toggle" id="chatbotToggle" title="مساعد إطمن الصحي">
-
-            <i class="fas fa-heart-pulse"></i>
-
-        </button>
-
-
-
-        <div class="chatbot-panel" id="chatbotPanel">
-
-            <div class="chatbot-header">
-
-                <div>
-
-                    <h4>مساعد إطمن</h4>
-
-                    <p>مساعد الصحة والعافية</p>
-
-                </div>
-
-                <button type="button" id="chatbotClose" title="إغلاق">
-
-                    <i class="fas fa-xmark"></i>
-
-                </button>
-
-            </div>
-
-
-
-            <div class="chatbot-messages" id="chatbotMessages">
-
-                <div class="chat-msg bot">
-
-                    <div class="chat-bubble" dir="rtl">
-
-                        أهلاً 👋 اسألني عن التغذية، اللياقة البدنية، النوم، شرب المياه، العادات الصحية، أو نصائح للصحة النفسية.
-
-                    </div>
-
-
-
-                </div>
-
-            </div>
-
-
-
-            
-
-<form id="chatbotForm" class="chatbot-input-area">
-
-                @Html.AntiForgeryToken()
-
-                <input id="chatbotInput" type="text" maxlength="500" placeholder="اكتب سؤالك الصحي..." autocomplete="off" />
-
-                <button type="submit" title="إرسال">
-
-                    <i class="fas fa-paper-plane" style="margin: 0;"></i>
-
-                </button>
-
-            </form>
-
-
-
-        </div>
-
-    </div>
-
-
-
-    <!-- Scripts -->
-
-    
-
-<script src="~/lib/jquery/dist/jquery.min.js"></script>
-
-
-
-    
-
-<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-
-
-
-    
-
-<script src="~/js/site.js" asp-append-version="true"></script>
-
-
-
-
-
-    <script>
-
-        document.addEventListener("DOMContentLoaded", () => {
-
-            const toggle = document.getElementById("chatbotToggle");
-
-            const panel = document.getElementById("chatbotPanel");
-
-            const close = document.getElementById("chatbotClose");
-
-            const form = document.getElementById("chatbotForm");
-
-            const input = document.getElementById("chatbotInput");
-
-            const messages = document.getElementById("chatbotMessages");
-
-            const submitBtn = form?.querySelector("button[type='submit']");
-
-
-
-            // Chatbot panel toggle
-
-            toggle?.addEventListener("click", () => {
-
-                panel.classList.toggle("show");
-
-                if (panel.classList.contains("show")) {
-
-                    setTimeout(() => input.focus(), 100);
-
-                }
-
-            });
-
-
-
-            close?.addEventListener("click", () => {
-
-                panel.classList.remove("show");
-
-            });
-
-
-
-            function isArabic(text) {
-
-                return /[\u0600-\u06FF]/.test(text);
-
-            }
-
-
-
-            function formatMarkdown(text) {
-
-                return text
-
-                    .replace(/^### (.+)$/gm, '<strong style="font-size:1rem;">$1</strong>')
-
-                    .replace(/^## (.+)$/gm,  '<strong style="font-size:1.05rem;">$1</strong>')
-
-                    .replace(/^# (.+)$/gm,   '<strong style="font-size:1.1rem;">$1</strong>')
-
-                    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-
-                    .replace(/__(.+?)__/g,     '<strong>$1</strong>')
-
-                    .replace(/\*(.+?)\*/g,     '<em>$1</em>')
-
-                    .replace(/^[\*\-] (.+)$/gm, '<li>$1</li>')
-
-                    .replace(/^\d+\. (.+)$/gm,  '<li>$1</li>')
-
-                    .replace(/(<li>.*<\/li>)/gs, '<ul style="padding-right:1.2rem; margin:6px 0;">$1</ul>')
-
-                    .replace(/\n/g, '<br/>');
-
-            }
-
-
-
-            function addMessage(text, type) {
-
-                const row = document.createElement("div");
-
-                row.className = `chat-msg ${type}`;
-
-
-
-                const bubble = document.createElement("div");
-
-                bubble.className = "chat-bubble";
-
-
-
-                if (isArabic(text)) {
-
-                    bubble.setAttribute("dir", "rtl");
-
-                    bubble.classList.add("arabic");
-
-                } else {
-
-                    bubble.setAttribute("dir", "ltr");
-
-                }
-
-
-
-                if (type === "bot loading") {
-
-                    bubble.textContent = text;
-
-                } else if (type === "bot") {
-
-                    bubble.innerHTML = formatMarkdown(text);
-
-                } else {
-
-                    bubble.textContent = text;
-
-                }
-
-
-
-                row.appendChild(bubble);
-
-                messages.appendChild(row);
-
-                messages.scrollTop = messages.scrollHeight;
-
-                return row;
-
-            }
-
-
-
-            // AJAX call to bot API
-
-            form?.addEventListener("submit", async (e) => {
-
-                e.preventDefault();
-
-
-
-                const message = input.value.trim();
-
-                if (!message) return;
-
-
-
-                addMessage(message, "user");
-
-                input.value = "";
-
-
-
-                const loadingRow = addMessage("جاري الكتابة...", "bot loading");
-
-                submitBtn.disabled = true;
-
-                input.disabled = true;
-
-
-
-                const token = form.querySelector('input[name="__RequestVerificationToken"]')?.value;
-
-
-
-                try {
-
-                    const response = await fetch("/api/chatbot/Ask", {
-
-                        method: "POST",
-
-                        headers: {
-
-                            "Content-Type": "application/json",
-
-                            "X-CSRF-TOKEN": token
-
-                        },
-
-                        body: JSON.stringify({ message: message })
-
-                    });
-
-
-
-                    const data = await response.json();
-
-                    loadingRow.remove();
-
-
-
-                    if (!response.ok) {
-
-                        addMessage(data.reply || "المساعد غير متاح حالياً.", "bot");
-
-                        return;
-
-                    }
-
-
-
-                    addMessage(data.reply || "عذرًا، لم أستطع فهم سؤالك.", "bot");
-
-
-
-                } catch (error) {
-
-                    console.error("Fetch Error:", error);
-
-                    loadingRow.remove();
-
-                    addMessage("حدث خطأ ما، حاول مرة أخرى لاحقاً.", "bot");
-
-                } finally {
-
-                    submitBtn.disabled = false;
-
-                    input.disabled = false;
-
-                    input.focus();
-
-                }
-
-            });
-
-
-
-            // Sticky Navbar scroll effect
-
-            window.addEventListener('scroll', () => {
-
-                document.getElementById('mainNav').classList.toggle('scrolled', window.scrollY > 30);
-
-            });
-
-
-
-            // FAQ Accordion Toggle
-
-            const faqHeaders = document.querySelectorAll('.faq-accordion-header');
-
-            faqHeaders.forEach(header => {
-
-                header.addEventListener('click', () => {
-
-                    const item = header.parentElement;
-
-                    const isActive = item.classList.contains('active');
-
-                    
-
-                    // Close all
-
-                    document.querySelectorAll('.faq-accordion-item').forEach(el => el.classList.remove('active'));
-
-                    
-
-                    // Toggle current
-
-                    if (!isActive) {
-
-                        item.classList.add('active');
-
-                    }
-
-                });
-
-            });
-
-
-
-            // Scroll-triggered animations
-
-            const observer = new IntersectionObserver((entries) => {
-
-                entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in-view'); });
-
-            }, { threshold: 0.12 });
-
-
-
-            document.querySelectorAll('[data-animate]').forEach(el => observer.observe(el));
-
-
-
-            // Statistics Counter animation
-
-            function animateCount(el) {
-
-                const target = parseInt(el.dataset.target, 10);
-
-                const duration = 1800;
-
-                const step = target / (duration / 16);
-
-                let current = 0;
-
-                const timer = setInterval(() => {
-
-                    current = Math.min(current + step, target);
-
-                    el.textContent = Math.floor(current).toLocaleString('ar-EG');
-
-                    if (current >= target) clearInterval(timer);
-
-                }, 16);
-
-            }
-
-
-
-            const countObserver = new IntersectionObserver((entries) => {
-
-                entries.forEach(e => {
-
-                    if (e.isIntersecting) {
-
-                        animateCount(e.target);
-
-                        countObserver.unobserve(e.target);
-
-                    }
-
-                });
-
-            }, { threshold: 0.5 });
-
-
-
-            document.querySelectorAll('.count-up').forEach(el => countObserver.observe(el));
-
-        });
-
-    </script>
-
-
-
-    <script>
-
-        function toggleMobileNav() {
-
-            var links = document.getElementById('mobileNavLinks');
-
-            var icon = document.getElementById('hamburgerIcon');
-
-            links.classList.toggle('mobile-open');
-
-            icon.className = links.classList.contains('mobile-open') ? 'fas fa-times' : 'fas fa-bars';
-
-        }
-
-        function closeMobileNav() {
-
+                    function closeMobileNav() {
             document.getElementById('mobileNavLinks').classList.remove('mobile-open');
+            document.getElementById('hamburgerIcon').className = 'fas fa-bars';
+        }
+    </script>
 
     <!-- ═══ SUBSCRIPTION & ARTICLE MODALS ═════════════════════ -->
     <style>
@@ -6995,39 +6512,45 @@ is Mode) -->
             }
         };
 
-        function openSubscriptionModal(planName) {
-            document.getElementById('selectedPlanNameTitle').textContent = planName;
-            document.getElementById('pricingModalOverlay').style.display = 'flex';
-        }
+        window.openSubscriptionModal = function(planName) {
+            const titleEl = document.getElementById('selectedPlanNameTitle');
+            const modalEl = document.getElementById('pricingModalOverlay');
+            if (titleEl) titleEl.textContent = planName;
+            if (modalEl) modalEl.style.display = 'flex';
+        };
 
-        function closeSubscriptionModal() {
-            document.getElementById('pricingModalOverlay').style.display = 'none';
-        }
+        window.closeSubscriptionModal = function() {
+            const modalEl = document.getElementById('pricingModalOverlay');
+            if (modalEl) modalEl.style.display = 'none';
+        };
 
-        function openArticleModal(id) {
+        window.openArticleModal = function(id) {
             const data = articlesData[id];
             if (!data) return;
             
-            document.getElementById('articleCategoryBadge').textContent = data.category;
-            document.getElementById('articleReaderTitle').textContent = data.title;
-            document.getElementById('articleReadTime').textContent = data.readTime;
-            document.getElementById('articleReaderBody').innerHTML = data.content;
-            
-            document.getElementById('articleModalOverlay').style.display = 'flex';
-        }
+            const badgeEl = document.getElementById('articleCategoryBadge');
+            const titleEl = document.getElementById('articleReaderTitle');
+            const timeEl = document.getElementById('articleReadTime');
+            const bodyEl = document.getElementById('articleReaderBody');
+            const modalEl = document.getElementById('articleModalOverlay');
 
-        function closeArticleModal() {
-            document.getElementById('articleModalOverlay').style.display = 'none';
-        }
+            if (badgeEl) badgeEl.textContent = data.category;
+            if (titleEl) titleEl.textContent = data.title;
+            if (timeEl) timeEl.textContent = data.readTime;
+            if (bodyEl) bodyEl.innerHTML = data.content;
+            if (modalEl) modalEl.style.display = 'flex';
+        };
+
+        window.closeArticleModal = function() {
+            const modalEl = document.getElementById('articleModalOverlay');
+            if (modalEl) modalEl.style.display = 'none';
+        };
 
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
-                closeSubscriptionModal();
-                closeArticleModal();
+                window.closeSubscriptionModal();
+                window.closeArticleModal();
             }
-        });
     </script>
-
 </body>
-
 </html>
