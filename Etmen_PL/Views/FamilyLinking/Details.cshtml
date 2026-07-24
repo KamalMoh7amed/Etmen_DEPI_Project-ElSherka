@@ -1,4 +1,4 @@
-﻿@model Etmen_Domain.Entities.PatientProfile
+@model Etmen_Domain.Entities.PatientProfile
 @using Etmen_Domain.Entities
 @{
     ViewData["Title"] = "تفاصيل القريب — إطمن";
@@ -590,7 +590,7 @@
             let lng = @(Model.Longitude ?? 31.2357m);
             let map = L.map('locationMap').setView([lat, lng], 14);
 
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png', {
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
                 attribution: '&copy; OpenStreetMap contributors'
             }).addTo(map);
 

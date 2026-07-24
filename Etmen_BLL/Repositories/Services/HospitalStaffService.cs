@@ -1,4 +1,4 @@
-﻿namespace Etmen_BLL.Repositories.Services
+namespace Etmen_BLL.Repositories.Services
 {
     public sealed class HospitalStaffService : IHospitalStaffService
     {
@@ -703,6 +703,42 @@
             return ServiceResult<StaffStatsDto>.Success(stats);
         }
 
+        public async Task<ServiceResult<List<HospitalStaffQueueItemDto>>> GetAdmittedPatientsAsync(int providerId)
+        {
+            var patients = await _uow.EmergencyRequests.Table
+                .Include(e => e.PatientProfile)
+                    .ThenInclude(p => p.ApplicationUser)
+                .Where(e => e.HealthcareProviderId == providerId && e.Status == EmergencyRequestStatus.Completed)
+                .OrderByDescending(e => e.AcceptedAt)
+                .ToListAsync();
+
+            var dtos = patients.Select(MapQueueItem).ToList();
+            return ServiceResult<List<HospitalStaffQueueItemDto>>.Success(dtos);
+        }
+
+        public async Task<ServiceResult<List<StaffActivityLogDto>>> GetPatientJourneyEventsAsync(int requestId)
+        {
+            var actionPrefix = $"Request_{requestId}_Journey";
+            var logs = await _uow.StaffActivityLogs.Table
+                .Include(l => l.StaffProfile)
+                    .ThenInclude(p => p.ApplicationUser)
+                .Where(l => l.Action.StartsWith(actionPrefix))
+                .OrderBy(l => l.CreatedAt)
+                .ToListAsync();
+
+            var dtos = logs.Select(l => new StaffActivityLogDto
+            {
+                Id = l.Id,
+                StaffProfileId = l.StaffProfileId,
+                StaffName = $"{l.StaffProfile.ApplicationUser.FirstName} {l.StaffProfile.ApplicationUser.LastName}".Trim(),
+                Action = l.Action,
+                Details = l.Details,
+                CreatedAt = l.CreatedAt
+            }).ToList();
+
+            return ServiceResult<List<StaffActivityLogDto>>.Success(dtos);
+        }
+
         // ── Helper Methods ────────────────────────────────────────────────────
 
         /// <summary>
@@ -789,18 +825,28 @@
             if (string.IsNullOrWhiteSpace(dto.Status))
                 yield return "Response status is required.";
         }
-
         private static bool IsStaffActionStatus(EmergencyRequestStatus status)
             => status is EmergencyRequestStatus.Accepted
                 or EmergencyRequestStatus.Rejected
                 or EmergencyRequestStatus.Escalated
                 or EmergencyRequestStatus.Completed
-                or EmergencyRequestStatus.Cancelled;
+                or EmergencyRequestStatus.Cancelled
+                or EmergencyRequestStatus.Discharged
+                or EmergencyRequestStatus.Deceased;
 
         private static string? ValidateTransition(EmergencyRequestStatus current, EmergencyRequestStatus next, string? notes)
         {
             if (current is EmergencyRequestStatus.Completed or EmergencyRequestStatus.Cancelled)
+            {
+                if (current == EmergencyRequestStatus.Completed && (next == EmergencyRequestStatus.Discharged || next == EmergencyRequestStatus.Deceased))
+                {
+                    return null; // Completed (Admitted) can transition to Discharged or Deceased
+                }
                 return "Completed or cancelled requests cannot be changed.";
+            }
+
+            if (current is EmergencyRequestStatus.Discharged or EmergencyRequestStatus.Deceased)
+                return "Discharged or deceased requests cannot be changed.";
 
             if (current == EmergencyRequestStatus.Rejected && next != EmergencyRequestStatus.Escalated)
                 return "Rejected requests can only be escalated.";
@@ -811,6 +857,9 @@
 
             if (next == EmergencyRequestStatus.Completed && current != EmergencyRequestStatus.Accepted)
                 return "Only accepted emergency requests can be completed.";
+
+            if ((next == EmergencyRequestStatus.Discharged || next == EmergencyRequestStatus.Deceased) && current != EmergencyRequestStatus.Completed)
+                return "Only admitted (completed) patients can be discharged or declared deceased.";
 
             return null;
         }
@@ -839,6 +888,12 @@
                     {
                         provider.AvailableAmbulances = Math.Min(provider.AmbulanceCapacity ?? 4, (provider.AvailableAmbulances ?? 0) + 1);
                     }
+                    break;
+                case EmergencyRequestStatus.Discharged:
+                case EmergencyRequestStatus.Deceased:
+                    request.CompletedAt ??= DateTime.UtcNow;
+                    // Reclaim Bed automatically
+                    provider.AvailableBeds = Math.Min(provider.BedCapacity ?? 150, (provider.AvailableBeds ?? 0) + 1);
                     break;
                 case EmergencyRequestStatus.Rejected:
                 case EmergencyRequestStatus.Escalated:

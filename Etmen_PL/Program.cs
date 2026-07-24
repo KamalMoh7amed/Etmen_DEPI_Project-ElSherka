@@ -1,4 +1,4 @@
-﻿using Etmen_DAL.DbContext;
+using Etmen_DAL.DbContext;
 
 using Etmen_DAL.Seed;
 
@@ -104,6 +104,5 @@ catch (Exception ex)
     startupLogger.LogError(ex, "An error occurred during database migration/seeding.");
 
 }
-
 app.Run();
 

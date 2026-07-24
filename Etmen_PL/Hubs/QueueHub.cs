@@ -20,5 +20,15 @@ namespace Etmen_PL.Hubs
                 await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"Provider_{providerId}");
             }
         }
+
+        public async Task SendInternalChatMessage(int providerId, string senderName, string messageText)
+        {
+            await Clients.Group($"Provider_{providerId}").SendAsync("ReceiveInternalChatMessage", senderName, messageText, System.DateTime.UtcNow.AddHours(3).ToString("HH:mm"));
+        }
+
+        public async Task ActivateEmergencyCode(int providerId, string senderName, string codeName, string locationDetails)
+        {
+            await Clients.Group($"Provider_{providerId}").SendAsync("ReceiveEmergencyCode", senderName, codeName, locationDetails);
+        }
     }
 }

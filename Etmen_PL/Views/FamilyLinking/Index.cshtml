@@ -17,32 +17,33 @@
 
     <style>
         :root {
-            --primary:        #1A6FBF;
-            --primary-dark:   #0D4C8A;
-            --primary-light:  #E8F4FD;
+            --primary:        #00a8ff;
+            --primary-glow:   rgba(0, 168, 255, 0.15);
             --accent:         #00C9A7;
-            --success:        #27AE60;
-            --warning:        #F39C12;
+            --success:        #2ECC71;
+            --warning:        #F1C40F;
             --danger:         #E74C3C;
-            --dark:           #0F1923;
-            --dark-2:         #1B2A38;
-            --text:           #2C3E50;
-            --text-muted:     #7F8C8D;
-            --border:         #DDE3EC;
-            --white:          #FFFFFF;
+            --dark-bg:        #0b1319;
+            --card-bg:        rgba(18, 31, 43, 0.55);
+            --card-border:    rgba(0, 168, 255, 0.15);
+            --text-light:     #E2E8F0;
+            --text-gray:      #94A3B8;
         }
 
         body {
             font-family: 'Tajawal', sans-serif;
-            background-color: #F4F7FC;
-            color: var(--text);
+            background-color: var(--dark-bg);
+            background-image: radial-gradient(circle at 10% 20%, rgba(0, 168, 255, 0.04) 0%, transparent 40%),
+                              radial-gradient(circle at 90% 80%, rgba(0, 201, 167, 0.04) 0%, transparent 40%);
+            color: var(--text-light);
             min-height: 100vh;
         }
 
         /* ── NAVBAR ── */
         .dashboard-nav {
-            background: var(--dark);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(9, 15, 20, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--card-border);
             padding: 0.75rem 2rem;
             position: sticky;
             top: 0;
@@ -101,26 +102,30 @@
 
         /* ── SIDEBAR ── */
         .sidebar {
-            background: white;
-            border-left: 1px solid var(--border);
+            background: rgba(9, 15, 20, 0.4);
+            border-left: 1px solid var(--card-border);
             min-height: calc(100vh - 65px);
             padding: 2rem 1rem;
+            backdrop-filter: blur(10px);
         }
         .sidebar-link {
             display: flex;
             align-items: center;
             gap: 12px;
             padding: 12px 16px;
-            border-radius: 10px;
-            color: var(--text-muted);
+            border-radius: 12px;
+            color: var(--text-gray);
             text-decoration: none;
             font-weight: 600;
             margin-bottom: 0.5rem;
-            transition: all 0.2s;
+            transition: all 0.3s;
+            border: 1px solid transparent;
         }
         .sidebar-link:hover, .sidebar-link.active {
-            background: var(--primary-light);
+            background: var(--primary-glow);
             color: var(--primary);
+            border-color: rgba(0, 168, 255, 0.2);
+            box-shadow: 0 0 15px rgba(0, 168, 255, 0.08);
         }
         .sidebar-link i {
             font-size: 1.1rem;
@@ -133,66 +138,82 @@
         }
 
         .premium-card {
-            background: white;
-            border: 1px solid var(--border);
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
             border-radius: 20px;
             padding: 2rem;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            backdrop-filter: blur(12px);
             margin-bottom: 2rem;
             height: 100%;
+            transition: all 0.3s ease;
+        }
+        .premium-card:hover {
+            border-color: rgba(0, 168, 255, 0.3);
+            box-shadow: 0 12px 40px rgba(0, 168, 255, 0.15);
         }
 
         .form-label {
             font-weight: 700;
             font-size: 0.9rem;
-            color: var(--text);
+            color: var(--text-light);
             margin-bottom: 0.5rem;
         }
 
         .form-control, .form-select {
-            border: 1.5px solid var(--border);
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1.5px solid var(--card-border);
+            color: var(--text-light) !important;
             border-radius: 12px;
             padding: 12px 16px;
             font-family: 'Tajawal', sans-serif;
             font-size: 0.95rem;
-            transition: all 0.2s;
+            transition: all 0.3s;
         }
         .form-control:focus, .form-select:focus {
+            background-color: rgba(255, 255, 255, 0.05);
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px var(--primary-light);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+        .form-control::placeholder {
+            color: var(--text-gray);
+            opacity: 0.6;
         }
 
         .btn-submit {
             background: linear-gradient(135deg, var(--primary), var(--accent));
-            color: white;
+            color: #0b1319;
             border: none;
             padding: 12px 24px;
             border-radius: 12px;
-            font-weight: 700;
+            font-weight: 800;
             font-size: 0.95rem;
-            box-shadow: 0 4px 15px rgba(26, 111, 191, 0.25);
-            transition: all 0.25s;
+            box-shadow: 0 4px 15px rgba(0, 255, 204, 0.25);
+            transition: all 0.3s;
         }
         .btn-submit:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(26, 111, 191, 0.4);
+            box-shadow: 0 8px 25px rgba(0, 255, 204, 0.4);
+            color: #0b1319;
         }
 
         .badge-perm {
             font-size: 0.75rem;
-            padding: 5px 10px;
+            padding: 6px 12px;
             border-radius: 50px;
             font-weight: 600;
             display: inline-flex;
             align-items: center;
-            gap: 4px;
-            background-color: var(--primary-light);
+            gap: 6px;
+            background-color: var(--primary-glow);
             color: var(--primary);
+            border: 1px solid rgba(0, 168, 255, 0.15);
         }
         .badge-perm.inactive {
-            background-color: #F0F3F7;
-            color: var(--text-muted);
-            opacity: 0.6;
+            background-color: rgba(255, 255, 255, 0.02);
+            color: var(--text-gray);
+            border-color: rgba(255, 255, 255, 0.05);
+            opacity: 0.5;
         }
 
         .btn-danger-outline {
@@ -212,12 +233,21 @@
         }
 
         .family-item {
-            border-bottom: 1px solid #ECEFF4;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             padding: 1.5rem 0;
         }
         .family-item:last-child {
             border-bottom: none;
             padding-bottom: 0;
+        }
+        
+        .form-check-input {
+            background-color: rgba(255, 255, 255, 0.03);
+            border-color: var(--card-border);
+        }
+        .form-check-input:checked {
+            background-color: var(--primary);
+            border-color: var(--primary);
         }
     </style>
 </head>
@@ -287,7 +317,7 @@
                     <!-- Right: Invite Form -->
                     <div class="col-lg-5">
                         <div class="premium-card">
-                            <h4 class="fw-bold mb-4 text-primary"><i class="fas fa-user-plus"></i> إرسال دعوة ارتباط جديدة</h4>
+                            <h4 class="fw-bold mb-4 text-primary"><span style="color:var(--accent);">✦</span> <i class="fas fa-user-plus"></i> إرسال دعوة ارتباط جديدة</h4>
                             <p class="text-muted small mb-4">اربط حسابك بأحد أفراد عائلتك لتمكينهم من حجز مواعيد لك أو تتبع حالتك في الأزمات وحالات الاستغاثة الطبية.</p>
                             
                             <form method="post" asp-controller="FamilyLinking" asp-action="Invite">
@@ -346,7 +376,7 @@
                         @if (incoming != null && incoming.Any())
                         {
                             <div class="premium-card mb-4" style="border-right: 5px solid var(--warning);">
-                                <h4 class="fw-bold mb-4 text-warning"><i class="fas fa-user-clock"></i> طلبات ارتباط عائلي واردة</h4>
+                                <h4 class="fw-bold mb-4 text-warning"><span style="color:var(--warning);">✦</span> <i class="fas fa-user-clock"></i> طلبات ارتباط عائلي واردة</h4>
                                 <div class="d-flex flex-column">
                                     @foreach (var invite in incoming)
                                     {
@@ -363,7 +393,7 @@
                                         <div class="family-item d-flex flex-md-row flex-column justify-content-between align-items-md-center gap-3">
                                             <div>
                                                 <div class="d-flex align-items-center gap-2 mb-2">
-                                                    <span class="fw-bold fs-5 text-dark">@invite.LinkedPatientName</span>
+                                                    <span class="fw-bold fs-5 text-white">@invite.LinkedPatientName</span>
                                                     <span class="badge bg-warning text-dark">يطلب ربطك كـ: @relAr</span>
                                                 </div>
                                                 <div class="small text-muted mb-2">
@@ -396,7 +426,7 @@
                         @if (outgoing != null && outgoing.Any())
                         {
                             <div class="premium-card mb-4" style="border-right: 5px solid var(--primary);">
-                                <h4 class="fw-bold mb-4 text-primary"><i class="fas fa-paper-plane"></i> دعوات الارتباط المرسلة (قيد الانتظار)</h4>
+                                <h4 class="fw-bold mb-4 text-primary"><span style="color:var(--accent);">✦</span> <i class="fas fa-paper-plane"></i> دعوات الارتباط المرسلة (قيد الانتظار)</h4>
                                 <div class="d-flex flex-column">
                                     @foreach (var invite in outgoing)
                                     {
@@ -413,7 +443,7 @@
                                         <div class="family-item d-flex flex-md-row flex-column justify-content-between align-items-md-center gap-3">
                                             <div>
                                                 <div class="d-flex align-items-center gap-2 mb-2">
-                                                    <span class="fw-bold fs-5 text-dark">@invite.LinkedPatientName</span>
+                                                    <span class="fw-bold fs-5 text-white">@invite.LinkedPatientName</span>
                                                     <span class="badge bg-secondary">صلة القرابة: @relAr</span>
                                                     <span class="badge bg-warning-subtle text-warning fw-semibold"><i class="fas fa-clock"></i> في انتظار الرد</span>
                                                 </div>
@@ -432,7 +462,7 @@
 
                         <!-- 3. Currently Linked Family Members -->
                         <div class="premium-card">
-                            <h4 class="fw-bold mb-4 text-primary"><i class="fas fa-users-cog"></i> أفراد العائلة المرتبطين حالياً</h4>
+                            <h4 class="fw-bold mb-4 text-primary"><span style="color:var(--accent);">✦</span> <i class="fas fa-users-cog"></i> أفراد العائلة المرتبطين حالياً</h4>
 
                             @if (Model != null && Model.Any())
                             {
@@ -455,11 +485,11 @@
                                                 <div class="d-flex align-items-center gap-2 mb-2">
                                                     @if (link.IsAccepted)
                                                     {
-                                                        <a href="/FamilyLinking/Details/@link.Id" class="fw-bold fs-5 text-dark text-decoration-none" style="transition: color 0.2s;" onmouseover="this.style.color='#1A6FBF'" onmouseout="this.style.color=''"><i class="fas fa-external-link-alt me-1" style="font-size:0.85rem; opacity:0.7;"></i> @link.LinkedPatientName</a>
+                                                        <a href="/FamilyLinking/Details/@link.Id" class="fw-bold fs-5 text-white text-decoration-none" style="transition: color 0.2s;" onmouseover="this.style.color='#1A6FBF'" onmouseout="this.style.color=''"><i class="fas fa-external-link-alt me-1" style="font-size:0.85rem; opacity:0.7;"></i> @link.LinkedPatientName</a>
                                                     }
                                                     else
                                                     {
-                                                        <span class="fw-bold fs-5 text-dark">@link.LinkedPatientName</span>
+                                                        <span class="fw-bold fs-5 text-white">@link.LinkedPatientName</span>
                                                     }
                                                     <span class="badge bg-secondary">@relAr</span>
                                                     @if (link.IsAccepted)

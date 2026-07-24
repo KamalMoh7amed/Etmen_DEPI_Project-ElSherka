@@ -18,7 +18,7 @@
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
         padding: 30px;
         margin-bottom: 24px;
-        height: 100%;
+        height: auto;
     }
 
     .card-section-title {
@@ -87,9 +87,39 @@
         background: #FDE8E8;
         color: var(--danger);
     }
+
+    /* Stepper Styling */
+    .stepper-item::before {
+        content: '';
+        position: absolute;
+        left: -29px;
+        top: 26px;
+        bottom: -20px;
+        width: 2px;
+        background: rgba(255, 255, 255, 0.1);
+    }
+    .stepper-item:last-child::before {
+        display: none;
+    }
+
+    @@media print {
+        body * {
+            visibility: hidden;
+        }
+        #printableSummary, #printableSummary * {
+            visibility: visible;
+        }
+        #printableSummary {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            display: block !important;
+        }
+    }
 </style>
 
-<div class="row g-4 animate__animated animate__fadeIn">
+<div class="row g-4 animate__animated animate__fadeIn" style="direction: rtl;">
     
     <!-- Header Back link -->
     <div class="col-12 mb-2">
@@ -98,7 +128,7 @@
         </a>
     </div>
 
-    <!-- Left side: Patient details -->
+    <!-- Left side: Patient details, telemetry & journey -->
     <div class="col-lg-7">
         <div class="details-card">
             <h3 class="card-section-title">
@@ -165,8 +195,127 @@
                 <!-- Description -->
                 <div class="col-12">
                     <div class="info-label">تفاصيل الأعراض والشكوى الواردة:</div>
-                    <div class="p-3 bg-light rounded-3 border text-dark fw-600 mb-3" style="font-size: 0.9rem; line-height:        <!-- Live Patient Location Map -->
-        <div class="details-card mb-4" style="height: auto;">
+                    <div class="p-3 bg-light rounded-3 border text-dark fw-600 mb-3" style="font-size: 0.9rem; line-height: 1.6;">
+                        @(string.IsNullOrWhiteSpace(Model.Description) ? "لا توجد تفاصيل شكوى إضافية مسجلة" : Model.Description)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (Model.Status == "Accepted")
+        {
+            <!-- Simulated Ambulance Live Stream Card -->
+            <div class="details-card mt-4" style="background: #090d16; border: 1.5px solid #00f0ff; box-shadow: 0 0 20px rgba(0, 240, 255, 0.15);">
+                <h3 class="card-section-title text-white" style="border-bottom-color: rgba(0, 240, 255, 0.2);">
+                    <i class="fas fa-video text-danger animate__animated animate__flash animate__infinite"></i>
+                    البث المباشر الطبي من سيارة الإسعاف
+                </h3>
+                
+                <!-- Live Video feed box -->
+                <div class="position-relative rounded-3 overflow-hidden bg-black mb-3" style="height: 240px; border: 1px solid #1e293b;">
+                    <div class="w-100 h-100 d-flex align-items-center justify-content-center text-center text-white" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
+                        <div class="opacity-50">
+                            <i class="fas fa-camera-web fs-1 mb-2 text-info"></i>
+                            <p class="small mb-0">AMBULANCE LIVE FEED FEED-01</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Rec flashing dot overlay -->
+                    <div class="position-absolute top-0 start-0 m-3 d-flex align-items-center gap-2 bg-dark bg-opacity-75 px-2 py-1 rounded-2 text-white text-xs" style="font-size: 0.7rem;">
+                        <span class="d-inline-block bg-danger rounded-circle animate__animated animate__flash animate__infinite" style="width: 8px; height: 8px;"></span>
+                        <span>REC LIVE</span>
+                    </div>
+                    
+                    <!-- Patient vitals card overlay -->
+                    <div class="position-absolute bottom-0 end-0 m-3 p-2 bg-dark bg-opacity-80 rounded-3 text-white text-xs border border-secondary" style="font-size: 0.75rem; min-width: 140px; direction: ltr; text-align: left;">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>NIBP:</span>
+                            <span class="text-warning font-monospace" id="nibpValue">120/80</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>SPO2:</span>
+                            <span class="text-info font-monospace" id="spo2Value">98%</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>TEMP:</span>
+                            <span class="text-success font-monospace" id="tempValue">37.1°C</span>
+                        </div>
+                    </div>
+
+                    <!-- Heart rate indicator -->
+                    <div class="position-absolute bottom-0 start-0 m-3 p-2 bg-dark bg-opacity-80 rounded-3 text-white text-xs border border-secondary d-flex align-items-center gap-2" style="direction: ltr;">
+                        <i class="fas fa-heart-pulse text-danger animate__animated animate__heartBeat animate__infinite" style="font-size: 1.2rem;"></i>
+                        <div>
+                            <div style="font-size: 0.6rem; color: #94a3b8;">HR</div>
+                            <div class="fw-900 text-danger font-monospace" id="hrValue" style="font-size: 1rem;">76 bpm</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulated ECG Waveform Animation -->
+                <div class="p-3 rounded-3 bg-black border border-secondary" style="height: 100px; position: relative; overflow: hidden;">
+                    <div class="position-absolute top-0 start-0 m-2 text-success text-xs fw-bold" style="font-size: 0.7rem; z-index: 10;">ECG TELEMETRY (II)</div>
+                    
+                    <svg class="w-100 h-100" style="position: absolute; top:0; left:0;">
+                        <defs>
+                            <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                                <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#064e3b" stroke-width="0.5"/>
+                            </pattern>
+                        </defs>
+                        <rect width="100%" height="100%" fill="url(#grid)" />
+                        
+                        <path d="M 0 50 L 50 50 L 60 30 L 65 70 L 70 50 L 100 50 L 105 45 L 110 50 L 130 50 M 130 50 L 180 50 L 190 30 L 195 70 L 200 50 L 230 50 L 235 45 L 240 50 L 260 50 M 260 50 L 310 50 L 320 30 L 325 70 L 330 50 L 360 50 L 365 45 L 370 50 L 390 50" fill="none" stroke="#22c55e" stroke-width="2" style="stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: ecgWave 4s linear infinite;" />
+                    </svg>
+                </div>
+            </div>
+
+            <style>
+                @@keyframes ecgWave {
+                    to {
+                        stroke-dashoffset: 0;
+                    }
+                }
+            </style>
+
+            <script>
+                setInterval(function() {
+                    var hr = Math.floor(Math.random() * (95 - 68 + 1)) + 68;
+                    var spo2 = Math.floor(Math.random() * (100 - 94 + 1)) + 94;
+                    var sys = Math.floor(Math.random() * (135 - 110 + 1)) + 110;
+                    var dia = Math.floor(Math.random() * (88 - 72 + 1)) + 72;
+                    var temp = (Math.random() * (37.9 - 36.6) + 36.6).toFixed(1);
+
+                    var hrEl = document.getElementById("hrValue");
+                    var spo2El = document.getElementById("spo2Value");
+                    var nibpEl = document.getElementById("nibpValue");
+                    var tempEl = document.getElementById("tempValue");
+
+                    if (hrEl) hrEl.textContent = hr + " bpm";
+                    if (spo2El) spo2El.textContent = spo2 + "%";
+                    if (nibpEl) nibpEl.textContent = sys + "/" + dia;
+                    if (tempEl) tempEl.textContent = temp + "°C";
+                }, 3000);
+            </script>
+        }
+
+        <!-- Patient Journey Timeline Stepper Card -->
+        <div class="details-card mt-4">
+            <h3 class="card-section-title">
+                <i class="fas fa-shoe-prints text-secondary"></i>
+                المخطط الزمني لرحلة المريض (Patient Journey)
+            </h3>
+            
+            <div class="position-relative ps-4" style="border-left: 2px solid #e2e8f0; margin-right: 20px; direction: rtl; text-align: right;" id="patientJourneyStepper">
+                <!-- Milestones will be loaded dynamically here -->
+                <div class="text-center text-muted py-3 small">جاري تحميل السجل الزمني...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right side: Map, Decisions, refer, print -->
+    <div class="col-lg-5">
+        <!-- Live Patient Location Map -->
+        <div class="details-card" style="height: auto;">
             <h3 class="card-section-title">
                 <i class="fas fa-map-location-dot text-info"></i>
                 الموقع الجغرافي لعربة الإسعاف
@@ -223,9 +372,29 @@
 
             @if (Model.Status == "Completed")
             {
-                <div class="alert alert-success border-0 p-3 text-center rounded-3 fw-bold mb-0">
+                <div class="alert alert-success border-0 p-3 text-center rounded-3 fw-bold mb-3">
                     <i class="fas fa-circle-check me-1"></i>
                     تم وصول الحالة للمستشفى بنجاح وإغلاق الخدمة الطبية.
+                </div>
+                <button type="button" class="btn btn-outline-primary w-100 rounded-pill py-2.5 fw-800" onclick="window.print()">
+                    <i class="fas fa-print me-1"></i> طباعة ملخص الخروج الطبي (Print summary)
+                </button>
+            }
+            else if (Model.Status == "Discharged")
+            {
+                <div class="alert alert-success border-0 p-3 text-center rounded-3 fw-bold mb-3 bg-light-success text-success">
+                    <i class="fas fa-door-open me-1"></i>
+                    تم تخريج المريض والسماح له بالخروج بأمان وتوصية طبية.
+                </div>
+                <button type="button" class="btn btn-outline-primary w-100 rounded-pill py-2.5 fw-800" onclick="window.print()">
+                    <i class="fas fa-print me-1"></i> طباعة ملخص الخروج الطبي (Print summary)
+                </button>
+            }
+            else if (Model.Status == "Deceased")
+            {
+                <div class="alert alert-dark border-0 p-3 text-center rounded-3 fw-bold mb-3 bg-dark text-white">
+                    <i class="fas fa-heart-crack me-1 text-danger"></i>
+                    مريض متوفى (Deceased Patient). تم تسجيل الوفاة قانونياً وإخلاء السرير.
                 </div>
             }
             else if (Model.Status == "Rejected")
@@ -241,12 +410,13 @@
             }
             else if (Model.Status == "Accepted")
             {
-                <!-- If already accepted, show button to Complete the request (confirm arrival) -->
-                <div class="alert alert-info border-0 p-3 rounded-3 mb-3 fw-bold small text-center">
+                <!-- Accepted State -->
+                <div class="alert alert-info border-0 p-3 rounded-3 mb-3 fw-bold small text-center bg-light-info text-info">
                     <i class="fas fa-truck-medical animate__animated animate__pulse animate__infinite me-1 text-danger"></i>
                     الطلب مقبول حالياً وجاري تتبع تحرك سيارة الإسعاف.
                 </div>
-                <form asp-controller="HospitalQueue" asp-action="Respond" method="post">
+                
+                <form asp-controller="HospitalQueue" asp-action="Respond" method="post" class="mb-3">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="RequestId" value="@Model.RequestId" />
                     <input type="hidden" name="ProviderId" value="@providerId" />
@@ -254,13 +424,18 @@
                     
                     <div class="mb-3">
                         <label class="form-label small fw-800 text-muted">ملاحظات تسليم الحالة عند الوصول:</label>
-                        <textarea class="form-control" name="ResponseNotes" rows="3" placeholder="مثال: تم تسليم المريض لقسم الطوارئ بحالة مستقرة..."></textarea>
+                        <textarea class="form-control rounded-3" name="ResponseNotes" rows="3" placeholder="مثال: تم تسليم المريض لقسم الطوارئ بحالة مستقرة..."></textarea>
                     </div>
 
-                    <button type="submit" class="btn btn-success w-100 rounded-pill py-2.5 fw-800">
+                    <button type="submit" class="btn btn-success w-100 rounded-pill py-2.5 fw-800 mb-2">
                         <i class="fas fa-check-double me-1"></i> تأكيد وصول الحالة وإنهاء التتبع
                     </button>
                 </form>
+
+                <!-- Smart Referral Trigger Button -->
+                <button type="button" class="btn btn-outline-warning w-100 rounded-pill py-2.5 fw-bold" onclick="openReferralModal()">
+                    <i class="fas fa-share-from-square me-1"></i> تحويل ذكي لمستشفى أخرى (Smart Referral)
+                </button>
             }
             else
             {
@@ -273,20 +448,20 @@
                 }
 
                 <form asp-controller="HospitalQueue" asp-action="Respond" method="post" id="respondForm">
+                    @Html.AntiForgeryToken()
                     <input type="hidden" name="RequestId" value="@Model.RequestId" />
                     <input type="hidden" name="ProviderId" value="@providerId" />
                     
-                    <!-- Decision trigger field -->
                     <input type="hidden" name="Status" id="triageDecision" value="" />
 
                     <div class="decision-buttons mb-3">
                         <button type="button" class="btn-decision btn-decision-accept @(isAmbulanceUnavailable ? "disabled" : "")" 
                                 onclick="@(isAmbulanceUnavailable ? "alert('عذراً، لا يمكن القبول لعدم توفر سيارة إسعاف.')" : "selectDecision('Accepted', this)")"
                                 @(isAmbulanceUnavailable ? "disabled" : "")>
-                            <i class="fas fa-circle-check"></i> قبول الاستقبال
+                            <i class="fas fa-circle-check text-success"></i> قبول الاستقبال
                         </button>
                         <button type="button" class="btn-decision btn-decision-reject" onclick="selectDecision('Rejected', this)">
-                            <i class="fas fa-circle-xmark"></i> رفض الاستقبال
+                            <i class="fas fa-circle-xmark text-danger"></i> رفض الاستقبال
                         </button>
                     </div>
 
@@ -305,7 +480,7 @@
                     <!-- Doctor Assignment Dropdown -->
                     <div class="mb-3 d-none animate__animated animate__fadeIn" id="doctorAssignmentSection">
                         <label class="form-label small fw-800 text-muted">إسناد الحالة لطبيب طوارئ مناوب:</label>
-                        <select class="form-select" name="AssignedDoctorUserId">
+                        <select class="form-select rounded-pill" name="AssignedDoctorUserId">
                             <option value="">-- اختر طبيباً من القائمة (اختياري) --</option>
                             @if (Model.AvailableDoctors != null)
                             {
@@ -320,7 +495,7 @@
                     <!-- Notes -->
                     <div class="mb-3">
                         <label class="form-label small fw-800 text-muted">ملاحظات الاستقبال الطبي والتوجيه:</label>
-                        <textarea class="form-control" name="ResponseNotes" id="responseNotesText" rows="4" placeholder="اكتب تعليمات الاستقبال..."></textarea>
+                        <textarea class="form-control rounded-3" name="ResponseNotes" id="responseNotesText" rows="4" placeholder="اكتب تعليمات الاستقبال..."></textarea>
                     </div>
 
                     <button type="button" class="btn btn-primary w-100 rounded-pill py-2.5 fw-800" onclick="submitDecisionForm()">
@@ -328,6 +503,78 @@
                     </button>
                 </form>
             }
+        </div>
+    </div>
+</div>
+
+<!-- Smart Referral Modal -->
+<div class="modal fade" id="referralModal" tabindex="-1" aria-hidden="true" style="direction: rtl;">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark"><i class="fas fa-share-from-square text-warning me-2"></i>تحويل طبي ذكي وفوري لمستشفى مجاور</h5>
+                <button type="button" class="btn-close ms-0 me-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="small text-muted mb-3">يقوم النظام بالبحث التلقائي عن أقرب المستشفيات التي تتوفر بها أسرة شاغرة متوافقة مع حالة المريض الحالية.</p>
+                <div id="referralLoader" class="text-center py-4">
+                    <i class="fas fa-spinner fa-spin text-warning fs-3"></i>
+                    <p class="small text-muted mt-2">جاري البحث عن أسرة شاغرة قريبة...</p>
+                </div>
+                <div id="referralListContainer" class="d-none">
+                    <div class="list-group" id="nearbyProvidersList">
+                        <!-- Dynamic list from AJAX -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Printable Medical Summary -->
+<div id="printableSummary" class="d-none">
+    <div style="direction: rtl; font-family: 'Tajawal', sans-serif; padding: 40px; border: 2px solid #e2e8f0; border-radius: 12px; background: white;">
+        <div style="text-align: center; border-bottom: 2px solid #1e293b; padding-bottom: 20px; margin-bottom: 30px;">
+            <h2 style="font-weight: 800; margin: 0; color: #1e293b;">تقرير ملخص خروج ورعاية المريض</h2>
+            <p style="color: #64748b; font-size: 0.9rem; margin-top: 5px;">مستشفى الاستقبال الطبي - نظام إتمن</p>
+        </div>
+        
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid #e2e8f0; font-weight: bold; width: 30%;">اسم المريض:</td>
+                <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">@Model.PatientName</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid #e2e8f0; font-weight: bold;">رقم الهاتف:</td>
+                <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">@Model.PatientPhone</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid #e2e8f0; font-weight: bold;">نوع الطوارئ:</td>
+                <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">@Model.EmergencyType</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid #e2e8f0; font-weight: bold;">القرار الطبي النهائي:</td>
+                <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">
+                    @if (Model.Status == "Discharged") { <text>تم تخريجه بنجاح ورعايته</text> }
+                    else if (Model.Status == "Deceased") { <text>حالة وفاة مسجلة</text> }
+                    else { <text>مكتمل ومستقر</text> }
+                </td>
+            </tr>
+        </table>
+
+        @if (!string.IsNullOrEmpty(Model.ResponseNotes))
+        {
+            <div style="margin-bottom: 25px;">
+                <h4 style="font-weight: bold; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px; color: #1e293b;">الأدوية والتوصيات الطبية للمغادرة:</h4>
+                <p style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.6; color: #334155; background: #f8fafc; padding: 15px; border-radius: 8px;">
+                    @Model.ResponseNotes
+                </p>
+            </div>
+        }
+
+        <div style="margin-top: 50px; text-align: left; padding-left: 50px;">
+            <p style="font-weight: bold; margin-bottom: 40px;">توقيع الطبيب المعالج:</p>
+            <p style="border-top: 1px solid #475569; display: inline-block; width: 180px; padding-top: 5px; color: #64748b;">د. @(Model.ReferringDoctorName ?? "طبيب الوردية المناوب")</p>
         </div>
     </div>
 </div>
@@ -346,12 +593,10 @@
                     zoomControl: true
                 }).setView([lat, lng], 12);
 
-                // Use standard openstreetmap tiles for light dashboard theme
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '&copy; OpenStreetMap contributors'
                 }).addTo(map);
 
-                // Patient Pulse Marker
                 const pulsingIcon = L.divIcon({
                     className: 'custom-pulsing-marker-wrapper',
                     html: '<div style="width:14px; height:14px; border-radius:50%; background:#E74C3C; box-shadow:0 0 10px #E74C3C; position:relative;"><div style="width:26px; height:26px; border-radius:50%; position:absolute; top:-6px; left:-6px; border:2px solid #E74C3C; animation: marker-pulse 1.5s infinite ease-out;"></div></div>',
@@ -359,7 +604,6 @@
                     iconAnchor: [7, 7]
                 });
 
-                // Add CSS for pulsing marker animation inline
                 $("<style>")
                     .prop("type", "text/css")
                     .html("\
@@ -379,7 +623,6 @@
                     const hospLat = parseFloat('@ViewBag.HospitalLat');
                     const hospLng = parseFloat('@ViewBag.HospitalLng');
 
-                    // Add Hospital Marker
                     const hospitalIcon = L.divIcon({
                         className: 'hospital-marker-wrapper',
                         html: '<div style="width:16px; height:16px; border-radius:50%; background:#1A6FBF; border:3px solid #ffffff; box-shadow:0 0 10px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center; color:white;"><i class="fas fa-hospital" style="font-size:8px;"></i></div>',
@@ -390,7 +633,6 @@
                     const hospitalMarker = L.marker([hospLat, hospLng], { icon: hospitalIcon }).addTo(map)
                         .bindPopup("<div style='font-family:Tajawal,sans-serif; text-align:right; direction:rtl;'><strong>مستشفى الاستقبال</strong></div>");
 
-                    // Draw connecting route line
                     const routeLine = L.polyline([[lat, lng], [hospLat, hospLng]], {
                         color: '#1A6FBF',
                         weight: 4,
@@ -398,13 +640,11 @@
                         dashArray: '10, 10'
                     }).addTo(map);
 
-                    // Fit bounds to show both
                     const group = new L.featureGroup([patientMarker, hospitalMarker]);
                     map.fitBounds(group.getBounds().pad(0.15));
 
-                    // Calculate Distance (Haversine formula)
                     function getDistance(lat1, lon1, lat2, lon2) {
-                        const R = 6371; // Radius of the earth in km
+                        const R = 6371;
                         const dLat = (lat2 - lat1) * Math.PI / 180;
                         const dLon = (lon2 - lon1) * Math.PI / 180;
                         const a = 
@@ -412,12 +652,10 @@
                             Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
                             Math.sin(dLon/2) * Math.sin(dLon/2);
                         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-                        return R * c; // Distance in km
+                        return R * c;
                     }
 
                     const distKm = getDistance(lat, lng, hospLat, hospLng);
-                    
-                    // Assume ambulance speed 50 km/h + 2 min dispatch overhead
                     const etaMin = Math.round((distKm / 50) * 60 + 2);
 
                     document.getElementById('etaDistance').innerHTML = `<i class="fas fa-route"></i> المسافة: ${distKm.toFixed(2)} كم`;
@@ -440,7 +678,6 @@
             document.querySelectorAll('.btn-decision').forEach(btn => btn.classList.remove('active'));
             element.classList.add('active');
 
-            // Show or hide doctor assignment section
             const docSection = document.getElementById('doctorAssignmentSection');
             if (decision === 'Accepted') {
                 docSection.classList.remove('d-none');
@@ -465,5 +702,97 @@
                 document.getElementById('respondForm').submit();
             }
         }
+
+        // Smart Referral Loading
+        window.openReferralModal = function() {
+            var modal = new bootstrap.Modal(document.getElementById('referralModal'));
+            modal.show();
+
+            $("#referralLoader").removeClass("d-none");
+            $("#referralListContainer").addClass("d-none");
+
+            $.ajax({
+                url: "/HospitalQueue/GetNearbyProvidersWithBeds",
+                type: "GET",
+                success: function(res) {
+                    $("#referralLoader").addClass("d-none");
+                    if (res.success && res.data) {
+                        var html = "";
+                        res.data.forEach(function(item) {
+                            html += `<div class="list-group-item d-flex justify-content-between align-items-center p-3 border-0 border-bottom">
+                                <div>
+                                    <h6 class="fw-bold mb-1">${item.name}</h6>
+                                    <span class="badge bg-light text-dark p-1.5 rounded-3 border small">
+                                        <i class="fas fa-bed text-success me-1"></i> ${item.beds} سرير متاح
+                                    </span>
+                                    <span class="badge bg-light text-dark p-1.5 rounded-3 border small ms-2">
+                                        <i class="fas fa-route text-info me-1"></i> ${item.distance.toFixed(1)} كم
+                                    </span>
+                                </div>
+                                <form action="/HospitalQueue/ReferToProvider" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="requestId" value="@Model.RequestId" />
+                                    <input type="hidden" name="targetProviderId" value="${item.id}" />
+                                    <button type="submit" class="btn btn-sm btn-warning rounded-pill px-3 fw-bold">
+                                        تحويل فوري
+                                    </button>
+                                </form>
+                            </div>`;
+                        });
+
+                        if (res.data.length === 0) {
+                            html = `<div class="text-center py-4 text-muted">
+                                <i class="fas fa-triangle-exclamation fs-3 mb-2"></i>
+                                <p class="small mb-0">لم يتم العثور على مستشفيات قريبة تحتوي على أسرة شاغرة حالياً.</p>
+                            </div>`;
+                        }
+
+                        $("#nearbyProvidersList").html(html);
+                        $("#referralListContainer").removeClass("d-none");
+                    }
+                }
+            });
+        };
+
+        // Patient Journey Milestones Loader
+        function loadPatientJourney() {
+            $.ajax({
+                url: "/HospitalQueue/GetPatientJourneyEvents?requestId=@Model.RequestId",
+                type: "GET",
+                success: function(res) {
+                    if (res.success && res.data) {
+                        var html = "";
+                        res.data.forEach(function(item, idx) {
+                            var dateStr = new Date(item.timestamp).toLocaleTimeString("ar-EG", { hour: '2-digit', minute: '2-digit' });
+                            var isLast = idx === res.data.length - 1;
+                            var iconColor = isLast ? "bg-primary text-white" : "bg-light text-muted border";
+                            var pulseClass = isLast ? "animate__animated animate__pulse animate__infinite" : "";
+
+                            html += `<div class="position-relative stepper-item mb-4">
+                                <div class="position-absolute rounded-circle d-flex align-items-center justify-content-center ${iconColor} ${pulseClass}" style="width: 22px; height: 22px; right: -31px; top: 0; z-index: 5;">
+                                    <i class="fas fa-circle-check" style="font-size: 0.7rem;"></i>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="fw-bold text-dark" style="font-size: 0.85rem;">${item.eventName}</span>
+                                    <span class="text-muted font-monospace" style="font-size: 0.72rem;">${dateStr}</span>
+                                </div>
+                                <p class="small text-muted mb-0" style="font-size: 0.78rem;">${item.details}</p>
+                            </div>`;
+                        });
+
+                        if (res.data.length === 0) {
+                            html = `<div class="text-center text-muted py-3 small">لا يوجد سجل زمني مسجل بعد.</div>`;
+                        }
+
+                        $("#patientJourneyStepper").html(html);
+                    }
+                }
+            });
+        }
+
+        $(document).ready(function() {
+            loadPatientJourney();
+            setInterval(loadPatientJourney, 15000);
+        });
     </script>
 }
