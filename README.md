@@ -7,22 +7,20 @@
 <div align="center">
 
   [![Live Deployment](https://img.shields.io/badge/Live_App-etmen.runasp.net-blue?style=for-the-badge&logo=google-chrome&logoColor=white&color=0078D4)](https://etmen.runasp.net/)
-  [![GitHub Repository](https://img.shields.io/badge/GitHub_Repository-ItcProjects--R4-black?style=for-the-badge&logo=github&logoColor=white&color=24292e)](https://github.com/ItcProjects-R4/SHR4_SWD5_S1_PROJECT3)
   [![Build Status](https://img.shields.io/badge/Build-Success-brightgreen?style=for-the-badge)](https://github.com/ItcProjects-R4/SHR4_SWD5_S1_PROJECT3)
   [![Architecture](https://img.shields.io/badge/Architecture-Clean_Architecture-red?style=for-the-badge)](https://github.com/ItcProjects-R4/SHR4_SWD5_S1_PROJECT3)
-  
 
 </div>
 
 > [!IMPORTANT]
-  
 > 🌐 **رابط تشغيل المشروع الفعلي (Live App):** [https://etmen.runasp.net/](https://etmen.runasp.net/)  
 > 📦 **مستودع الكود البرمجي (GitHub Repository):** [https://github.com/ItcProjects-R4/SHR4_SWD5_S1_PROJECT3](https://github.com/ItcProjects-R4/SHR4_SWD5_S1_PROJECT3)  
+> *مشروع متميز مخصص لـ "مسابقة تحدي الابتكار".*
 
 ---
 
 ## 🔐 بيانات الدخول الأولية للتجربة (Demo Credentials)
-لتسهيل عملية مراجعة وتقييم النظام من قبل لجنة التحكيم بالوزارة دون الحاجة لإنشاء حسابات جديدة، تم حقن قاعدة البيانات مسبقاً (Seeding) بالحسابات التجريبية التالية لتمثيل كافة الأدوار المتكاملة في المنظومة:
+لتسهيل عملية مراجعة وتقييم النظام من قبل لجنة التحكيم دون الحاجة لإنشاء حسابات جديدة، تم حقن قاعدة البيانات مسبقاً (Seeding) بالحسابات التجريبية التالية لتمثيل كافة الأدوار المتكاملة في المنظومة:
 
 | الدور (Role) | البريد الإلكتروني (Email) | كلمة المرور (Password) | الوصف والصلاحيات (Description & Access) |
 | :--- | :--- | :--- | :--- |
@@ -47,8 +45,7 @@
 11. [📸 لقطات وصور من المشروع](#-لقطات-وصور-من-المشروع)
 12. [⚠️ التحديات التي واجهتنا أثناء التنفيذ](#%EF%B8%8F-التحديات-التي-واجهتنا-أثناء-التنفيذ)
 13. [🔮 الأفكار والتطويرات المستقبلية](#-الأفكار-والتطويرات-المستقبلية)
-14. [👥 أعضاء الفريق وتوزيع المهام](#-أعضاء-الفريق-وتوزيع-المهام)
-15. [🎥 رابط فيديو الشرح التفصيلي](#-رابط-فيديو-الشرح-التفصيلي)
+14. [🎥 رابط فيديو الشرح التفصيلي](#-رابط-فيديو-الشرح-التفصيلي)
 
 ---
 
@@ -690,45 +687,6 @@ Etmen_DEPI_Project/
 
 ---
 
-## 👥 أعضاء الفريق وتوزيع المهام
-يتكون فريق العمل من خمسة مطورين متميزين من خريجي مبادرة DEPI. وقد تم تقسيم العمل وتوزيع المهام كالتالي:
-
-### 🥇 كمال محمد صابر (Kamal Mohamed Saber) - قائد المشروع ومعماري النظام والمسؤول عن الأزمات والطوارئ والذكاء الاصطناعي والخرائط التفاعلية (Project Lead & System Architect)
-* **المسؤوليات والمهام التفصيلية في التطوير:**
-  * **تأسيس البنية المعمارية للنظام (System Architect):** التخطيط الهندسي وتأسيس المشروع بالكامل وفق نمط (Clean Architecture) لربط وتكامل المشاريع الأربعة الأساسية، وإعداد سياق البيانات الرئيسي `EtmenDbContext` وتطبيق الـ Migrations، وإنشاء مستودعات البيانات العامة (`GenericRepository` و `UnitOfWork` و `BLLMappingProfile` عبر Mapster).
-  * **المنظومة الجغرافية والخرائط الذكية التفاعلية (Geographical System):** تطوير وتكامل كافة الخرائط التفاعلية حية المصدر بالنظام، بما في ذلك خريطة تتبع سيارات الإسعاف اللحظية وجدول إحداثيات `GetActiveDispatchMap` ومزامنتها عبر الـ Hubs، وخريطة بؤر انتشار الأوبئة والأزمات (Crisis Heatmap)، وخريطة أقرب مستشفى ومقدم خدمة للمرضى (Nearby Providers Finder Map)، والمسار الجغرافي الشامل للشبكة الطبية (Telemetry Map).
-  * **مركز التحكم بالأزمات والأوبئة (Crisis Command Center):** بناء نظام مكافحة الأوبئة الوبائية بالكامل، والتحكم بالأعراض وأوزانها الطبية واحتساب معامل التفشي الجغرافي ([AdminCrisisController.cs](Etmen_PL/Controllers/AdminCrisisController.cs)، و `CrisisService.cs` و `CrisisRiskEngineService.cs` و `OutbreakZoneRepository`).
-  * **محرك تقييم المخاطر الصحية والفرز الذاتي (Self-Risk Engine):** تطوير الكنترولر المسؤول والخدمات وحسابات مستويات الخطورة الطبية للمرضى ([RiskAssessmentController.cs](Etmen_PL/Controllers/RiskAssessmentController.cs) و `RiskService.cs`).
-  * **نظام الطوارئ والاستجابة الطبية الفورية (Emergency Management):** تطوير زر الاستغاثة وتلقي البلاغات الفورية وتتبعها ([EmergencyController.cs](Etmen_PL/Controllers/EmergencyController.cs) و [DoctorPanicInboxController.cs](Etmen_PL/Controllers/DoctorPanicInboxController.cs)، وخدمات الفرز الأوتوماتيكي وتصعيد الحالات الحرجة للمستشفيات القريبة والمستعدة `CriticalCareEscalationService.cs`).
-  * **دمج الذكاء الاصطناعي وقراءة التحاليل بصریاً (AI & OCR Integration):** دمج محرك جوجل الاستشاري (`Gemini-1.5-Flash`) في المحادثات الاستشارية الطبية ([ChatbotController.cs](Etmen_PL/Controllers/ChatbotController.cs) و `AIChatService.cs`)، وبرمجة نظام رفع التحاليل الطبية وفك شيفرة نصوصها ومطابقتها مع الحدود الآمنة برمجياً ([LabResultsController.cs](Etmen_PL/Controllers/LabResultsController.cs) و `LabService.cs`).
-  * **التحكم والتقارير الإدارية (Admin Dashboards & Systems):** تطوير بوابة إحصائيات الإدارة والنشاط والـ KPIs ([AdminDashboardController.cs](Etmen_PL/Controllers/AdminDashboardController.cs)) وتراخيص الكيانات ([AdminProvidersController.cs](Etmen_PL/Controllers/AdminProvidersController.cs)) وإدارة الحسابات الطبية ([AdminUsersController.cs](Etmen_PL/Controllers/AdminUsersController.cs)) وتصدير تقارير الأداء الطبي في النظام بصيغة PDF وجداول إحصائية ([AdminReportsController.cs](Etmen_PL/Controllers/AdminReportsController.cs)).
-  * **إعداد قنوات الاتصال الحي والخدمات الخلفية المجدولة:** إنشاء الـ SignalR Hubs بالكامل (`ChatHub`, `QueueHub`, `EmergencyHub`) ونظام تنبيهات المستخدمين ([AlertsController.cs](Etmen_PL/Controllers/AlertsController.cs))، والـ Identity والأمان والتحقق والتسجيل ([AccountController.cs](Etmen_PL/Controllers/AccountController.cs)).
-  * **النشر والرفع والدمج (Deployment & Operations):** الإشراف على عمليات بناء الأكواد، وإدارة دمج فروع العمل، ونشر ورفع المنصة حياً على الويب لتشغيلها على رابط: [https://etmen.runasp.net/](https://etmen.runasp.net/).
-
-### 👥 باقي أعضاء الفريق (مطورين مساعدين في بوابات الأطباء والمرضى)
-
-#### 👤 عبد الحميد أحمد عبد الحميد علي (Abdelhamid Ahmed Abdelhamid Ali)
-* **المسؤوليات والمهام التفصيلية في التطوير:**
-  * تطوير الملف الشخصي والمهني للطبيب لتسجيل بيانات الترخيص والتخصص الطبي وتفعيلها في قاعدة البيانات ([DoctorProfileController.cs](Etmen_PL/Controllers/DoctorProfileController.cs) والخدمة البرمجية `DoctorService.cs`).
-  * تطوير شاشات إعداد بيانات عيادات الطبيب ومواقع تواجدها الجغرافية لربطها بالحجوزات الطبية ونسب التقييمات ([DoctorClinicController.cs](Etmen_PL/Controllers/DoctorClinicController.cs)).
-
-#### 👤 أحمد أحمد محمد محمود (ahmed ahmed mohamed mahmoud)
-* **المسؤوليات والمهام التفصيلية في التطوير:**
-  * تطوير الكنترولر المشرف على جدولة فترات عمل الطبيب المتاحة للمرضى، وإضافتها بشكل فردي أو إضافة جماعية وتوزيع الفترات الزمنية ([DoctorSlotsController.cs](Etmen_PL/Controllers/DoctorSlotsController.cs)).
-  * إدارة وتحديث حالات المواعيد الطبية المحجوزة لدى الأطباء (مقبول، ملغي، قيد الانتظار) وإرسال الإشعارات للطبيب ([DoctorAppointmentsController.cs](Etmen_PL/Controllers/DoctorAppointmentsController.cs)).
-
-#### 👤 عبد الرحمن رشدي حسن عبد العاطي (Abdelrahman Roshdy Hassan Abdelaty)
-* **المسؤوليات والمهام التفصيلية في التطوير:**
-  * تطوير لوحة التحكم الخاصة بالمرضى ومتابعة مؤشراتهم الصحية الحيوية وعرض الملخصات الطبية الفورية ([PatientDashboardController.cs](Etmen_PL/Controllers/PatientDashboardController.cs)).
-  * تطوير وتصميم شاشات الملف الطبي للمريض وإدخال قياسات الضغط والسكر والحرارة ومتابعة السجل التاريخي للعلامات الحيوية ([PatientProfileController.cs](Etmen_PL/Controllers/PatientProfileController.cs)).
-
-#### 👤 كريم حسام يحيى عبد المنعم (Karim Hossam Yehia Abdelmoniem)
-* **المسؤوليات والمهام التفصيلية في التطوير:**
-  * تطوير بوابة حجز ومتابعة المواعيد الخاصة بالمرضى وتسهيل تصفح مقدمي الخدمة والأطباء المتاحين للحجز الفوري ([PatientAppointmentsController.cs](Etmen_PL/Controllers/PatientAppointmentsController.cs)).
-  * تطوير نظام ربط الحسابات العائلية وإدارة صلاحيات المتابعة وحذف أو قبول الإضافات للأقارب والمكلفين وتتبع حالاتهم الطبية الطارئة ([FamilyLinkingController.cs](Etmen_PL/Controllers/FamilyLinkingController.cs) و `FamilyService.cs`).
-
----
-
 ## 🎥 رابط فيديو الشرح التفصيلي
 تم تسجيل فيديو شرح متكامل يستعرض الفكرة النظرية للمشروع، مع عرض حي وتفصيلي لكافة الواجهات والعمليات البرمجية على النظام الفعلي (المرضى، الأطباء، المستشفيات، الإدارة، والأزمات):
 
@@ -737,3 +695,5 @@ Etmen_DEPI_Project/
 *(ملاحظة للجنة التقييم: يرجى استبدال الرابط أعلاه بالرابط المباشر للفيديو المرفوع على يوتيوب أو جوجل درايف للوصول المباشر).*
 
 ---
+> **شكر وتقدير:**  
+> يتقدم فريق عمل مشروع **إطمن** بخالص الشكر والتقدير للقائمين على **مسابقة تحدي الابتكار** وكافة السادة الموجهين والمدربين على الدعم المستمر والتوجيه التقني الراقي الذي ساهم في إخراج هذا المشروع للنور بأعلى كفاءة وجودة برمجية.
