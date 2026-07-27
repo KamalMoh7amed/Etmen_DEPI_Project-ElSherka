@@ -1,4 +1,4 @@
-﻿@model Etmen_PL.Models.ViewModels.Admin.AdminDashboardViewModel
+@model Etmen_PL.Models.ViewModels.Admin.AdminDashboardViewModel
 @{
     Layout = null;
 }
@@ -14,7 +14,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.rtl.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <style>
+        .leaflet-container {
+            direction: ltr !important;
+        }
         :root {
             /* Light Theme Palette (WellNest) */
             --light-bg: #F4F7F9;
@@ -554,21 +558,41 @@
             }
         }
         #liveAlertBanner {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 100000;
-            width: 90%;
-            max-width: 800px;
-            border-radius: 12px;
-            border: 2px solid white;
-            padding: 12px 24px !important;
-            box-shadow: 0 10px 35px rgba(220, 53, 69, 0.5);
-            animation: bannerPulse 2s infinite;
-            font-size: 0.9rem;
-            font-weight: bold;
-            color: white;
+            position: relative;
+            width: 100%;
+            background: linear-gradient(135deg, #991b1b 0%, #dc2626 50%, #7f1d1d 100%);
+            color: #ffffff;
+            border-bottom: 2px solid rgba(239, 68, 68, 0.5);
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.2);
+            padding: 10px 20px !important;
+            font-size: 0.88rem;
+            font-weight: 700;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        #liveAlertBanner .banner-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            text-align: center;
+        }
+        #dangerGovNames {
+            background: #ffffff;
+            color: #b91c1c;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 0.85rem;
+            display: inline-block;
+            max-width: 100%;
+            white-space: normal;
+            word-break: break-word;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(220, 53, 69, 0.3);
         }
         /* Responsive optimizations for mobile screens */
         @@media (max-width: 767.98px) {
@@ -627,14 +651,16 @@
             <i class="fas fa-exclamation-triangle me-1"></i> @TempData["Error"]
         </div>
     }
-    <!-- Top Live Alert Banner -->
-    <div id="liveAlertBanner" class="bg-danger text-white text-center fw-bold" style="display: none;">
-        <span class="d-flex align-items-center justify-content-center gap-2 flex-wrap">
-            <i class="fas fa-triangle-exclamation animate__animated animate__swing animate__infinite me-1"></i>
-            تحذير صحي عاجل: تم رصد مستوى (خطر مرتفع جداً) في المحافظات التالية: 
-            <span id="dangerGovNames" class="badge bg-white text-danger px-2 py-1" style="font-size:0.85rem; font-weight:800;"></span>
-            - يرجى توجيه عربات الإسعاف وتفعيل فرز الطوارئ فوراً.
-        </span>
+    <!-- Top Live Alert Banner (Positioned statically at top of page) -->
+    <div id="liveAlertBanner" style="display: none;">
+        <div class="banner-container">
+            <span class="d-inline-flex align-items-center gap-2">
+                <i class="fas fa-triangle-exclamation animate__animated animate__pulse animate__infinite" style="color: #fbbf24; font-size: 1.1rem;"></i>
+                <strong style="color: #fef08a;">تحذير صحي عاجل:</strong> تم رصد مستوى (خطر مرتفع جداً) في المحافظات التالية:
+            </span>
+            <span id="dangerGovNames"></span>
+            <span>— يرجى توجيه عربات الإسعاف وتفعيل فرز الطوارئ فوراً.</span>
+        </div>
     </div>
     <!-- Navbar -->
     <nav class="admin-navbar">
@@ -1401,10 +1427,12 @@
             };
             // Initialize map centered on Cairo
             const map = L.map('embedMap', {
-            setTimeout(function() { map.invalidateSize(); }, 600);
                 zoomControl: true,
                 attributionControl: false
             }).setView([30.0444, 31.2357], 11);
+            setTimeout(function() { map.invalidateSize(); }, 300);
+            setTimeout(function() { map.invalidateSize(); }, 1000);
+            $(window).on('resize', function() { if (map) map.invalidateSize(); });
             const isDark = $('body').hasClass('theme-dark');
             const tileUrl = isDark 
                 ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
@@ -1415,14 +1443,75 @@
             @if (Model.IsCrisisModeActive)
             {
                 <text>
-                // Add a mock pulsing crisis circle
-                L.circle([30.0444, 31.2357], {
-                    color: '#E74C3C',
-                    fillColor: '#E74C3C',
-                    fillOpacity: 0.25,
-                    radius: 2000,
-                    weight: 2
-                }).addTo(map);
+                // Load all real outbreak zones & critical cases dynamically via API
+                $.getJSON('/AdminDashboard/GetCrisisHeatmapData', function(data) {
+                    if (data && data.success) {
+                        let allBounds = [];
+
+                        // 1. Plot Outbreak Zones (Circles for ALL infected zones)
+                        if (data.zones && data.zones.length > 0) {
+                            data.zones.forEach(function(zone) {
+                                const lat = parseFloat(zone.centerLatitude);
+                                const lng = parseFloat(zone.centerLongitude);
+                                const radiusMeters = parseFloat(zone.radiusInKm) * 1000;
+                                if (!isNaN(lat) && !isNaN(lng)) {
+                                    allBounds.push([lat, lng]);
+
+                                    let zoneColor = '#00C9A7'; // Teal
+                                    let zoneLabel = 'خطر عادي';
+                                    if (zone.riskLevel === 4 || zone.riskLevel === 3) {
+                                        zoneColor = '#E74C3C'; // Red
+                                        zoneLabel = 'خطر طارئ جداً';
+                                    } else if (zone.riskLevel === 2) {
+                                        zoneColor = '#E67E22'; // Orange
+                                        zoneLabel = 'خطر مرتفع';
+                                    } else if (zone.riskLevel === 1) {
+                                        zoneColor = '#F1C40F'; // Yellow
+                                        zoneLabel = 'خطر متوسط';
+                                    }
+
+                                    L.circle([lat, lng], {
+                                        radius: radiusMeters,
+                                        color: zoneColor,
+                                        fillColor: zoneColor,
+                                        fillOpacity: 0.25,
+                                        weight: 2,
+                                        dashArray: '5, 5'
+                                    }).bindPopup(`<strong>${zone.zoneName}</strong><br/>مستوى الخطورة: ${zoneLabel}<br/>الحالات الحالية: ${zone.criticalCasesInside}<br/>حالة الدعم: ${zone.supportStatus}`).addTo(map);
+                                }
+                            });
+                        }
+
+                        // 2. Plot Critical Cases Points
+                        if (data.points && data.points.length > 0) {
+                            data.points.forEach(function(pt) {
+                                const lat = parseFloat(pt.latitude);
+                                const lng = parseFloat(pt.longitude);
+                                if (!isNaN(lat) && !isNaN(lng)) {
+                                    allBounds.push([lat, lng]);
+
+                                    let markerHtml = `<div style="background-color: #ff5252; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 8px rgba(255, 82, 82, 0.8);"></div>`;
+                                    let customIcon = L.divIcon({
+                                        html: markerHtml,
+                                        className: 'custom-div-icon',
+                                        iconSize: [14, 14],
+                                        iconAnchor: [7, 7]
+                                    });
+                                    L.marker([lat, lng], { icon: customIcon })
+                                        .bindPopup(`<strong>بؤرة حالة حرجة: ${pt.patientName || 'مريض'}</strong><br/>نوع الطوارئ: ${pt.emergencyType || '-'}`)
+                                        .addTo(map);
+                                }
+                            });
+                        }
+
+                        // 3. Fit bounds to display ALL active outbreak zones
+                        if (allBounds.length > 0) {
+                            map.fitBounds(allBounds, { padding: [30, 30] });
+                        } else {
+                            map.setView([30.0444, 31.2357], 7);
+                        }
+                    }
+                });
                 </text>
             }
             else
@@ -2309,9 +2398,8 @@
             return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
         }
         // Default center Egypt
-        const gMap = L.map('globalAmbMap');
+        const gMap = L.map('globalAmbMap').setView([30.0444, 31.2357], 7);
         setTimeout(function() { gMap.invalidateSize(); }, 600);
-        //.setView([26.8206, 30.8025], 6);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
             {attribution:'&copy; OpenStreetMap &copy; CartoDB'}).addTo(gMap);
         // Live UTC Clock updater
@@ -2447,6 +2535,11 @@
             if (dispatches.length > 0) {
                 const bounds = dispatches.map(d => [[d.patientLat, d.patientLng],[d.hospitalLat,d.hospitalLng]]).flat();
                 gMap.fitBounds(bounds, {padding:[30,30]});
+            } else if (hospitals.length > 0) {
+                const bounds = hospitals.map(h => [h.latitude, h.longitude]);
+                gMap.fitBounds(bounds, {padding:[30,30]});
+            } else {
+                gMap.setView([30.0444, 31.2357], 7);
             }
         }
         // Expose dispatch map reloading globally
@@ -2466,6 +2559,12 @@
         };
         // Run initial load
         window.reloadDispatchMap();
+        
+        window.addEventListener('resize', function() {
+            gMap.invalidateSize();
+        });
+        setTimeout(function() { gMap.invalidateSize(); }, 300);
+        setTimeout(function() { gMap.invalidateSize(); }, 1000);
     })();
     </script>
     <!-- Modal: Control Maintenance Mode -->

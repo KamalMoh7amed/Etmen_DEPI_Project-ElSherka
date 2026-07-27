@@ -1,4 +1,4 @@
-﻿@{
+@{
     Layout = null;
 }
 
@@ -459,6 +459,9 @@
                                     <p style="margin: 0 0 5px 0; font-size: 0.8rem;"><strong>النوع:</strong> ${item.type === 'Hospital' ? 'مستشفى رعاية حرجة' : 'عيادة طبية'}</p>
                                     <p style="margin: 0 0 5px 0; font-size: 0.8rem;"><strong>العنوان:</strong> ${item.address || '-'}</p>
                                     <p style="margin: 0 0 5px 0; font-size: 0.8rem;"><strong>الهاتف:</strong> ${item.phone || '-'}</p>
+                                    <a href="https://www.google.com/maps/search/?api=1&query=${item.latitude},${item.longitude}" target="_blank" class="btn btn-sm btn-success text-white w-100 rounded-pill py-1 mt-2 text-center d-block" style="font-size:0.75rem; text-decoration:none;">
+                                        <i class="fas fa-location-arrow me-1"></i> فتح الموقع في خرائط جوجل
+                                    </a>
                                 </div>
                             `)
                             .addTo(map);
@@ -483,6 +486,9 @@
                                     <p style="margin: 0 0 5px 0; font-size: 0.8rem;"><strong>التخصص:</strong> ${item.specialization || '-'}</p>
                                     <p style="margin: 0 0 5px 0; font-size: 0.8rem;"><strong>العنوان:</strong> ${item.clinicAddress || '-'}</p>
                                     <p style="margin: 0 0 5px 0; font-size: 0.8rem;"><strong>رسوم الكشف:</strong> ${item.consultationFee || '-'} ج.م.</p>
+                                    <a href="https://www.google.com/maps/search/?api=1&query=${item.latitude},${item.longitude}" target="_blank" class="btn btn-sm btn-success text-white w-100 rounded-pill py-1 mt-2 text-center d-block" style="font-size:0.75rem; text-decoration:none;">
+                                        <i class="fas fa-location-arrow me-1"></i> فتح الموقع في خرائط جوجل
+                                    </a>
                                 </div>
                             `)
                             .addTo(map);
@@ -507,6 +513,9 @@
                                     <p style="margin: 0 0 5px 0; font-size: 0.8rem;"><strong>نوع الطوارئ:</strong> ${item.emergencyType || '-'}</p>
                                     <p style="margin: 0 0 5px 0; font-size: 0.8rem;"><strong>التفاصيل:</strong> ${item.description || '-'}</p>
                                     <p style="margin: 0 0 5px 0; font-size: 0.8rem;"><strong>معدل الأولوية:</strong> ${item.priorityScore}%</p>
+                                    <a href="https://www.google.com/maps/search/?api=1&query=${item.latitude},${item.longitude}" target="_blank" class="btn btn-sm btn-success text-white w-100 rounded-pill py-1 mt-2 text-center d-block" style="font-size:0.75rem; text-decoration:none;">
+                                        <i class="fas fa-location-arrow me-1"></i> فتح الموقع في خرائط جوجل
+                                    </a>
                                 </div>
                             `)
                             .addTo(map);

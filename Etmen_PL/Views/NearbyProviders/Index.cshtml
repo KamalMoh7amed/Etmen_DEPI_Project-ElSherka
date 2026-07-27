@@ -1,4 +1,4 @@
-﻿@model Etmen_PL.Models.ViewModels.Patient.NearbySearchViewModel
+@model Etmen_PL.Models.ViewModels.Patient.NearbySearchViewModel
 @{
     ViewData["Title"] = "البحث عن المراكز الصحية والعيادات";
     Layout = "~/Views/Shared/_PatientLayout.cshtml";
@@ -123,11 +123,16 @@
                             </div>
                             <p class="text-muted small mb-2"><i class="fas fa-location-dot me-1"></i> @item.Address</p>
                             
-                            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top gap-2 flex-wrap">
                                 <span class="text-muted small">الأسرة الشاغرة: <strong class="text-primary">@(item.AvailableBeds ?? 0)</strong></span>
-                                <a href="/NearbyProviders/ProviderDoctors/@item.Id?lat=@(Model.Latitude)&lng=@(Model.Longitude)" class="btn btn-xs btn-outline-primary py-1 px-3 rounded-pill" style="font-size:0.75rem; text-decoration: none;">
-                                    <i class="fas fa-calendar-check me-1"></i> حجز موعد
-                                </a>
+                                <div class="d-flex gap-1">
+                                    <a href="https://www.google.com/maps/search/?api=1&query=@item.Latitude,@item.Longitude" target="_blank" class="btn btn-xs btn-outline-success py-1 px-2 rounded-pill" style="font-size:0.75rem; text-decoration: none;" title="فتح في خرائط جوجل">
+                                        <i class="fas fa-location-arrow me-1"></i> الخرائط
+                                    </a>
+                                    <a href="/NearbyProviders/ProviderDoctors/@item.Id?lat=@(Model.Latitude)&lng=@(Model.Longitude)" class="btn btn-xs btn-outline-primary py-1 px-2 rounded-pill" style="font-size:0.75rem; text-decoration: none;">
+                                        <i class="fas fa-calendar-check me-1"></i> حجز موعد
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     }
@@ -267,7 +272,10 @@
                         <h6 style="font-weight:bold; margin-bottom:5px; color:#1A6FBF;">${item.Name}</h6>
                         <p style="margin:0 0 5px 0; font-size:0.75rem;"><strong>النوع:</strong> ${item.Type}</p>
                         <p style="margin:0 0 5px 0; font-size:0.75rem;"><strong>العنوان:</strong> ${item.Address}</p>
-                        <a href="/NearbyProviders/ProviderDoctors/${item.Id}?lat=${$('#latitudeInput').val() || ''}&lng=${$('#longitudeInput').val() || ''}" class="btn btn-xs btn-primary py-1 px-3 mt-2 rounded-pill text-white text-center d-block" style="font-size:0.7rem; width:100%; text-decoration:none;">
+                        <a href="https://www.google.com/maps/search/?api=1&query=${item.Latitude},${item.Longitude}" target="_blank" class="btn btn-xs btn-outline-success py-1 px-3 mt-2 mb-1 rounded-pill text-center d-block" style="font-size:0.7rem; width:100%; text-decoration:none;">
+                            <i class="fas fa-location-arrow"></i> فتح الموقع في خرائط جوجل
+                        </a>
+                        <a href="/NearbyProviders/ProviderDoctors/${item.Id}?lat=${$('#latitudeInput').val() || ''}&lng=${$('#longitudeInput').val() || ''}" class="btn btn-xs btn-primary py-1 px-3 rounded-pill text-white text-center d-block" style="font-size:0.7rem; width:100%; text-decoration:none;">
                             <i class="fas fa-calendar-check"></i> حجز موعد
                         </a>
                     </div>

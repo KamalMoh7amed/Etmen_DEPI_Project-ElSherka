@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Etmen_BLL.Repositories.IServices;
 using Etmen_BLL.Helpers;
 using Etmen_PL.Models.ViewModels.Admin;
@@ -20,15 +20,18 @@ namespace Etmen_PL.Controllers
     public class AdminDashboardController : Controller
     {
         private readonly IAdminService _adminService;
+        private readonly ICriticalIntelligenceService _criticalIntelligenceService;
         private readonly IUnitOfWork _uow;
         private readonly ILogger<AdminDashboardController> _logger;
 
         public AdminDashboardController(
             IAdminService adminService,
+            ICriticalIntelligenceService criticalIntelligenceService,
             IUnitOfWork uow,
             ILogger<AdminDashboardController> logger)
         {
             _adminService = adminService;
+            _criticalIntelligenceService = criticalIntelligenceService;
             _uow = uow;
             _logger = logger;
         }
@@ -183,6 +186,37 @@ namespace Etmen_PL.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching map markers data");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// GET: /AdminDashboard/GetCrisisHeatmapData
+        /// Returns all real outbreak zones, critical cases, and hospitals for mini crisis map
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetCrisisHeatmapData(int? crisisId = null)
+        {
+            try
+            {
+                var result = await _criticalIntelligenceService.GetCrisisHeatmapAsync(crisisId);
+                if (!result.IsSuccess || result.Data is null)
+                {
+                    return Json(new { success = false, message = result.ErrorMessage ?? "فشل تحميل بيانات الأزمات" });
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    totalCases = result.Data.TotalGeoTaggedCriticalCases,
+                    zones = result.Data.Zones,
+                    points = result.Data.Points,
+                    hospitals = result.Data.Hospitals
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching crisis heatmap data");
                 return Json(new { success = false, message = ex.Message });
             }
         }

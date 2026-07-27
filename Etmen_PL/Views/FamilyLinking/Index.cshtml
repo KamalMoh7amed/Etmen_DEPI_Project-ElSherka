@@ -1,6 +1,6 @@
-﻿@model IEnumerable<Etmen_BLL.DTOs.Family.FamilyDto>
+@model IEnumerable<Etmen_BLL.DTOs.Family.FamilyDto>
 @{
-    ViewData["Title"] = "الارتباط العائلي الطوارئ — إطمن";
+    ViewData["Title"] = "إدارة الارتباط العائلي — إطمن";
     Layout = null;
     var inviteModel = ViewBag.FamilyInvite as Etmen_PL.Models.ViewModels.Patient.FamilyInviteViewModel ?? new Etmen_PL.Models.ViewModels.Patient.FamilyInviteViewModel();
 }
@@ -17,37 +17,40 @@
 
     <style>
         :root {
-            --primary:        #00a8ff;
-            --primary-glow:   rgba(0, 168, 255, 0.15);
-            --accent:         #00C9A7;
-            --success:        #2ECC71;
-            --warning:        #F1C40F;
-            --danger:         #E74C3C;
-            --dark-bg:        #0b1319;
-            --card-bg:        rgba(18, 31, 43, 0.55);
-            --card-border:    rgba(0, 168, 255, 0.15);
-            --text-light:     #E2E8F0;
-            --text-gray:      #94A3B8;
+            --primary:        #0A66C2;
+            --primary-light:  #E8F3FF;
+            --accent:         #0D9488;
+            --accent-light:   #CCFBF1;
+            --success:        #16A34A;
+            --success-light:  #DCFCE7;
+            --warning:        #D97706;
+            --warning-light:  #FEF3C7;
+            --danger:         #DC2626;
+            --danger-light:   #FEE2E2;
+            --body-bg:        #F8FAFC;
+            --card-bg:        #FFFFFF;
+            --card-border:    #E2E8F0;
+            --text-dark:      #0F172A;
+            --text-body:      #334155;
+            --text-muted:     #64748B;
         }
 
         body {
             font-family: 'Tajawal', sans-serif;
-            background-color: var(--dark-bg);
-            background-image: radial-gradient(circle at 10% 20%, rgba(0, 168, 255, 0.04) 0%, transparent 40%),
-                              radial-gradient(circle at 90% 80%, rgba(0, 201, 167, 0.04) 0%, transparent 40%);
-            color: var(--text-light);
+            background-color: var(--body-bg);
+            color: var(--text-body);
             min-height: 100vh;
         }
 
         /* ── NAVBAR ── */
         .dashboard-nav {
-            background: rgba(9, 15, 20, 0.85);
-            backdrop-filter: blur(12px);
+            background: #FFFFFF;
             border-bottom: 1px solid var(--card-border);
             padding: 0.75rem 2rem;
             position: sticky;
             top: 0;
             z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
         }
         .nav-logo {
             display: flex;
@@ -66,17 +69,17 @@
         .nav-logo-text {
             font-size: 1.4rem;
             font-weight: 800;
-            color: white;
+            color: var(--text-dark);
         }
         .nav-logo-text span { color: var(--accent); }
 
         .nav-user-badge {
-            background: rgba(255,255,255,0.07);
-            border: 1px solid rgba(255,255,255,0.12);
-            color: white;
+            background: var(--primary-light);
+            border: 1px solid rgba(10, 102, 194, 0.2);
+            color: var(--primary);
             padding: 6px 14px;
             border-radius: 50px;
-            font-weight: 600;
+            font-weight: 700;
             font-size: 0.85rem;
             display: flex;
             align-items: center;
@@ -85,8 +88,8 @@
 
         .btn-logout {
             background: transparent;
-            border: 1px solid rgba(255,255,255,0.2);
-            color: rgba(255,255,255,0.8);
+            border: 1px solid #CBD5E1;
+            color: var(--text-muted);
             padding: 6px 14px;
             border-radius: 8px;
             font-size: 0.85rem;
@@ -95,18 +98,17 @@
             text-decoration: none;
         }
         .btn-logout:hover {
-            background: rgba(231, 76, 60, 0.1);
+            background: var(--danger-light);
             border-color: var(--danger);
             color: var(--danger);
         }
 
         /* ── SIDEBAR ── */
         .sidebar {
-            background: rgba(9, 15, 20, 0.4);
+            background: #FFFFFF;
             border-left: 1px solid var(--card-border);
             min-height: calc(100vh - 65px);
-            padding: 2rem 1rem;
-            backdrop-filter: blur(10px);
+            padding: 1.5rem 1rem;
         }
         .sidebar-link {
             display: flex;
@@ -114,18 +116,18 @@
             gap: 12px;
             padding: 12px 16px;
             border-radius: 12px;
-            color: var(--text-gray);
+            color: var(--text-muted);
             text-decoration: none;
             font-weight: 600;
             margin-bottom: 0.5rem;
-            transition: all 0.3s;
+            transition: all 0.2s ease;
             border: 1px solid transparent;
         }
         .sidebar-link:hover, .sidebar-link.active {
-            background: var(--primary-glow);
+            background: var(--primary-light);
             color: var(--primary);
-            border-color: rgba(0, 168, 255, 0.2);
-            box-shadow: 0 0 15px rgba(0, 168, 255, 0.08);
+            border-color: rgba(10, 102, 194, 0.15);
+            font-weight: 700;
         }
         .sidebar-link i {
             font-size: 1.1rem;
@@ -137,104 +139,102 @@
             padding: 2rem;
         }
 
-        .premium-card {
+        /* ── CARDS ── */
+        .light-card {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
-            border-radius: 20px;
+            border-radius: 16px;
             padding: 2rem;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
             margin-bottom: 2rem;
-            height: 100%;
             transition: all 0.3s ease;
         }
-        .premium-card:hover {
-            border-color: rgba(0, 168, 255, 0.3);
-            box-shadow: 0 12px 40px rgba(0, 168, 255, 0.15);
+        .light-card:hover {
+            box-shadow: 0 8px 30px rgba(10, 102, 194, 0.08);
+            border-color: rgba(10, 102, 194, 0.25);
         }
 
         .form-label {
             font-weight: 700;
-            font-size: 0.9rem;
-            color: var(--text-light);
-            margin-bottom: 0.5rem;
+            font-size: 0.92rem;
+            color: var(--text-dark);
+            margin-bottom: 0.4rem;
         }
 
         .form-control, .form-select {
-            background-color: rgba(255, 255, 255, 0.03);
-            border: 1.5px solid var(--card-border);
-            color: var(--text-light) !important;
-            border-radius: 12px;
-            padding: 12px 16px;
+            background-color: #FFFFFF !important;
+            border: 1.5px solid #CBD5E1 !important;
+            color: var(--text-dark) !important;
+            border-radius: 10px;
+            padding: 11px 16px;
             font-family: 'Tajawal', sans-serif;
             font-size: 0.95rem;
-            transition: all 0.3s;
+            font-weight: 500;
+            transition: all 0.2s;
         }
         .form-control:focus, .form-select:focus {
-            background-color: rgba(255, 255, 255, 0.05);
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px var(--primary-glow);
+            background-color: #FFFFFF !important;
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 0 3px rgba(10, 102, 194, 0.15) !important;
         }
         .form-control::placeholder {
-            color: var(--text-gray);
-            opacity: 0.6;
+            color: #94A3B8 !important;
+            opacity: 1;
         }
 
         .btn-submit {
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            color: #0b1319;
+            background: linear-gradient(135deg, var(--primary), #004182);
+            color: #FFFFFF;
             border: none;
             padding: 12px 24px;
-            border-radius: 12px;
-            font-weight: 800;
+            border-radius: 10px;
+            font-weight: 700;
             font-size: 0.95rem;
-            box-shadow: 0 4px 15px rgba(0, 255, 204, 0.25);
-            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(10, 102, 194, 0.25);
+            transition: all 0.2s;
         }
         .btn-submit:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 255, 204, 0.4);
-            color: #0b1319;
+            box-shadow: 0 6px 18px rgba(10, 102, 194, 0.35);
+            color: #FFFFFF;
         }
 
         .badge-perm {
-            font-size: 0.75rem;
+            font-size: 0.78rem;
             padding: 6px 12px;
             border-radius: 50px;
-            font-weight: 600;
+            font-weight: 700;
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background-color: var(--primary-glow);
+            background-color: var(--primary-light);
             color: var(--primary);
-            border: 1px solid rgba(0, 168, 255, 0.15);
+            border: 1px solid rgba(10, 102, 194, 0.2);
         }
         .badge-perm.inactive {
-            background-color: rgba(255, 255, 255, 0.02);
-            color: var(--text-gray);
-            border-color: rgba(255, 255, 255, 0.05);
-            opacity: 0.5;
+            background-color: #F1F5F9;
+            color: #94A3B8;
+            border-color: #E2E8F0;
         }
 
         .btn-danger-outline {
-            background: transparent;
-            border: 1.5px solid rgba(231, 76, 60, 0.3);
+            background: #FFFFFF;
+            border: 1.5px solid var(--danger);
             color: var(--danger);
-            padding: 8px 16px;
-            border-radius: 10px;
-            font-weight: 600;
+            padding: 7px 16px;
+            border-radius: 8px;
+            font-weight: 700;
             font-size: 0.85rem;
             transition: all 0.2s;
         }
         .btn-danger-outline:hover {
             background: var(--danger);
-            color: white;
-            border-color: var(--danger);
+            color: #FFFFFF;
         }
 
         .family-item {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 1.5rem 0;
+            border-bottom: 1px solid #F1F5F9;
+            padding: 1.25rem 0;
         }
         .family-item:last-child {
             border-bottom: none;
@@ -242,12 +242,24 @@
         }
         
         .form-check-input {
-            background-color: rgba(255, 255, 255, 0.03);
-            border-color: var(--card-border);
+            width: 1.1em; height: 1.1em;
+            cursor: pointer;
+            border-color: #CBD5E1;
         }
         .form-check-input:checked {
             background-color: var(--primary);
             border-color: var(--primary);
+        }
+
+        .form-check-label {
+            color: var(--text-dark);
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .page-title {
+            color: var(--text-dark);
+            font-weight: 800;
         }
     </style>
 </head>
@@ -295,30 +307,35 @@
             <!-- ── MAIN CONTENT ── -->
             <div class="col-lg-10 col-md-9 content-area">
                 <div class="d-flex align-items-center justify-content-between mb-4">
-                    <h2 class="fw-bold mb-0">إدارة الارتباط العائلي الطوارئ</h2>
-                    <span class="badge bg-primary px-3 py-2" style="border-radius:8px;">حماية متكاملة للعائلة</span>
+                    <div>
+                        <h2 class="page-title mb-1">إدارة الارتباط العائلي والطوارئ</h2>
+                        <p class="text-muted small mb-0">تابع صحة وتنبيهات أفراد عائلتك في مكان واحد بكل أمان وسهولة</p>
+                    </div>
+                    <span class="badge bg-primary px-3 py-2 fs-6 rounded-pill"><i class="fas fa-shield-heart me-1"></i> حماية متكاملة للعائلة</span>
                 </div>
 
                 <!-- Alerts -->
                 @if (TempData["Success"] != null)
                 {
-                    <div class="alert alert-success border-0 shadow-sm mb-4" style="border-radius: 12px;">
-                        <i class="fas fa-check-circle me-2"></i> @TempData["Success"]
+                    <div class="alert alert-success border-0 shadow-sm mb-4 rounded-3 d-flex align-items-center gap-2">
+                        <i class="fas fa-check-circle fs-5"></i>
+                        <span>@TempData["Success"]</span>
                     </div>
                 }
                 @if (TempData["Error"] != null)
                 {
-                    <div class="alert alert-danger border-0 shadow-sm mb-4" style="border-radius: 12px;">
-                        <i class="fas fa-exclamation-circle me-2"></i> @TempData["Error"]
+                    <div class="alert alert-danger border-0 shadow-sm mb-4 rounded-3 d-flex align-items-center gap-2">
+                        <i class="fas fa-exclamation-circle fs-5"></i>
+                        <span>@TempData["Error"]</span>
                     </div>
                 }
 
                 <div class="row g-4">
                     <!-- Right: Invite Form -->
                     <div class="col-lg-5">
-                        <div class="premium-card">
-                            <h4 class="fw-bold mb-4 text-primary"><span style="color:var(--accent);">✦</span> <i class="fas fa-user-plus"></i> إرسال دعوة ارتباط جديدة</h4>
-                            <p class="text-muted small mb-4">اربط حسابك بأحد أفراد عائلتك لتمكينهم من حجز مواعيد لك أو تتبع حالتك في الأزمات وحالات الاستغاثة الطبية.</p>
+                        <div class="light-card">
+                            <h4 class="fw-bold mb-2 text-dark"><i class="fas fa-user-plus text-primary me-2"></i> إرسال دعوة ارتباط جديدة</h4>
+                            <p class="text-muted small mb-4">قم بربط حسابك بأحد أفراد عائلتك لتمكينه من متابعة حالتك الصحية وتلقي بلاغات الطوارئ أو حجز الاستشارات نيابة عنك.</p>
                             
                             <form method="post" asp-controller="FamilyLinking" asp-action="Invite">
                                 @Html.AntiForgeryToken()
@@ -327,7 +344,7 @@
                                 <div class="mb-3">
                                     <label for="Email" class="form-label">البريد الإلكتروني للقريب</label>
                                     <input type="email" id="Email" name="Email" class="form-control" placeholder="example@email.com" required />
-                                    <span class="text-muted small mt-1 d-block">يجب أن يكون لدى قريبك حساب مسجل بالفعل في إطمن.</span>
+                                    <span class="text-muted small mt-1 d-block"><i class="fas fa-info-circle me-1"></i> يجب أن يكون لدى قريبك حساب مسجل بالفعل في منصة إطمن.</span>
                                 </div>
 
                                 <!-- Relationship Type -->
@@ -347,22 +364,24 @@
                                 </div>
 
                                 <!-- Permissions checkboxes -->
-                                <h6 class="fw-bold mb-3"><i class="fas fa-shield-alt text-accent"></i> الصلاحيات الممنوحة للقريب</h6>
-                                
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="CanViewRecords" name="CanViewRecords" value="true">
-                                    <label class="form-check-label fw-semibold" for="CanViewRecords">رؤية التقارير والملفات الطبية</label>
-                                </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="CanViewRisk" name="CanViewRisk" value="true">
-                                    <label class="form-check-label fw-semibold" for="CanViewRisk">رؤية مؤشر تقييم المخاطر وتنبيهات الطوارئ</label>
-                                </div>
-                                <div class="form-check mb-4">
-                                    <input class="form-check-input" type="checkbox" id="CanBookAppointments" name="CanBookAppointments" value="true">
-                                    <label class="form-check-label fw-semibold" for="CanBookAppointments">إمكانية حجز مواعيد وتنسيق الاستشارات نيابة عني</label>
+                                <div class="p-3 rounded-3 mb-4" style="background:#F8FAFC; border:1px solid #E2E8F0;">
+                                    <h6 class="fw-bold mb-3 text-dark"><i class="fas fa-shield-alt text-teal me-1" style="color:var(--accent);"></i> الصلاحيات الممنوحة للقريب:</h6>
+                                    
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="CanViewRecords" name="CanViewRecords" value="true">
+                                        <label class="form-check-label fw-semibold" for="CanViewRecords">رؤية التقارير والملفات الطبية</label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="CanViewRisk" name="CanViewRisk" value="true">
+                                        <label class="form-check-label fw-semibold" for="CanViewRisk">رؤية مؤشر تقييم المخاطر وتنبيهات الطوارئ</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="CanBookAppointments" name="CanBookAppointments" value="true">
+                                        <label class="form-check-label fw-semibold" for="CanBookAppointments">إمكانية حجز مواعيد وتنسيق الاستشارات نيابة عني</label>
+                                    </div>
                                 </div>
 
-                                <button type="submit" class="btn-submit w-100"><i class="fas fa-paper-plane"></i> إرسال دعوة الارتباط</button>
+                                <button type="submit" class="btn-submit w-100"><i class="fas fa-paper-plane me-1"></i> إرسال دعوة الارتباط</button>
                             </form>
                         </div>
                     </div>
@@ -375,8 +394,8 @@
                         }
                         @if (incoming != null && incoming.Any())
                         {
-                            <div class="premium-card mb-4" style="border-right: 5px solid var(--warning);">
-                                <h4 class="fw-bold mb-4 text-warning"><span style="color:var(--warning);">✦</span> <i class="fas fa-user-clock"></i> طلبات ارتباط عائلي واردة</h4>
+                            <div class="light-card mb-4" style="border-right: 5px solid var(--warning);">
+                                <h4 class="fw-bold mb-3 text-dark"><i class="fas fa-user-clock text-warning me-2"></i> طلبات ارتباط عائلي واردة</h4>
                                 <div class="d-flex flex-column">
                                     @foreach (var invite in incoming)
                                     {
@@ -392,11 +411,11 @@
                                         };
                                         <div class="family-item d-flex flex-md-row flex-column justify-content-between align-items-md-center gap-3">
                                             <div>
-                                                <div class="d-flex align-items-center gap-2 mb-2">
-                                                    <span class="fw-bold fs-5 text-white">@invite.LinkedPatientName</span>
+                                                <div class="d-flex align-items-center gap-2 mb-1">
+                                                    <span class="fw-bold fs-5 text-dark">@invite.LinkedPatientName</span>
                                                     <span class="badge bg-warning text-dark">يطلب ربطك كـ: @relAr</span>
                                                 </div>
-                                                <div class="small text-muted mb-2">
+                                                <div class="small text-muted mb-1">
                                                     الصلاحيات المطلوبة: 
                                                     @(invite.CanViewRecords ? "رؤية الملفات الطبية | " : "")
                                                     @(invite.CanViewRisk ? "رؤية تقييم المخاطر | " : "")
@@ -425,8 +444,8 @@
                         }
                         @if (outgoing != null && outgoing.Any())
                         {
-                            <div class="premium-card mb-4" style="border-right: 5px solid var(--primary);">
-                                <h4 class="fw-bold mb-4 text-primary"><span style="color:var(--accent);">✦</span> <i class="fas fa-paper-plane"></i> دعوات الارتباط المرسلة (قيد الانتظار)</h4>
+                            <div class="light-card mb-4" style="border-right: 5px solid var(--primary);">
+                                <h4 class="fw-bold mb-3 text-dark"><i class="fas fa-paper-plane text-primary me-2"></i> دعوات الارتباط المرسلة (قيد الانتظار)</h4>
                                 <div class="d-flex flex-column">
                                     @foreach (var invite in outgoing)
                                     {
@@ -442,10 +461,10 @@
                                         };
                                         <div class="family-item d-flex flex-md-row flex-column justify-content-between align-items-md-center gap-3">
                                             <div>
-                                                <div class="d-flex align-items-center gap-2 mb-2">
-                                                    <span class="fw-bold fs-5 text-white">@invite.LinkedPatientName</span>
+                                                <div class="d-flex align-items-center gap-2 mb-1">
+                                                    <span class="fw-bold fs-5 text-dark">@invite.LinkedPatientName</span>
                                                     <span class="badge bg-secondary">صلة القرابة: @relAr</span>
-                                                    <span class="badge bg-warning-subtle text-warning fw-semibold"><i class="fas fa-clock"></i> في انتظار الرد</span>
+                                                    <span class="badge bg-warning-subtle text-warning fw-bold"><i class="fas fa-clock"></i> في انتظار الرد</span>
                                                 </div>
                                             </div>
                                             <div class="d-flex gap-2 align-items-center">
@@ -461,8 +480,8 @@
                         }
 
                         <!-- 3. Currently Linked Family Members -->
-                        <div class="premium-card">
-                            <h4 class="fw-bold mb-4 text-primary"><span style="color:var(--accent);">✦</span> <i class="fas fa-users-cog"></i> أفراد العائلة المرتبطين حالياً</h4>
+                        <div class="light-card">
+                            <h4 class="fw-bold mb-3 text-dark"><i class="fas fa-users-cog text-primary me-2"></i> أفراد العائلة المرتبطين حالياً</h4>
 
                             @if (Model != null && Model.Any())
                             {
@@ -485,20 +504,20 @@
                                                 <div class="d-flex align-items-center gap-2 mb-2">
                                                     @if (link.IsAccepted)
                                                     {
-                                                        <a href="/FamilyLinking/Details/@link.Id" class="fw-bold fs-5 text-white text-decoration-none" style="transition: color 0.2s;" onmouseover="this.style.color='#1A6FBF'" onmouseout="this.style.color=''"><i class="fas fa-external-link-alt me-1" style="font-size:0.85rem; opacity:0.7;"></i> @link.LinkedPatientName</a>
+                                                        <a href="/FamilyLinking/Details/@link.Id" class="fw-bold fs-5 text-primary text-decoration-none hover-link"><i class="fas fa-external-link-alt me-1" style="font-size:0.85rem;"></i> @link.LinkedPatientName</a>
                                                     }
                                                     else
                                                     {
-                                                        <span class="fw-bold fs-5 text-white">@link.LinkedPatientName</span>
+                                                        <span class="fw-bold fs-5 text-dark">@link.LinkedPatientName</span>
                                                     }
-                                                    <span class="badge bg-secondary">@relAr</span>
+                                                    <span class="badge bg-light text-dark border">@relAr</span>
                                                     @if (link.IsAccepted)
                                                     {
-                                                        <span class="badge bg-success-subtle text-success fw-semibold"><i class="fas fa-check"></i> متصل</span>
+                                                        <span class="badge bg-success-subtle text-success fw-bold"><i class="fas fa-check-circle me-1"></i> متصل</span>
                                                     }
                                                     else
                                                     {
-                                                        <span class="badge bg-warning-subtle text-warning fw-semibold"><i class="fas fa-clock"></i> قيد الانتظار</span>
+                                                        <span class="badge bg-warning-subtle text-warning fw-bold"><i class="fas fa-clock me-1"></i> قيد الانتظار</span>
                                                     }
                                                 </div>
                                                 
@@ -516,6 +535,12 @@
                                             </div>
 
                                             <div class="d-flex gap-2 align-items-center justify-content-start">
+                                                @if (link.IsAccepted)
+                                                {
+                                                    <a href="/FamilyLinking/Details/@link.Id" class="btn btn-sm btn-primary rounded-3 px-3 fw-bold">
+                                                        <i class="fas fa-file-medical-alt me-1"></i> التفاصيل الطبية
+                                                    </a>
+                                                }
                                                 <!-- Action form to remove link -->
                                                 <form method="post" asp-controller="FamilyLinking" asp-action="Remove" asp-route-id="@link.Id" onsubmit="return confirm('هل أنت متأكد من رغبتك في إلغاء الارتباط العائلي مع هذا الحساب؟')">
                                                     @Html.AntiForgeryToken()
@@ -529,9 +554,9 @@
                             else
                             {
                                 <div class="text-center py-5 text-muted">
-                                    <i class="fas fa-users-slash mb-3 fs-1 text-black-50"></i>
-                                    <p class="fw-semibold mb-1">لا يوجد أفراد عائلة مرتبطين بحسابك حالياً</p>
-                                    <p class="small text-muted mb-0">يمكنك إرسال دعوة بالبريد الإلكتروني باستخدام النموذج الجانبي لإنشاء أول ارتباط.</p>
+                                    <i class="fas fa-users-slash mb-3 fs-1 text-secondary opacity-50"></i>
+                                    <p class="fw-bold mb-1 text-dark fs-5">لا يوجد أفراد عائلة مرتبطين بحسابك حالياً</p>
+                                    <p class="small text-muted mb-0">يمكنك إرسال دعوة بالبريد الإلكتروني باستخدام النموذج الجانبي لإنشاء أول ارتباط عائلي.</p>
                                 </div>
                             }
                         </div>
