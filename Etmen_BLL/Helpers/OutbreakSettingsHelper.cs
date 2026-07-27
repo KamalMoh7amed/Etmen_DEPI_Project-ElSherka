@@ -77,7 +77,6 @@ namespace Etmen_BLL.Helpers
                     EmergencyRiskThresholdCases
                 }, new JsonSerializerOptions { WriteIndented = true });
                 
-                // Try saving in multiple places to ensure persistence
                 File.WriteAllText(FilePath, json);
 
                 var localPath = Path.Combine(Directory.GetCurrentDirectory(), "outbreak_settings.json");

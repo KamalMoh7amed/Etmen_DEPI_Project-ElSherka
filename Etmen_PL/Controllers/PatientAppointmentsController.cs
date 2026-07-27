@@ -1,4 +1,4 @@
-using Etmen_BLL.Repositories.IServices;
+﻿using Etmen_BLL.Repositories.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -155,7 +155,7 @@ namespace Etmen_PL.Controllers
                 var patientName = profileResult.IsSuccess ? (profileResult.Data?.FullName ?? "المريض") : "المريض";
 
                 var appt = apptResult.Data;
-                var endTime = appt.StartTime.Add(TimeSpan.FromMinutes(30)); // Assume 30-min duration standard
+                var endTime = appt.StartTime.Add(TimeSpan.FromMinutes(30));
 
                 var pdfBytes = await _pdfReportService.GenerateAppointmentPdfAsync(
                     patientName,

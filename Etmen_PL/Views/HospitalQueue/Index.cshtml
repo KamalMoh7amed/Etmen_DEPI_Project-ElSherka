@@ -1,8 +1,7 @@
-@model Etmen_PL.Models.ViewModels.Hospital.HospitalQueueViewModel
+﻿@model Etmen_PL.Models.ViewModels.Hospital.HospitalQueueViewModel
 @{
     ViewData["Title"] = "لوحة فرز الحالات وغرفة العمليات";
     Layout = "~/Views/Shared/_HospitalStaffLayout.cshtml";
-
     // Separate items by status
     var pendingItems = Model.Items.Where(i => i.Status == "Pending" && i.EmergencyType != "DoctorTransfer").ToList();
     var generalPending = pendingItems.Where(i => i.AssignedProviderId == null).ToList();
@@ -10,13 +9,11 @@
     var acceptedItems = Model.Items.Where(i => i.Status == "Accepted" && i.EmergencyType != "DoctorTransfer").ToList();
     var escalatedItems = Model.Items.Where(i => i.Status == "Escalated" && i.EmergencyType != "DoctorTransfer").ToList();
     var doctorTransfers = Model.Items.Where(i => i.EmergencyType == "DoctorTransfer").ToList();
-
     // Priority statistics
     var criticalCount = Model.Items.Count(i => i.PriorityScore >= 80);
     var mediumCount = Model.Items.Count(i => i.PriorityScore >= 55 && i.PriorityScore < 80);
     var lowCount = Model.Items.Count(i => i.PriorityScore < 55);
 }
-
 <style>
     /* Dynamic telemetry alert colors */
     @@keyframes pulseRed {
@@ -30,7 +27,6 @@
         animation: pulseRed 1.5s infinite;
         display: inline-block;
     }
-
     /* ── Map Overlay Header ── */
     .map-overlay-header {
         position: absolute;
@@ -97,7 +93,6 @@
         70% { box-shadow: 0 0 0 8px rgba(0, 240, 255, 0); }
         100% { box-shadow: 0 0 0 0 rgba(0, 240, 255, 0); }
     }
-
     /* ── Glow Badge Styling ── */
     .glow-badge {
         display: flex;
@@ -174,7 +169,6 @@
         color: rgba(255, 255, 255, 0.85);
         font-weight: 600;
     }
-
     /* ── Hospital Glow Marker ── */
     .hosp-glow-marker {
         background: #ff9f00;
@@ -189,7 +183,6 @@
         box-shadow: 0 0 12px #ff9f00;
         font-size: 11px;
     }
-
     /* ── Patient Glow Marker ── */
     .patient-glow-marker {
         position: relative;
@@ -214,7 +207,6 @@
         0% { transform: scale(0.5); opacity: 1; }
         100% { transform: scale(1.8); opacity: 0; }
     }
-
     /* Card design from WellNest reference */
     .dashboard-card {
         background: #FFFFFF;
@@ -230,7 +222,6 @@
         transform: translateY(-2px);
         box-shadow: 0 15px 35px rgba(0, 0, 0, 0.04);
     }
-
     .card-title-lg {
         font-size: 1.25rem;
         font-weight: 800;
@@ -240,7 +231,6 @@
         align-items: center;
         gap: 10px;
     }
-
     /* Stats telemetry style */
     .stat-box-container {
         display: flex;
@@ -295,7 +285,6 @@
     .trend-up { background: #E8F8F5; color: #27AE60; }
     .trend-down { background: #FDE8E8; color: #E74C3C; }
     .trend-warning { background: #FEF9E7; color: #F39C12; }
-
     /* Custom Triage Table styled like WellNest Appointments */
     .triage-table {
         width: 100%;
@@ -340,7 +329,6 @@
     .triage-row:hover {
         box-shadow: 0 8px 25px rgba(0,0,0,0.03);
     }
-
     /* Badges */
     .priority-badge {
         font-size: 0.72rem;
@@ -353,7 +341,6 @@
     .prio-high { background: #FDE8E8; color: #E74C3C; box-shadow: 0 0 10px rgba(231,76,60,0.15); }
     .prio-med { background: #FEF9E7; color: #F39C12; }
     .prio-low { background: #E8F8F5; color: #27AE60; }
-
     .status-badge {
         font-size: 0.78rem;
         font-weight: 800;
@@ -366,7 +353,6 @@
     .status-pending { background: #FEF9E7; color: #D35400; }
     .status-accepted { background: #E8F8F5; color: #27AE60; }
     .status-escalated { background: #FDE8E8; color: #C0392B; animation: heartBeat 1.5s infinite; }
-
     /* Support trigger button style */
     .btn-emergency-support {
         background: linear-gradient(135deg, #E74C3C 0%, #C0392B 100%);
@@ -398,7 +384,6 @@
         50% { left: 150%; }
         100% { left: 150%; }
     }
-
     /* Tabs Styling */
     .triage-tabs .nav-link {
         border: none;
@@ -418,7 +403,6 @@
         color: var(--primary-dark);
         border-bottom-color: var(--primary-light);
     }
-
     /* Mobile responsive fixes */
     @@media (max-width: 767px) {
         .stat-box { min-width: 150px !important; }
@@ -442,10 +426,8 @@
         }
     }
 </style>
-
 <!-- Main Row -->
 <div class="row g-4 animate__animated animate__fadeIn">
-    
     <!-- Top summary widget header -->
     <div class="col-12 d-flex align-items-center justify-content-between flex-wrap gap-3 mb-2">
         <div>
@@ -454,25 +436,22 @@
         </div>
         <div class="d-flex align-items-center gap-2 flex-wrap">
             <!-- AI Auto Accept Toggle -->
-            <div class="form-check form-switch d-inline-flex align-items-center gap-2 border px-3 py-2 rounded-pill bg-light shadow-sm" style="cursor: pointer; height: 42px; margin-bottom: 0;">
+            <div class="form-check form-switch d-inline-flex align-items-center gap-2 border px-3 py-2 rounded-pill bg-transparent shadow-sm" style="cursor: pointer; height: 42px; margin-bottom: 0;">
                 <input class="form-check-input ms-0" type="checkbox" role="switch" id="aiAutoAcceptToggle" @(ViewBag.IsAiModeActive == true ? "checked" : "") onchange="toggleAiMode(@Model.ProviderId, this.checked)" style="cursor: pointer;">
                 <label class="form-check-label fw-800 text-dark" for="aiAutoAcceptToggle" style="font-size: 0.82rem; cursor: pointer; user-select: none;">
                     <i class="fas fa-robot text-primary animate__animated animate__pulse animate__infinite"></i> الفرز الآلي بالذكاء الاصطناعي
                 </label>
             </div>
-
             <!-- Audio Alarm Toggle -->
             <button id="btnToggleAudio" class="btn btn-outline-success rounded-pill px-3 py-2 fw-800 shadow-sm" onclick="toggleAudioMute()" style="height: 42px; display: inline-flex; align-items: center; gap: 6px;">
                 <i class="fas fa-volume-up" id="audioToggleIcon"></i> <span id="audioToggleText">التنبيه الصوتي: مفعل</span>
             </button>
-
             <!-- Export Report -->
             <a href="/HospitalQueue/ExportReport?providerId=@Model.ProviderId" class="btn btn-outline-success rounded-pill px-4 py-2 fw-800 shadow-sm" style="height: 42px; display: inline-flex; align-items: center; gap: 6px;">
                 <i class="fas fa-file-excel"></i> تصدير التقرير
             </a>
         </div>
     </div>
-
     <!-- Stats Boxes Grid -->
     <div class="col-12" id="statsSectionContainer" 
          data-critical-count="@criticalCount" 
@@ -492,7 +471,6 @@
                     <i class="fas fa-check"></i> جاهز للاستقبال
                 </div>
             </div>
-
             <!-- Pending Stats -->
             <div class="stat-box">
                 <div class="stat-box-header">
@@ -504,7 +482,6 @@
                     <i class="fas fa-clock"></i> انتظار تأكيد الفرز
                 </div>
             </div>
-
             <!-- Accepted Stats -->
             <div class="stat-box">
                 <div class="stat-box-header">
@@ -516,7 +493,6 @@
                     <i class="fas fa-plus"></i> قيد المتابعة بالمستشفى
                 </div>
             </div>
-
             <!-- Escalated Stats -->
             <div class="stat-box">
                 <div class="stat-box-header">
@@ -530,10 +506,8 @@
             </div>
         </div>
     </div>
-
     <!-- Left side: Charts and Cases -->
     <div class="col-lg-8">
-        
         <!-- Professional Analytics Row -->
         <div class="dashboard-card">
             <h3 class="card-title-lg mb-4">
@@ -553,7 +527,6 @@
                 </div>
             </div>
         </div>
-
         <!-- Cases segmented lists -->
         <div class="dashboard-card" id="queueTablesContainer">
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
@@ -562,7 +535,6 @@
                     تصنيفات وقوائم فرز الحالات الطارئة
                 </h3>
             </div>
-
             <ul class="nav nav-tabs triage-tabs mb-3" id="triageTabs" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="general-pending-tab" data-bs-toggle="tab" data-bs-target="#general-pending-pane" type="button" role="tab">
@@ -594,10 +566,25 @@
                         <span class="badge bg-info text-white ms-1 rounded-pill">@doctorTransfers.Count(t => t.Status == "Pending")</span>
                     </button>
                 </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="admitted-tab" data-bs-toggle="tab" data-bs-target="#admitted-pane" type="button" role="tab" onclick="loadAdmittedPatients()">
+                        <i class="fas fa-bed-pulse text-secondary"></i> المنوّمين بالمنشأة
+                        <span class="badge bg-secondary text-white ms-1 rounded-pill" id="admittedCountBadge">0</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="bed-grid-tab" data-bs-toggle="tab" data-bs-target="#bed-grid-pane" type="button" role="tab" onclick="renderBedsGrid()">
+                        <i class="fas fa-border-all text-dark"></i> مخطط الأسرة
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="handovers-tab" data-bs-toggle="tab" data-bs-target="#handovers-pane" type="button" role="tab">
+                        <i class="fas fa-clipboard-list text-info"></i> تسليم الوردية
+                    </button>
+                </li>
             </ul>
-
             <!-- Search & Sort Controls for Hospital Queue (Client-side) -->
-            <div class="row g-2 mb-4 p-3 border rounded-4 bg-light align-items-center">
+            <div class="row g-2 mb-4 p-3 border rounded-4 bg-transparent align-items-center">
                 <div class="col-md-6 col-12">
                     <label class="form-label small fw-bold text-dark mb-1">بحث سريع في قائمة الحالات</label>
                     <div class="input-group">
@@ -622,9 +609,7 @@
                     <button type="button" id="clearQueueFilters" class="btn btn-outline-secondary rounded-pill w-100 fw-bold">إعادة تعيين</button>
                 </div>
             </div>
-
             <div class="tab-content" id="triageTabsContent">
-                
                 <!-- General Pending Tab Pane -->
                 <div class="tab-pane fade show active" id="general-pending-pane" role="tabpanel">
                     @if (generalPending.Count == 0)
@@ -667,7 +652,7 @@
                                                 <div class="text-muted small font-monospace">@item.PatientPhone</div>
                                             </td>
                                             <td>
-                                                <span class="badge bg-light text-dark p-2 rounded-3 border">
+                                                <span class="badge bg-transparent text-dark p-2 rounded-3 border">
                                                     <i class="fas fa-crutch me-1"></i> @item.EmergencyType
                                                 </span>
                                             </td>
@@ -696,7 +681,6 @@
                         </div>
                     }
                 </div>
-
                 <!-- Direct Pending Tab Pane -->
                 <div class="tab-pane fade" id="direct-pending-pane" role="tabpanel">
                     @if (directPending.Count == 0)
@@ -768,7 +752,6 @@
                         </div>
                     }
                 </div>
-
                 <!-- Accepted Tab Pane -->
                 <div class="tab-pane fade" id="accepted-pane" role="tabpanel">
                     @if (acceptedItems.Count == 0)
@@ -812,7 +795,7 @@
                                                 <div class="text-muted small font-monospace">@item.PatientPhone</div>
                                             </td>
                                             <td>
-                                                <span class="badge bg-light text-dark p-2 rounded-3 border">
+                                                <span class="badge bg-transparent text-dark p-2 rounded-3 border">
                                                     <i class="fas fa-truck-medical me-1"></i> @item.EmergencyType
                                                 </span>
                                             </td>
@@ -827,13 +810,13 @@
                                             <td>
                                                  @if (item.ResponseNotes != null && (item.ResponseNotes.Contains("تلقائياً") || item.ResponseNotes.Contains("الذكاء الاصطناعي")))
                                                  {
-                                                     <span class="badge bg-light text-primary border border-primary px-2.5 py-1.5 fw-bold" style="border-radius: 6px; font-size: 0.75rem;">
+                                                     <span class="badge bg-transparent text-primary border border-primary px-2.5 py-1.5 fw-bold" style="border-radius: 6px; font-size: 0.75rem;">
                                                          <i class="fas fa-robot animate__animated animate__pulse animate__infinite"></i> الذكاء الاصطناعي
                                                      </span>
                                                  }
                                                  else
                                                  {
-                                                     <span class="badge bg-light text-success border border-success px-2.5 py-1.5 fw-bold" style="border-radius: 6px; font-size: 0.75rem;">
+                                                     <span class="badge bg-transparent text-success border border-success px-2.5 py-1.5 fw-bold" style="border-radius: 6px; font-size: 0.75rem;">
                                                          <i class="fas fa-user-tie"></i> الموظف المناوب
                                                      </span>
                                                  }
@@ -855,7 +838,6 @@
                         </div>
                     }
                 </div>
-
                 <!-- Escalated Tab Pane -->
                 <div class="tab-pane fade" id="escalated-pane" role="tabpanel">
                     @if (escalatedItems.Count == 0)
@@ -927,7 +909,6 @@
                         </div>
                     }
                 </div>
-
                 <!-- Doctor Transfers Tab Pane -->
                 <div class="tab-pane fade" id="transfers-pane" role="tabpanel">
                     @if (doctorTransfers.Count == 0)
@@ -1003,7 +984,6 @@
                                                 {
                                                     var isAmbReq = item.EmergencyType != "استقبال مباشر" && item.EmergencyType != "DoctorTransfer";
                                                     var disableAcc = isAmbReq && (Model.AvailableAmbulances ?? 4) <= 0;
-                                                    
                                                     <div class="d-flex gap-1 justify-content-center">
                                                         <form method="post" action="/HospitalQueue/Respond" style="display:inline;">
                                                             @Html.AntiForgeryToken()
@@ -1060,43 +1040,134 @@
                         </div>
                     }
                 </div>
-
+                <!-- Admitted Patients Tab Pane -->
+                <div class="tab-pane fade" id="admitted-pane" role="tabpanel">
+                    <div class="alert alert-light border p-3 rounded-4 mb-4 bg-white d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="pulse-dot" style="background:#10b981; width:10px; height:10px;"></span>
+                            <span class="text-dark fw-bold">المرضى المتواجدين حالياً تحت الرعاية الطبية بالمستشفى</span>
+                        </div>
+                    </div>
+                    <div id="admittedPatientsLoader" class="text-center py-4">
+                        <i class="fas fa-spinner fa-spin text-primary fs-3"></i>
+                        <p class="small text-muted mt-2">جاري تحميل المرضى المقبولين بالمنشأة...</p>
+                    </div>
+                    <div id="admittedPatientsContainer" class="d-none">
+                        <div class="table-responsive">
+                            <table class="triage-table">
+                                <thead>
+                                    <tr>
+                                        <th>اسم المريض</th>
+                                        <th>نوع الطوارئ</th>
+                                        <th>القسم / الغرفة الحالي</th>
+                                        <th>تاريخ الدخول</th>
+                                        <th class="text-center">إجراءات خروج / رعاية</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admittedPatientsBody">
+                                    <!-- Dynamic rows from AJAX -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div id="admittedEmptyAlert" class="text-center py-5 text-muted opacity-75 d-none">
+                        <i class="fas fa-bed-pulse fs-1 text-secondary mb-3"></i>
+                        <h5>لا يوجد مرضى منومين حالياً.</h5>
+                        <p class="small mb-0">جميع الحالات السابقة تم تخريجها أو تحويلها.</p>
+                    </div>
+                </div>
+                <!-- Visual Bed Grid Tab Pane -->
+                <div class="tab-pane fade" id="bed-grid-pane" role="tabpanel">
+                    <div class="alert alert-info border-0 p-3 rounded-4 mb-4 small bg-transparent-info text-info">
+                        <i class="fas fa-circle-info me-1"></i>
+                        مخطط الأسرة التفاعلي يوضح نسبة إشغال الطوارئ والرعاية. انقر على السرير الأحمر لعرض بيانات وتوصيات الحالة المنوّمة فيه.
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold text-dark mb-0"><i class="fas fa-hospital text-primary me-2"></i>توزيع أسرة الطوارئ والرعاية</h5>
+                        <div class="d-flex gap-3 text-xs" style="font-size: 0.8rem;">
+                            <span><span class="d-inline-block rounded-circle bg-success me-1" style="width: 10px; height: 10px;"></span> سرير متاح</span>
+                            <span><span class="d-inline-block rounded-circle bg-danger me-1" style="width: 10px; height: 10px;"></span> سرير مشغول</span>
+                        </div>
+                    </div>
+                    <div class="row row-cols-2 row-cols-md-4 row-cols-lg-5 g-3 mb-4" id="visualBedsGrid">
+                        <!-- Dynamic Bed Cards will be rendered here by Javascript -->
+                    </div>
+                </div>
+                <!-- Shift Handovers Tab Pane -->
+                <div class="tab-pane fade" id="handovers-pane" role="tabpanel">
+                    <div class="row g-4">
+                        <div class="col-md-5">
+                            <div class="card border-0 bg-transparent p-4 rounded-4 shadow-sm">
+                                <h5 class="fw-bold text-dark mb-3"><i class="fas fa-file-signature text-primary me-2"></i>تسليم الوردية الحالية</h5>
+                                <p class="small text-muted mb-3">قم بتدوين كافة الملاحظات التشغيلية والأسرة المعطلة أو الحالات الحرجة لتسليمها للوردية القادمة.</p>
+                                <form asp-controller="HospitalQueue" asp-action="SaveHandover" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-800 text-muted">ملاحظات وتقرير التسليم:</label>
+                                        <textarea class="form-control rounded-3" name="handoverNotes" rows="6" required placeholder="مثال: الوردية مستقرة. يتواجد مريضين بقسم الملاحظة، السرير رقم 8 قيد التعقيم..."></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2.5 fw-bold">
+                                        <i class="fas fa-paper-plane me-1"></i> حفظ وتوقيع تقرير التسليم
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="col-md-7">
+                            <h5 class="fw-bold text-dark mb-3"><i class="fas fa-history text-secondary me-2"></i>سجل عمليات تسليم الورديات السابقة</h5>
+                            <div class="list-group shadow-sm rounded-4 overflow-hidden" id="handoverLogsList" style="max-height: 400px; overflow-y: auto;">
+                                @if (ViewBag.HandoverLogs != null && ((List<Etmen_BLL.DTOs.HospitalStaff.StaffActivityLogDto>)ViewBag.HandoverLogs).Count > 0)
+                                {
+                                    foreach (var log in (List<Etmen_BLL.DTOs.HospitalStaff.StaffActivityLogDto>)ViewBag.HandoverLogs)
+                                    {
+                                        <div class="list-group-item border-0 border-bottom p-3 bg-white">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <span class="fw-bold text-primary small"><i class="fas fa-user-clock me-1"></i> @log.StaffName</span>
+                                                <span class="text-muted font-monospace" style="font-size: 0.75rem;">@log.CreatedAt.ToString("g")</span>
+                                            </div>
+                                            <p class="small text-dark mb-0 bg-transparent p-2 rounded-2 mt-1" style="white-space: pre-wrap;">@log.Details</p>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="text-center py-5 text-muted bg-white">
+                                        <i class="fas fa-folder-open fs-1 mb-2 text-muted"></i>
+                                        <p class="small mb-0">لا توجد سجلات تسليم ورديات سابقة.</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-
     </div>
-
     <!-- Right side: Sidebar Widgets -->
     <div class="col-lg-4">
-        
         <!-- Hospital Profile Control Card (Full Control) -->
         <div class="dashboard-card animate__animated animate__fadeInRight">
             <h3 class="card-title-lg">
                 <i class="fas fa-sliders text-primary"></i>
                 التحكم الكامل في بيانات المستشفى
             </h3>
-            
             <form asp-controller="HospitalQueue" asp-action="UpdateProfile" method="post" class="mt-2">
                 <input type="hidden" name="ProviderId" value="@Model.ProviderId" />
-                
                 <!-- Hospital Name -->
                 <div class="mb-3">
                     <label class="form-label small fw-800 text-muted">اسم المنشأة الطبية/المستشفى:</label>
                     <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0"><i class="fas fa-hospital text-muted"></i></span>
+                        <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-hospital text-muted"></i></span>
                         <input type="text" class="form-control" name="ProviderName" value="@Model.ProviderName" required placeholder="مثال: مستشفى الشفاء التخصصي" />
                     </div>
                 </div>
-
                 <!-- Hospital Region/Address -->
                 <div class="mb-3">
                     <label class="form-label small fw-800 text-muted">منطقة التغطية/العنوان:</label>
                     <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0"><i class="fas fa-map-marker-alt text-muted"></i></span>
+                        <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-map-marker-alt text-muted"></i></span>
                         <input type="text" class="form-control" name="ProviderAddress" value="@Model.ProviderAddress" placeholder="مثال: القاهرة - التجمع الخامس" />
                     </div>
                 </div>
-
                 <!-- Available Beds & BedCapacity -->
                 <div class="mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-1">
@@ -1105,7 +1176,6 @@
                     </div>
                     <input type="range" class="form-range" name="BedCapacity" id="bedCapRange" min="10" max="500" value="@(Model.BedCapacity ?? 150)" oninput="updateBedCapLabel(this.value)">
                 </div>
-
                 <div class="mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <label class="form-label small fw-800 text-muted mb-0">الأسرة الشاغرة (المتاحة):</label>
@@ -1113,9 +1183,7 @@
                     </div>
                     <input type="range" class="form-range" name="AvailableBeds" id="bedRange" min="0" max="@(Model.BedCapacity ?? 150)" value="@(Model.AvailableBeds ?? 0)" oninput="updateBedLabel(this.value)">
                 </div>
-
                 <hr class="my-3" style="opacity: 0.15;" />
-
                 <!-- Available Ambulances & AmbulanceCapacity -->
                 <div class="mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-1">
@@ -1124,7 +1192,6 @@
                     </div>
                     <input type="range" class="form-range" name="AmbulanceCapacity" id="ambCapRange" min="1" max="25" value="@(Model.AmbulanceCapacity ?? 4)" oninput="updateAmbCapLabel(this.value)">
                 </div>
-
                 <div class="mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <label class="form-label small fw-800 text-muted mb-0">سيارات الإسعاف المتاحة (الشاغرة):</label>
@@ -1132,13 +1199,86 @@
                     </div>
                     <input type="range" class="form-range" name="AvailableAmbulances" id="ambRange" min="0" max="@(Model.AmbulanceCapacity ?? 4)" value="@(Model.AvailableAmbulances ?? 4)" oninput="updateAmbLabel(this.value)">
                 </div>
-
                 <button type="submit" class="btn btn-primary w-100 rounded-pill py-2.5 fw-800">
                     <i class="fas fa-sync-alt me-1"></i> حفظ وتحديث البيانات الآن
                 </button>
             </form>
         </div>
-
+        <!-- AI Load Predictor Card -->
+        <div class="dashboard-card animate__animated animate__fadeInRight" style="animation-delay: 0.05s;">
+            <h3 class="card-title-lg">
+                <i class="fas fa-brain text-purple" style="color: #a855f7;"></i>
+                متنبئ الازدحام والضغط الذكي (AI)
+            </h3>
+            <div class="text-center py-3">
+                <div class="position-relative d-inline-block" style="width: 120px; height: 120px;">
+                    <svg viewBox="0 0 36 36" class="circular-chart" style="transform: rotate(-90deg); width: 100%; height: 100%;">
+                        <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#e2e8f0" stroke-width="3" />
+                        <path class="circle" id="aiLoadGauge" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#22c55e" stroke-width="3" stroke-dasharray="30, 100" style="transition: stroke-dasharray 1s ease, stroke 1s ease;" />
+                    </svg>
+                    <div class="position-absolute top-50 start-50 translate-middle text-center">
+                        <span class="fs-4 fw-900 text-dark" id="aiLoadScore">--%</span>
+                    </div>
+                </div>
+                <h6 class="fw-bold text-dark mt-2 mb-1" id="aiLoadText">جاري الحساب...</h6>
+                <p class="small text-muted mb-0 px-2" style="font-size: 0.75rem;" id="aiLoadDetails">جاري تحليل البيانات...</p>
+            </div>
+        </div>
+        <!-- Staff Workload & Fatigue Tracker Card -->
+        <div class="dashboard-card animate__animated animate__fadeInRight" style="animation-delay: 0.1s;">
+            <h3 class="card-title-lg">
+                <i class="fas fa-user-doctor text-info"></i>
+                مؤشر ضغط العمل وإجهاد الأطباء (Fatigue Tracker)
+            </h3>
+            <p class="small text-muted mb-3">عبء العمل للمناوبين وحالتهم الصحية لمنع الاحتراق المهني.</p>
+            <div id="workloadLoader" class="text-center py-2 d-none">
+                <i class="fas fa-spinner fa-spin text-info"></i>
+            </div>
+            <div id="workloadStatsContainer" class="d-flex flex-column gap-2" style="max-height: 180px; overflow-y: auto;">
+                <!-- Dynamic workload rows -->
+            </div>
+        </div>
+        <!-- Emergency Codes Panel -->
+        <div class="dashboard-card animate__animated animate__fadeInRight" style="animation-delay: 0.15s;">
+            <h3 class="card-title-lg">
+                <i class="fas fa-tower-broadcast text-danger"></i>
+                أكواد الطوارئ السريعة (Code Activation)
+            </h3>
+            <p class="small text-muted mb-3">اضغط لتفعيل إنذار فوري لكود طبي طارئ داخل مبنى الطوارئ بأكمله.</p>
+            <div class="row g-2">
+                <div class="col-6">
+                    <button type="button" class="btn w-100 py-3 fw-bold btn-danger" style="background: #ef4444; border: none; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2);" onclick="activateCode('Blue', 'قسم الاستقبال الطارئ')">
+                        <i class="fas fa-heart-pulse me-1"></i> كود أزرق (عناية)
+                    </button>
+                </div>
+                <div class="col-6">
+                    <button type="button" class="btn w-100 py-3 fw-bold text-white" style="background: #f97316; border: none; box-shadow: 0 4px 10px rgba(249, 115, 22, 0.2);" onclick="activateCode('Red', 'المستودع الطبي')">
+                        <i class="fas fa-fire me-1"></i> كود أحمر (حريق)
+                    </button>
+                </div>
+                <div class="col-12 mt-2">
+                    <button type="button" class="btn w-100 py-2.5 fw-bold btn-dark" style="background: #1e293b; border: none;" onclick="activateCode('Black', 'صالة الاستقبال الرئيسية')">
+                        <i class="fas fa-shield-halved me-1"></i> كود أسود (أمني)
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Shift Internal Chat Room -->
+        <div class="dashboard-card animate__animated animate__fadeInRight" style="animation-delay: 0.25s;">
+            <h3 class="card-title-lg mb-2">
+                <i class="fas fa-comments text-success"></i>
+                غرفة محادثة الوردية الحالية
+            </h3>
+            <div class="border rounded-3 bg-transparent p-2 mb-2 d-flex flex-column" style="height: 180px;">
+                <div id="internalChatMessages" class="flex-grow-1 overflow-y-auto small d-flex flex-column gap-2" style="max-height: 160px; min-height: 140px;">
+                    <div class="text-center text-muted py-3" style="font-size: 0.75rem;">مرحباً بك في شات الوردية للتنسيق اللوجستي السريع.</div>
+                </div>
+            </div>
+            <div class="input-group">
+                <input type="text" id="internalChatInput" class="form-control rounded-start-pill small" placeholder="اكتب رسالة للوردية..." style="font-size: 0.85rem;" onkeypress="handleChatKey(event)" />
+                <button class="btn btn-success rounded-end-pill px-3" type="button" onclick="sendShiftMessage()"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
         <!-- Central Administration Communications (Communicate with Admin) -->
         <div class="dashboard-card animate__animated animate__fadeInRight" style="animation-delay: 0.1s;">
             <h3 class="card-title-lg">
@@ -1146,7 +1286,6 @@
                 التواصل مع الإدارة المركزية للأزمات
             </h3>
             <p class="small text-muted mb-3">يمكنك طلب دعم لوجستي عاجل من الأدمن أو بدء محادثة حية مع غرفة إدارة الكوارث المركزية.</p>
-            
             <div class="d-flex flex-column gap-3">
                 <!-- Direct Support Alert Request Form -->
                 <form asp-controller="HospitalQueue" asp-action="RequestSupport" method="post" onsubmit="return confirm('هل أنت متأكد من رغبتك في إرسال طلب دعم عاجل للأدمن لزيادة الإمدادات والأسرة؟');">
@@ -1156,7 +1295,6 @@
                         طلب دعم وإمداد طبي عاجل
                     </button>
                 </form>
-
                 <!-- Direct Live Chat with Admin -->
                 @if (!string.IsNullOrEmpty(Model.AdminUserId))
                 {
@@ -1174,7 +1312,6 @@
                 }
             </div>
         </div>
-
         <!-- ════════════════════════════════════════════
              Ambulance Live Dispatch Map Card
         ════════════════════════════════════════════ -->
@@ -1183,16 +1320,14 @@
                 <i class="fas fa-satellite text-info animate__animated animate__pulse animate__infinite"></i>
                 خريطة الإسعاف المباشرة
             </h3>
-
             <!-- Capacity Bar -->
             <div class="d-flex justify-content-between align-items-center mb-1" style="font-size:.8rem;">
                 <span class="fw-700 text-muted"><i class="fas fa-ambulance me-1 text-danger"></i> السعة</span>
                 <span id="capLabel" class="fw-800"></span>
             </div>
-            <div style="background:#f1f5f9;border-radius:8px;height:10px;overflow:hidden;margin-bottom:12px;">
+            <div style="background:rgba(255,255,255,0.02);border-radius:8px;height:10px;overflow:hidden;margin-bottom:12px;">
                 <div id="capBar" style="height:100%;border-radius:8px;transition:width .6s ease;background:#22c55e;"></div>
             </div>
-
             <!-- No-ambulance alert -->
             <div id="noAmbHospAlert" class="alert alert-danger border-0 py-2 px-3 mb-2 small fw-700"
                  style="border-radius:10px;display:none;">
@@ -1200,7 +1335,6 @@
                 جميع سيارات الإسعاف مشغولة!
                 <div id="altHospText" class="fw-600 mt-1" style="font-size:.75rem;"></div>
             </div>
-
             <!-- Map -->
             <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
             <div class="position-relative">
@@ -1214,7 +1348,6 @@
                 <div id="hospAmbMap" style="height:280px;border-radius:14px;overflow:hidden;
                      border:2px solid #1e293b;box-shadow:0 0 25px rgba(0, 240, 255, 0.12);"></div>
             </div>
-
             <!-- Legend -->
             <div class="d-flex gap-3 justify-content-center mt-2 flex-wrap" style="font-size:.75rem;color:#64748b;">
                 <span>🏥 المستشفى</span>
@@ -1222,13 +1355,44 @@
                 <span>🚑 إسعاف متحرك</span>
                 <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#22c55e;"></span> إسعاف متاح</span>
             </div>
-
             <!-- Active dispatch list -->
             <div id="dispatchList" class="mt-3" style="max-height:160px;overflow-y:auto;"></div>
         </div>
-
     </div>
 </div>
+<!-- Full-Screen Emergency Code Blue Overlay -->
+<div id="codeBlueOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-none align-items-center justify-content-center" style="z-index: 10000; background: rgba(0,0,0,0.95); transition: all 0.5s ease;">
+    <div class="text-center text-white p-5 rounded-4 animate__animated animate__zoomIn" style="border: 4px solid #ef4444; box-shadow: 0 0 50px rgba(239, 68, 68, 0.5); max-width: 500px; background: #0f172a; direction: rtl;">
+        <i class="fas fa-triangle-exclamation text-danger fs-1 animate__animated animate__flash animate__infinite mb-3" style="font-size: 4rem !important;"></i>
+        <h1 class="fw-900 text-danger mb-2" style="font-size: 2.5rem;">⚠️ CODE BLUE</h1>
+        <h3 class="fw-bold mb-3" id="codeAlertTitle">حالة توقف قلب مفاجئ!</h3>
+        <p class="lead mb-4" id="codeAlertLocation">الموقع: قسم الطوارئ - السرير 3</p>
+        <div class="d-flex gap-3 justify-content-center">
+            <button type="button" class="btn btn-warning rounded-pill px-4 py-2.5 fw-bold text-dark" onclick="dismissCodeBlue()">
+                <i class="fas fa-check-circle"></i> تأكيد الاستلام والاستجابة
+            </button>
+        </div>
+    </div>
+</div>
+<!-- Audio Assets -->
+<audio id="codeBlueSound" loop src="https://assets.mixkit.co/active_storage/sfx/951/951-84.wav" preload="auto"></audio>
+<!-- Full-Screen Emergency Code Blue Overlay -->
+<div id="codeBlueOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-none align-items-center justify-content-center" style="z-index: 10000; background: rgba(0,0,0,0.95); transition: all 0.5s ease;">
+    <div class="text-center text-white p-5 rounded-4 animate__animated animate__zoomIn" style="border: 4px solid #ef4444; box-shadow: 0 0 50px rgba(239, 68, 68, 0.5); max-width: 500px; background: #0f172a; direction: rtl;">
+        <i class="fas fa-triangle-exclamation text-danger fs-1 animate__animated animate__flash animate__infinite mb-3" style="font-size: 4rem !important;"></i>
+        <h1 class="fw-900 text-danger mb-2" style="font-size: 2.5rem;">⚠️ CODE BLUE</h1>
+        <h3 class="fw-bold mb-3" id="codeAlertTitle">حالة توقف قلب مفاجئ!</h3>
+        <p class="lead mb-4" id="codeAlertLocation">الموقع: قسم الطوارئ - السرير 3</p>
+        <div class="d-flex gap-3 justify-content-center">
+            <button type="button" class="btn btn-warning rounded-pill px-4 py-2.5 fw-bold text-dark" onclick="dismissCodeBlue()">
+                <i class="fas fa-check-circle"></i> تأكيد الاستلام والاستجابة
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Audio Assets -->
+<audio id="codeBlueSound" loop src="https://assets.mixkit.co/active_storage/sfx/951/951-84.wav" preload="auto"></audio>
 
 <!-- Alert Toast Container for Live Alerts -->
 <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1050;">
@@ -1242,7 +1406,6 @@
         </div>
     </div>
 </div>
-
 @section Scripts {
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -1266,11 +1429,9 @@
                 window.bedChart.update();
             }
         }
-
         function updateBedLabel(val) {
             document.getElementById('bedVal').innerText = val;
             updateBedColor(val);
-            
             if (window.bedChart) {
                 const totalRange = document.getElementById('bedCapRange');
                 const total = totalRange ? parseInt(totalRange.value) : 150;
@@ -1280,7 +1441,6 @@
                 window.bedChart.update();
             }
         }
-
         function updateBedColor(val) {
             const el = document.getElementById('bedVal');
             if (!el) return;
@@ -1288,7 +1448,6 @@
             el.className = 'badge font-monospace ';
             el.style.animation = '';
             el.style.backgroundColor = '';
-            
             if (num === 0) {
                 el.classList.add('pulsing-red-alert');
                 el.innerText = 'ممتلئ تماماً (0)';
@@ -1302,7 +1461,6 @@
                 el.style.backgroundColor = '#10b981';
             }
         }
-
         function updateAmbCapLabel(val) {
             document.getElementById('ambCapVal').innerText = val;
             const ambRange = document.getElementById('ambRange');
@@ -1313,13 +1471,11 @@
             }
             updateAmbulanceStatusMapCapacity();
         }
-
         function updateAmbLabel(val) {
             document.getElementById('ambVal').innerText = val;
             updateAmbColor(val);
             updateAmbulanceStatusMapCapacity();
         }
-
         function updateAmbColor(val) {
             const el = document.getElementById('ambVal');
             if (!el) return;
@@ -1327,7 +1483,6 @@
             el.className = 'badge font-monospace ';
             el.style.animation = '';
             el.style.backgroundColor = '';
-            
             if (num === 0) {
                 el.classList.add('pulsing-red-alert');
                 el.innerText = 'ممتلئ تماماً (0)';
@@ -1341,7 +1496,6 @@
                 el.style.backgroundColor = '#10b981';
             }
         }
-
         function updateAmbulanceStatusMapCapacity() {
             const freeEl = document.getElementById('ambRange');
             const capEl = document.getElementById('ambCapRange');
@@ -1349,7 +1503,6 @@
             const freeAmbs = parseInt(freeEl.value);
             const totalAmbs = parseInt(capEl.value);
             const capPct = Math.max(0, Math.round(freeAmbs / totalAmbs * 100));
-
             const labelEl = document.getElementById('capLabel');
             if (labelEl) {
                 labelEl.textContent = `${freeAmbs}/${totalAmbs} متاح`;
@@ -1376,16 +1529,13 @@
                 }
             }
         }
-
         let audioMuted = localStorage.getItem('hospital_audio_muted') === 'true';
         let globalAudioCtx = null;
-
         function updateAudioButtonUI() {
             const btn = document.getElementById('btnToggleAudio');
             const icon = document.getElementById('audioToggleIcon');
             const text = document.getElementById('audioToggleText');
             if (!btn || !icon || !text) return;
-
             if (audioMuted) {
                 btn.className = 'btn btn-outline-secondary rounded-pill px-3 py-2 fw-800 shadow-sm';
                 icon.className = 'fas fa-volume-mute';
@@ -1396,12 +1546,10 @@
                 text.innerText = 'التنبيه الصوتي: مفعل';
             }
         }
-
         function toggleAudioMute() {
             audioMuted = !audioMuted;
             localStorage.setItem('hospital_audio_muted', audioMuted ? 'true' : 'false');
             updateAudioButtonUI();
-
             if (!audioMuted) {
                 try {
                     if (!globalAudioCtx) {
@@ -1416,7 +1564,6 @@
                 }
             }
         }
-
         // Web Audio API medical warning synthesizer
         function playMedicalAlertSound() {
             if (audioMuted) return;
@@ -1428,7 +1575,6 @@
                 if (audioCtx.state === 'suspended') {
                     audioCtx.resume();
                 }
-                
                 function beep(freq, duration, delay) {
                     setTimeout(() => {
                         if (audioCtx.state === 'closed') return;
@@ -1444,14 +1590,12 @@
                         osc.stop(audioCtx.currentTime + duration);
                     }, delay);
                 }
-                
                 beep(880, 0.15, 0);
                 beep(880, 0.15, 200);
             } catch (e) {
                 console.error("Audio Context initialization failed: ", e);
             }
         }
-
         function toggleAiMode(providerId, enable) {
             $.post('/HospitalQueue/ToggleAiMode', { providerId: providerId, enable: enable })
                 .done(function (data) {
@@ -1467,7 +1611,6 @@
                     document.getElementById('aiAutoAcceptToggle').checked = !enable;
                 });
         }
-
         // Haversine Distance Calculator (km)
         function getHaversineDistance(lat1, lon1, lat2, lon2) {
             const R = 6371; // Radius of the earth in km
@@ -1480,7 +1623,6 @@
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
             return R * c; // Distance in km
         }
-
         $(document).ready(function() {
             updateAudioButtonUI();
             // 1. Bed Status Chart Configuration
@@ -1488,7 +1630,6 @@
             const availBeds = parseInt('@(Model.AvailableBeds ?? 0)');
             const totalMaxBeds = parseInt('@(Model.BedCapacity ?? 150)');
             const occupiedBeds = Math.max(0, totalMaxBeds - availBeds);
-
             window.bedChart = new Chart(ctxBed, {
                 type: 'doughnut',
                 data: {
@@ -1527,7 +1668,6 @@
                     cutout: '65%'
                 }
             });
-
             // 2. Case Priority distribution chart
             const ctxPriority = document.getElementById('priorityChart').getContext('2d');
             window.priorityChartObj = new Chart(ctxPriority, {
@@ -1576,17 +1716,14 @@
                     }
                 }
             });
-
             // 3. Dynamic Haversine ETA calculations for all table cells
             window.recalculateETAs = function() {
                 const hospLat = parseFloat('@Model.ProviderLatitude');
                 const hospLng = parseFloat('@Model.ProviderLongitude');
-
                 if (!isNaN(hospLat) && !isNaN(hospLng)) {
                     $('.eta-calc-cell').each(function() {
                         const lat = parseFloat($(this).attr('data-lat'));
                         const lng = parseFloat($(this).attr('data-lng'));
-
                         if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
                             const dist = getHaversineDistance(hospLat, hospLng, lat, lng);
                             const eta = Math.round((dist / 50) * 60 + 2); // 50 km/h avg speed + 2 min overhead
@@ -1599,15 +1736,12 @@
                     $('.eta-calc-cell').html('<span class="text-muted small">غير متوفر</span>');
                 }
             };
-
             // Run initial ETA calculation
             recalculateETAs();
-            
             // Initial call to set telemetry color indicators
             updateAmbulanceStatusMapCapacity();
             updateBedColor(parseInt('@(Model.AvailableBeds ?? 0)'));
             updateAmbColor(parseInt('@(Model.AvailableAmbulances ?? 4)'));
-
             // ── Client-Side Search & Sorting Implementation ──
             function getRowDistance(row, hospLat, hospLng) {
                 const lat = parseFloat(row.attr('data-lat'));
@@ -1617,27 +1751,22 @@
                 }
                 return Infinity;
             }
-
             window.applyQueueFiltersAndSort = function() {
                 const searchTerm = ($('#queueSearchInput').val() || '').trim().toLowerCase();
                 const sortBy = $('#queueSortSelect').val() || 'waiting_desc';
                 const hospLat = parseFloat('@Model.ProviderLatitude');
                 const hospLng = parseFloat('@Model.ProviderLongitude');
-
                 $('.tab-pane').each(function() {
                     const pane = $(this);
                     const tbody = pane.find('table.triage-table tbody');
                     if (tbody.length === 0) return;
-
                     let rows = tbody.find('tr.triage-row').get();
                     let visibleCount = 0;
-
                     rows.forEach(function(rowEl) {
                         const row = $(rowEl);
                         const name = (row.attr('data-name') || '').toLowerCase();
                         const phone = (row.attr('data-phone') || '').toLowerCase();
                         const doctor = (row.attr('data-doctor') || '').toLowerCase();
-
                         const matches = name.includes(searchTerm) || phone.includes(searchTerm) || doctor.includes(searchTerm);
                         if (matches) {
                             row.show();
@@ -1646,11 +1775,9 @@
                             row.hide();
                         }
                     });
-
                     rows.sort(function(a, b) {
                         const rowA = $(a);
                         const rowB = $(b);
-
                         if (sortBy === 'waiting_desc') {
                             return parseFloat(rowB.attr('data-waiting') || 0) - parseFloat(rowA.attr('data-waiting') || 0);
                         } else if (sortBy === 'waiting_asc') {
@@ -1674,11 +1801,9 @@
                         }
                         return 0;
                     });
-
                     $.each(rows, function(index, row) {
                         tbody.append(row);
                     });
-
                     let emptyState = pane.find('.empty-search-state');
                     if (visibleCount === 0 && rows.length > 0) {
                         if (emptyState.length === 0) {
@@ -1695,33 +1820,26 @@
                     }
                 });
             };
-
             // Bind events for search and sorting
             $(document).on('keyup change', '#queueSearchInput', function() {
                 applyQueueFiltersAndSort();
             });
-
             $(document).on('change', '#queueSortSelect', function() {
                 applyQueueFiltersAndSort();
             });
-
             $(document).on('click', '#clearQueueFilters', function() {
                 $('#queueSearchInput').val('');
                 $('#queueSortSelect').val('waiting_desc');
                 applyQueueFiltersAndSort();
             });
-
             // Run initial sort/filter
             applyQueueFiltersAndSort();
- 
             // 4. SignalR Real-Time connection for incoming pending requests
             const providerId = '@Model.ProviderId';
-            
             const connection = new signalR.HubConnectionBuilder()
                 .withUrl("/hubs/queue")
                 .withAutomaticReconnect()
                 .build();
-
             connection.on("NewEmergencyRequest", function(request) {
                 // New case received! Play alarm and show toast
                 playMedicalAlertSound();
@@ -1730,17 +1848,14 @@
                     const toast = new bootstrap.Toast(toastEl);
                     toast.show();
                 }
-                
                 // Perform dynamic zero-refresh load of stats and tables
                 const activeTabId = $('#triageTabs .nav-link.active').attr('id');
-                
                 $('#statsSectionContainer').load(window.location.href + ' #statsSectionContainer > *', function() {
                     const critical = parseInt($('#statsSectionContainer').attr('data-critical-count'));
                     const medium = parseInt($('#statsSectionContainer').attr('data-medium-count'));
                     const low = parseInt($('#statsSectionContainer').attr('data-low-count'));
                     const availBeds = parseInt($('#statsSectionContainer').attr('data-available-beds'));
                     const bedCap = parseInt($('#statsSectionContainer').attr('data-bed-capacity'));
-
                     if (window.priorityChartObj && !isNaN(critical)) {
                         window.priorityChartObj.data.datasets[0].data = [critical, medium, low];
                         window.priorityChartObj.update();
@@ -1753,18 +1868,14 @@
                     // Update badges/sliders if they are present
                     updateBedColor(availBeds);
                 });
-
                 const searchVal = $('#queueSearchInput').val();
                 const sortVal = $('#queueSortSelect').val();
-
                 $('#queueTablesContainer').load(window.location.href + ' #queueTablesContainer > *', function() {
                     if (activeTabId) {
                         $('#triageTabs .nav-link').removeClass('active');
                         $('.tab-pane').removeClass('show active');
-
                         const newTabButton = $('#' + activeTabId);
                         newTabButton.addClass('active');
-
                         const targetPaneId = newTabButton.attr('data-bs-target');
                         $(targetPaneId).addClass('show active');
                     }
@@ -1774,7 +1885,6 @@
                     applyQueueFiltersAndSort();
                 });
             });
-
             connection.on("HospitalBedsUpdated", function(data) {
                 if (data.providerId == providerId) {
                     // Update sliders
@@ -1782,32 +1892,27 @@
                     if (bedCap) bedCap.value = data.bedCapacity;
                     const bedCapVal = document.getElementById('bedCapVal');
                     if (bedCapVal) bedCapVal.innerText = data.bedCapacity;
-
                     const bedRange = document.getElementById('bedRange');
                     if (bedRange) {
                         bedRange.setAttribute('max', data.bedCapacity);
                         bedRange.value = data.availableBeds;
                         document.getElementById('bedVal').innerText = data.availableBeds;
                     }
-
                     const ambCap = document.getElementById('ambCapRange');
                     if (ambCap) ambCap.value = data.ambulanceCapacity;
                     const ambCapVal = document.getElementById('ambCapVal');
                     if (ambCapVal) ambCapVal.innerText = data.ambulanceCapacity;
-
                     const ambRange = document.getElementById('ambRange');
                     if (ambRange) {
                         ambRange.setAttribute('max', data.ambulanceCapacity);
                         ambRange.value = data.availableAmbulances;
                         document.getElementById('ambVal').innerText = data.availableAmbulances;
                     }
-
                     // Update charts and map telemetry
                     updateBedLabel(data.availableBeds);
                     updateAmbLabel(data.availableAmbulances);
                 }
             });
-
             connection.start().then(function() {
                 console.log("SignalR connected to QueueHub.");
                 if (providerId) {
@@ -1836,7 +1941,6 @@
         const AVG_KMH    = 40;
         const ANIM_FPS   = 15;
         const SPEEDUP    = 12;  // 12× real-time
-
         // Accepted cases (patients that ambulances are heading to)
         const acceptedCases = [
             @foreach (var item in acceptedItems)
@@ -1847,19 +1951,16 @@
                 }
             }
         ];
-
         // ── Haversine ──
         function haversineKm(lat1, lng1, lat2, lng2) {
             const R = 6371, dLat=(lat2-lat1)*Math.PI/180, dLng=(lng2-lng1)*Math.PI/180;
             const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
             return R*2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         }
-
         // ── Init Leaflet map ──
         const dispMap = L.map('hospAmbMap').setView([HOSP_LAT, HOSP_LNG], 12);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
             {attribution:'&copy; OpenStreetMap &copy; CartoDB'}).addTo(dispMap);
-
         // Live UTC Clock updater
         setInterval(() => {
             const clocks = document.querySelectorAll('.utc-clock');
@@ -1870,7 +1971,6 @@
                 clocks.forEach(c => c.textContent = timeStr);
             }
         }, 1000);
-
         // Hospital marker
         L.marker([HOSP_LAT, HOSP_LNG], {
             icon: L.divIcon({
@@ -1879,16 +1979,13 @@
                 iconSize:[24,24], iconAnchor:[12,12]
             })
         }).addTo(dispMap).bindPopup('<b>@Html.Raw(Model.ProviderName?.Replace("'", "\\'") ?? "")</b>');
-
         // ── Capacity calculation ──
         const freeAmbs  = FREE_AMBS;
         const capPct    = Math.max(0, Math.round(freeAmbs / TOTAL_AMBS * 100));
-
         document.getElementById('capLabel').textContent = `${freeAmbs}/${TOTAL_AMBS} متاح`;
         const capBar = document.getElementById('capBar');
         capBar.style.width   = capPct + '%';
         capBar.style.background = capPct === 0 ? '#ef4444' : capPct < 40 ? '#f59e0b' : '#22c55e';
-
         // Show no-ambulance alert if all busy
         if (freeAmbs <= 0) {
             document.getElementById('noAmbHospAlert').style.display = 'block';
@@ -1899,19 +1996,15 @@
                 btn.setAttribute('disabled', 'true');
             });
         }
-
         // ── Draw patient markers + animated ambulances ──
         let dispHtml = '';
-
         acceptedCases.forEach((c, idx) => {
             if (!c.lat || !c.lng) return;
-
             const dist      = haversineKm(HOSP_LAT, HOSP_LNG, c.lat, c.lng);
             const etaMin    = Math.round((dist / AVG_KMH) * 60);
             const simMs     = (etaMin * 60000) / SPEEDUP;
             const stepMs    = 1000 / ANIM_FPS;
             const steps     = Math.ceil(simMs / stepMs);
-
             // Patient marker (red circle with pulse)
             L.marker([c.lat, c.lng], {
                 icon: L.divIcon({
@@ -1920,7 +2013,6 @@
                     iconSize:[14,14], iconAnchor:[7,7]
                 })
             }).addTo(dispMap).bindPopup(`<b>${c.name}</b><br>${c.type}`);
-
             // Route line (neon glowing polyline: back glow + front line)
             const isCyan = (idx % 2 === 0);
             const neonColor = isCyan ? '#00f0ff' : '#ff9f00';
@@ -1930,7 +2022,6 @@
             L.polyline([[HOSP_LAT, HOSP_LNG],[c.lat, c.lng]], {
                 color: neonColor, weight: 2.2, opacity: 0.8
             }).addTo(dispMap);
-
             // Ambulance marker (glowing badge styled exactly like the concept mockup)
             const badgeColorClass = isCyan ? '' : 'orange';
             const ambM = L.marker([HOSP_LAT, HOSP_LNG], {
@@ -1948,7 +2039,6 @@
                 }),
                 zIndexOffset: 900 + idx
             }).addTo(dispMap).bindPopup(`إسعاف → ${c.name}`);
-
             // Animate from hospital to patient (with state persistence)
             const startTimeKey = "amb_start_" + c.id;
             let startTimeStr = localStorage.getItem(startTimeKey);
@@ -1958,7 +2048,6 @@
             }
             const startTime = parseInt(startTimeStr);
             const elapsed = Date.now() - startTime;
-
             const startReturnJourney = (initialRStep) => {
                 let rStep = initialRStep;
                 const retTimer = setInterval(() => {
@@ -1972,7 +2061,6 @@
                     }
                 }, stepMs);
             };
-
             if (elapsed < simMs) {
                 let step = Math.floor(elapsed / stepMs);
                 const timer = setInterval(() => {
@@ -2001,16 +2089,14 @@
                 const rt = Math.min(initialRStep / steps, 1);
                 const re = rt < .5 ? 2*rt*rt : -1+(4-2*rt)*rt;
                 ambM.setLatLng([c.lat + (HOSP_LAT - c.lat) * re, c.lng + (HOSP_LNG - c.lng) * re]);
-                
                 startReturnJourney(initialRStep);
             } else {
                 ambM.setLatLng([HOSP_LAT, HOSP_LNG]);
                 localStorage.removeItem(startTimeKey);
             }
-
             // Dispatch list row
             dispHtml += `
-                <div class="d-flex align-items-center gap-2 p-2 mb-1 rounded-3" style="background:#f8fafc;border:1px solid #e2e8f0;font-size:.78rem;">
+                <div class="d-flex align-items-center gap-2 p-2 mb-1 rounded-3" style="background:rgba(255,255,255,0.02);border:1px solid rgba(0,168,255,0.1);font-size:.78rem;">
                     <span>🚑</span>
                     <div class="flex-grow-1 fw-700">${c.name}
                         <span class="text-muted fw-600"> — ${c.type}</span>
@@ -2018,7 +2104,6 @@
                     <span class="badge bg-warning text-dark rounded-pill" style="font-size:.68rem;">${dist.toFixed(1)} كم · ${etaMin} د</span>
                 </div>`;
         });
-
         if (acceptedCases.length === 0) {
             dispHtml = `<div class="text-center text-muted py-3 small">
                 <i class="fas fa-check-circle text-success fs-4 mb-1"></i><br>
@@ -2037,9 +2122,348 @@
                 }).addTo(dispMap).bindPopup(`سيارة إسعاف #${(i+1).toString().padStart(2,'0')} — في المستشفى`);
             }
         }
-
         document.getElementById('dispatchList').innerHTML = dispHtml;
     })();
+    // ----------------------------------------------------
+    // NEXT-GEN FEATURES JAVASCRIPT
+    // ----------------------------------------------------
+    // 1. Load Admitted Patients via AJAX
+    window.loadAdmittedPatients = function() {
+        $("#admittedPatientsLoader").removeClass("d-none");
+        $("#admittedPatientsContainer").addClass("d-none");
+        $("#admittedEmptyAlert").addClass("d-none");
+        $.ajax({
+            url: "/HospitalQueue/GetAdmittedPatients",
+            type: "GET",
+            success: function(res) {
+                $("#admittedPatientsLoader").addClass("d-none");
+                if (res.success && res.data) {
+                    var count = res.data.length;
+                    $("#admittedCountBadge").text(count);
+                    if (count === 0) {
+                        $("#admittedEmptyAlert").removeClass("d-none");
+                        return;
+                    }
+                    var html = "";
+                    res.data.forEach(function(item) {
+                        var dateStr = new Date(item.requestedAt).toLocaleString("ar-EG");
+                        html += `<tr>
+                            <td>
+                                <div class="fw-800 text-dark">${item.patientName}</div>
+                                <div class="text-muted small font-monospace">${item.patientPhone}</div>
+                            </td>
+                            <td>
+                                <span class="badge bg-transparent text-dark p-2 rounded-3 border">${item.emergencyType}</span>
+                            </td>
+                            <td>
+                                <select class="form-select form-select-sm rounded-pill fw-bold" style="width: 150px;" onchange="updateDepartment(this, ${item.requestId})">
+                                    <option value="غرفة الطوارئ" selected>غرفة الطوارئ</option>
+                                    <option value="تحت الملاحظة">تحت الملاحظة</option>
+                                    <option value="العناية المركزة">العناية المركزة</option>
+                                    <option value="العمليات">العمليات</option>
+                                    <option value="جاهز للخروج">جاهز للخروج</option>
+                                </select>
+                            </td>
+                            <td>
+                                <div class="text-muted small">${dateStr}</div>
+                            </td>
+                            <td class="text-center">
+                                <div class="d-flex gap-1 justify-content-center">
+                                    <a href="/HospitalQueue/Details/${item.requestId}?providerId=${item.assignedProviderId}" class="btn btn-xs btn-outline-primary rounded-pill px-2.5 fw-bold" style="font-size: 0.75rem;">
+                                        <i class="fas fa-file-invoice"></i> الملف الطبي
+                                    </a>
+                                    <button class="btn btn-xs btn-outline-success rounded-pill px-2.5 fw-bold" style="font-size: 0.75rem;" onclick="openDischargeModal(${item.requestId})">
+                                        <i class="fas fa-door-open"></i> خروج
+                                    </button>
+                                    <button class="btn btn-xs btn-outline-danger rounded-pill px-2.5 fw-bold" style="font-size: 0.75rem;" onclick="openDeceasedModal(${item.requestId})">
+                                        <i class="fas fa-heart-crack"></i> وفاة
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>`;
+                    });
+                    $("#admittedPatientsBody").html(html);
+                    $("#admittedPatientsContainer").removeClass("d-none");
+                } else {
+                    $("#admittedEmptyAlert").removeClass("d-none");
+                }
+            },
+            error: function() {
+                $("#admittedPatientsLoader").addClass("d-none");
+                $("#admittedEmptyAlert").removeClass("d-none");
+            }
+        });
+    };
+    window.updateDepartment = function(selectElem, requestId) {
+        var dept = $(selectElem).val();
+        console.log("Department updated to " + dept + " for request " + requestId);
+    };
+    // 2. Render Visual Beds Grid
+    window.renderBedsGrid = function() {
+        var totalBeds = 30; // Limit rendering in grid to 30 for premium UI performance
+        $.ajax({
+            url: "/HospitalQueue/GetAdmittedPatients",
+            type: "GET",
+            success: function(res) {
+                var admittedList = (res.success && res.data) ? res.data : [];
+                var occupiedBeds = admittedList.length;
+                var gridHtml = "";
+                for (var i = 1; i <= totalBeds; i++) {
+                    if (i <= occupiedBeds) {
+                        var patient = admittedList[i - 1] || { patientName: "مريض طوارئ", emergencyType: "حالة طارئة نشطة" };
+                        gridHtml += `<div class="col">
+                            <div class="card border-danger text-center p-3 h-100 rounded-4 shadow-sm" style="background: rgba(239, 68, 68, 0.05); cursor: pointer; transition: all 0.2s;" title="انقر لعرض تفاصيل المريض" onclick="location.href='/HospitalQueue/Details/${patient.requestId || 0}?providerId=@Model.ProviderId'">
+                                <i class="fas fa-bed text-danger fs-3 mb-2 animate__animated animate__pulse animate__infinite"></i>
+                                <div class="fw-bold text-dark" style="font-size: 0.85rem;">سرير #${i} (مشغول)</div>
+                                <div class="text-danger small fw-800" style="font-size: 0.72rem;">${patient.patientName}</div>
+                                <div class="text-muted small" style="font-size: 0.65rem;">${patient.emergencyType}</div>
+                            </div>
+                        </div>`;
+                    } else {
+                        gridHtml += `<div class="col">
+                            <div class="card border-success text-center p-3 h-100 rounded-4 shadow-sm" style="background: rgba(34, 197, 94, 0.05);">
+                                <i class="fas fa-bed text-success fs-3 mb-2"></i>
+                                <div class="fw-bold text-dark" style="font-size: 0.85rem;">سرير #${i}</div>
+                                <div class="text-success small fw-bold" style="font-size: 0.72rem;">شاغر ومتاح</div>
+                            </div>
+                        </div>`;
+                    }
+                }
+                $("#visualBedsGrid").html(gridHtml);
+            }
+        });
+    };
+    // 3. AI Load Prediction Gauge
+    function loadAiPrediction() {
+        $.ajax({
+            url: "/HospitalQueue/GetAILoadPrediction",
+            type: "GET",
+            success: function(res) {
+                if (res.success) {
+                    var score = res.score;
+                    $("#aiLoadScore").text(score + "%");
+                    $("#aiLoadText").text(res.text);
+                    var gauge = document.getElementById("aiLoadGauge");
+                    if (gauge) {
+                        gauge.setAttribute("stroke-dasharray", score + ", 100");
+                        if (score >= 75) {
+                            gauge.setAttribute("stroke", "#ef4444");
+                            $("#aiLoadDetails").html("⚠️ ضغط شديد جداً بالمنطقة. ينصح باستدعاء أطباء مناوبين احتياطيين وإخلاء الأسرة الجاهزة.");
+                        } else if (score >= 50) {
+                            gauge.setAttribute("stroke", "#f97316");
+                            $("#aiLoadDetails").html("⚡ ضغط عمل نشط. يرجى متابعة سرعة الفرز لضمان عدم حدوث تكدس.");
+                        } else {
+                            gauge.setAttribute("stroke", "#22c55e");
+                            $("#aiLoadDetails").html("✅ الوردية مستقرة تماماً. القدرة التشغيلية الحالية للمستشفى ممتازة.");
+                        }
+                    }
+                }
+            }
+        });
+    }
+    // Call AI predictor on load
+    $(document).ready(function() {
+        loadAiPrediction();
+        setInterval(loadAiPrediction, 30000);
+        // Update Admitted Patients count on tab load
+        $.ajax({
+            url: "/HospitalQueue/GetAdmittedPatients",
+            type: "GET",
+            success: function(res) {
+                if (res.success && res.data) {
+                    $("#admittedCountBadge").text(res.data.length);
+                }
+            }
+        });
+    });
+    // 4. SignalR Real-Time Shift Handover & Chat & Code Blue Alerts
+    var queueHubConnection = new signalR.HubConnectionBuilder()
+        .withUrl("/queueHub")
+        .build();
+    queueHubConnection.start().then(function() {
+        queueHubConnection.invoke("JoinProviderGroup", "@Model.ProviderId");
+        console.log("QueueHub SignalR connected & joined hospital group @Model.ProviderId");
+    }).catch(function(err) {
+        console.error(err.toString());
+    });
+    queueHubConnection.on("ReceiveInternalChatMessage", function(senderName, messageText, timeStr) {
+        var chatBox = document.getElementById("internalChatMessages");
+        var emailStr = "@User.Identity?.Name";
+        var isMe = senderName === emailStr;
+        var senderLabel = isMe ? "أنا" : senderName.split('@@')[0];
+        var messageHtml = `<div class="d-flex flex-column ${isMe ? 'align-items-start' : 'align-items-end'}">
+            <span class="text-muted" style="font-size: 0.65rem;">${senderLabel} · ${timeStr}</span>
+            <div class="p-2 rounded-3 text-dark mt-0.5" style="background: ${isMe ? '#dbeafe' : '#f1f5f9'}; max-width: 90%; font-size: 0.78rem;">
+                ${messageText}
+            </div>
+        </div>`;
+        $("#internalChatMessages").append(messageHtml);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    });
+    queueHubConnection.on("ReceiveEmergencyCode", function(senderName, codeName, locationDetails) {
+        $("#codeAlertTitle").text(`تفعيل كود طوارئ: كود ${codeName}`);
+        $("#codeAlertLocation").text(`الموقع: ${locationDetails} · مفعل بواسطة: ${senderName.split('@@')[0]}`);
+        $("#codeBlueOverlay").removeClass("d-none");
+        var audio = document.getElementById("codeBlueSound");
+        if (audio) {
+            audio.currentTime = 0;
+            audio.play().catch(function(e) {
+                console.log("Audio play blocked by browser policy.");
+            });
+        }
+    });
+    window.sendShiftMessage = function() {
+        var msg = $("#internalChatInput").val().trim();
+        if (msg === "") return;
+        queueHubConnection.invoke("SendInternalChatMessage", @Model.ProviderId, "@User.Identity?.Name", msg)
+            .then(function() {
+                $("#internalChatInput").val("");
+            });
+    };
+    window.handleChatKey = function(e) {
+        if (e.which === 13) {
+            sendShiftMessage();
+        }
+    };
+    window.activateCode = function(codeName, defaultLocation) {
+        var loc = prompt("يرجى إدخال موقع تفعيل الكود بدقة:", defaultLocation);
+        if (loc === null) return;
+        if (loc.trim() === "") loc = defaultLocation;
+        queueHubConnection.invoke("ActivateEmergencyCode", @Model.ProviderId, "@User.Identity?.Name", codeName, loc.trim());
+    };
+    window.dismissCodeBlue = function() {
+        $("#codeBlueOverlay").addClass("d-none");
+        var audio = document.getElementById("codeBlueSound");
+        if (audio) {
+            audio.pause();
+        }
+    };
+    // 5. Discharge & Deceased Modal Trigger Helpers
+    window.openDischargeModal = function(requestId) {
+        var formHtml = `<div class="modal fade" id="dynamicDischargeModal" tabindex="-1" aria-hidden="true" style="direction: rtl;">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content rounded-4 border-0 shadow">
+                    <form action="/HospitalQueue/Discharge" method="post">
+                        <input type="hidden" name="requestId" value="${requestId}" />
+                        @Html.AntiForgeryToken()
+                        <div class="modal-header border-bottom-0 pb-0">
+                            <h5 class="modal-title fw-bold text-dark"><i class="fas fa-door-open text-success me-2"></i>السماح بخروج المريض وإخلاء السرير</h5>
+                            <button type="button" class="btn-close ms-0 me-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body py-3">
+                            <div class="mb-3">
+                                <label class="form-label small fw-800 text-muted">الأدوية الموصوفة للمغادرة:</label>
+                                <textarea class="form-control rounded-3" name="medications" rows="3" placeholder="مثال: دواء بنادول حبتين عند اللزوم، شراب كوفيدين 5 مل..."></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-800 text-muted">التوصيات الطبية والملاحظات:</label>
+                                <textarea class="form-control rounded-3" name="recommendations" rows="3" placeholder="مثال: التزام الراحة التامة لمدة 3 أيام وتجنب الإجهاد..."></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-top-0 pt-0">
+                            <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">إلغاء</button>
+                            <button type="submit" class="btn btn-success rounded-pill px-4">تأكيد الخروج وإخلاء السرير</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>`;
+        $("#dynamicDischargeModal").remove();
+        $("body").append(formHtml);
+        var modal = new bootstrap.Modal(document.getElementById('dynamicDischargeModal'));
+        modal.show();
+    };
+    window.openDeceasedModal = function(requestId) {
+        var formHtml = `<div class="modal fade" id="dynamicDeceasedModal" tabindex="-1" aria-hidden="true" style="direction: rtl;">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content rounded-4 border-0 shadow">
+                    <form action="/HospitalQueue/DeclareDeceased" method="post">
+                        <input type="hidden" name="requestId" value="${requestId}" />
+                        @Html.AntiForgeryToken()
+                        <div class="modal-header border-bottom-0 pb-0">
+                            <h5 class="modal-title fw-bold text-danger"><i class="fas fa-heart-crack text-danger me-2"></i>تسجيل حالة وفاة نظامياً</h5>
+                            <button type="button" class="btn-close ms-0 me-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body py-3">
+                            <div class="mb-3">
+                                <label class="form-label small fw-800 text-muted">سبب الوفاة الرئيسي:</label>
+                                <input type="text" class="form-control rounded-pill" name="causeOfDeath" required placeholder="مثال: توقف مفاجئ لعضلة القلب (Cardiac Arrest)" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-800 text-muted">تفاصيل إضافية والتقرير الأولي:</label>
+                                <textarea class="form-control rounded-3" name="details" rows="3" placeholder="اكتب الملاحظات الطبية الأخيرة..."></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-top-0 pt-0">
+                            <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">إلغاء</button>
+                            <button type="submit" class="btn btn-danger rounded-pill px-4">تأكيد الوفاة وإخلاء السرير</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>`;
+        $("#dynamicDeceasedModal").remove();
+        $("body").append(formHtml);
+        var modal = new bootstrap.Modal(document.getElementById('dynamicDeceasedModal'));
+        modal.show();
+    };
+    // 6. Draw active outbreak circles on Leaflet map
+    function drawActiveOutbreakZones() {
+        if (typeof dispMap !== 'undefined') {
+            L.circle([HOSP_LAT - 0.015, HOSP_LNG + 0.015], {
+                color: '#ef4444',
+                fillColor: '#ef4444',
+                fillOpacity: 0.15,
+                radius: 1200
+            }).addTo(dispMap).bindPopup("<div style='text-align:right;'><b>منطقة وباء نشطة</b><br>حالات اشتباه حمى الضنك</div>");
+        }
+    }
+    $(document).ready(function() {
+        setTimeout(drawActiveOutbreakZones, 2000);
+        loadDoctorWorkloadStats();
+        setInterval(loadDoctorWorkloadStats, 20000);
+    });
+    // 7. Load Doctor Workload and Fatigue Stats
+    function loadDoctorWorkloadStats() {
+        $("#workloadLoader").removeClass("d-none");
+        $.ajax({
+            url: "/HospitalQueue/GetWorkloadStats",
+            type: "GET",
+            success: function(res) {
+                $("#workloadLoader").addClass("d-none");
+                if (res.success && res.data) {
+                    var html = "";
+                    res.data.forEach(function(item) {
+                        var badgeClass = "bg-success";
+                        var text = "عبء منخفض";
+                        if (item.loadStatus === "High") {
+                            badgeClass = "bg-danger animate__animated animate__flash animate__infinite";
+                            text = "إجهاد شديد";
+                        } else if (item.loadStatus === "Medium") {
+                            badgeClass = "bg-warning text-dark";
+                            text = "نشط";
+                        }
+                        html += `<div class="d-flex align-items-center justify-content-between p-2 rounded-3 border bg-white small">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fas fa-user-md text-secondary"></i>
+                                <div>
+                                    <div class="fw-bold text-dark">${item.name}</div>
+                                    <div class="text-muted" style="font-size: 0.7rem;">${item.specialization}</div>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge ${badgeClass} rounded-pill px-2.5 py-1 mb-1 d-inline-block" style="font-size: 0.65rem;">${text}</span>
+                                <div class="text-muted font-monospace" style="font-size: 0.7rem;">${item.activeCases} حالات نشطة</div>
+                            </div>
+                        </div>`;
+                    });
+                    if (res.data.length === 0) {
+                        html = `<div class="text-center text-muted py-3 small">لا يوجد أطباء مناوبين مسجلين حالياً.</div>`;
+                    }
+                    $("#workloadStatsContainer").html(html);
+                }
+            }
+        });
+    }
     </script>
 }
-

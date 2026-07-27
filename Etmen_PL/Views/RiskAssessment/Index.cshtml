@@ -1,4 +1,4 @@
-@model Etmen_PL.Models.ViewModels.Patient.RiskAssessmentInputViewModel
+﻿@model Etmen_PL.Models.ViewModels.Patient.RiskAssessmentInputViewModel
 @{
     ViewData["Title"] = "تقييم المخاطر الصحية الذاتي";
     Layout = "~/Views/Shared/_PatientLayout.cshtml";
@@ -380,12 +380,23 @@
                     <input type="hidden" asp-for="Latitude" id="gpsLat" value="30.0444" />
                     <input type="hidden" asp-for="Longitude" id="gpsLng" value="31.2357" />
 
-                    <div class="alert alert-info d-flex align-items-center gap-3 py-3 px-4 mb-4" style="border-radius:12px;">
+                    <div class="alert alert-info d-flex align-items-center gap-3 py-3 px-4 mb-3" style="border-radius:12px;">
                         <div class="fs-3 text-primary"><i class="fas fa-map-marker-alt"></i></div>
-                        <div>
+                        <div class="flex-grow-1">
                             <span class="fw-bold d-block small">تحديد البؤر الجغرافية الموبوءة</span>
                             <span class="small text-muted" id="gpsStatus">جاري استدعاء إحداثيات موقعك لتقييم مدى قربك من مناطق تفشي الأوبئة...</span>
                         </div>
+                    </div>
+
+                    <!-- Small preview map and controls -->
+                    <div class="mb-3">
+                        <div id="gpsPreview" style="height:200px; border-radius:12px; border:1px solid var(--border); overflow:hidden; z-index:1;"></div>
+                    </div>
+
+                    <div class="d-flex gap-2 mb-3">
+                        <button type="button" id="btnOpenMap" class="btn btn-outline-primary px-4 py-2" style="border-radius:12px;">عرض الخريطة وإعادة التحديد</button>
+                        <button type="button" id="btnRetryGps" class="btn btn-outline-secondary px-4 py-2" style="border-radius:12px;">إعادة المحاولة التلقائية</button>
+                        <button type="button" id="btnUseCoords" class="btn btn-success px-4 py-2" style="border-radius:12px;">استخدام هذا الموقع</button>
                     </div>
 
                     <div class="d-flex gap-2">
@@ -394,6 +405,25 @@
                         </button>
                         <button type="submit" class="btn btn-submit w-100 py-3"><i class="fas fa-calculator"></i> حساب مؤشر الخطورة السريرية</button>
                     </div>
+
+                    <!-- Location picker modal -->
+                    <div class="modal fade" id="locationModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-lg modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">تحقق من موقعك أو حدده يدويًا</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body p-0">
+                                    <div id="locationPickerMap" style="height:420px; width:100%;"></div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                                    <button type="button" id="saveLocationBtn" class="btn btn-primary">حفظ الموقع</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </form>
         </div>
@@ -401,6 +431,10 @@
 </div>
 
 @section Scripts {
+    <!-- Leaflet styles & script (if not loaded globally) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <script>
         // Highlight invalid fields on load (after server-side validation)
         $(document).ready(function() {
@@ -467,42 +501,141 @@
                 $('#clientErrors').hide();
                 $('#errorSummaryContainer').removeClass('show');
 
-                // Show step 2
+                // Show step 2 (initialize preview map after it's visible)
                 $('#step-1-content').hide();
-                $('#step-2-content').fadeIn(300);
-                
-                // Update Indicators
-                $('#node-2').addClass('active');
-                $('#wizardProgress').css('width', '50%');
+                $('#step-2-content').fadeIn(300, function() {
+                    // Update Indicators
+                    $('#node-2').addClass('active');
+                    $('#wizardProgress').css('width', '50%');
 
-                // Trigger location fetch
+                    // Initialize or refresh preview map after display
+                    setTimeout(function() {
+                        try {
+                            if (!previewMap) initPreviewMap();
+                            else previewMap.invalidateSize();
+                            var lat = parseFloat($('#gpsLat').val()) || 30.0444;
+                            var lng = parseFloat($('#gpsLng').val()) || 31.2357;
+                            updatePreviewMarker(lat, lng);
+                        } catch (e) { console.warn('Preview init after show failed', e); }
+                    }, 200);
+                });
+
+n                // Trigger location fetch (may update preview once successful)
                 fetchGpsCoords();
             } else if (stepNum === 1) {
                 // Show step 1
                 $('#step-2-content').hide();
                 $('#step-1-content').fadeIn(300);
-                
+
                 // Update Indicators
                 $('#node-2').removeClass('active');
                 $('#wizardProgress').css('width', '0%');
             }
         }
 
+        // Preview and picker maps state
+        var previewMap, previewMarker;
+        var pickerMap, pickerMarker;
+
+        function initPreviewMap() {
+            try {
+                if (!document.getElementById('gpsPreview')) return;
+                var lat = parseFloat($('#gpsLat').val()) || 30.0444;
+                var lng = parseFloat($('#gpsLng').val()) || 31.2357;
+                previewMap = L.map('gpsPreview', { zoomControl: true, dragging: !L.Browser.mobile, tap: !L.Browser.mobile }).setView([lat, lng], 13);
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(previewMap);
+                L.control.scale({ metric: true, imperial: false }).addTo(previewMap);
+                previewMarker = L.marker([lat, lng], { riseOnHover: true }).addTo(previewMap).bindPopup('<b>موقع مقترح</b>').openPopup();
+            } catch (e) { console.warn('Preview map init failed', e); }
+        }
+
+        function updatePreviewMarker(lat, lng) {
+            if (!previewMap) initPreviewMap();
+            if (previewMarker) {
+                previewMarker.setLatLng([lat, lng]);
+            } else {
+                previewMarker = L.circleMarker([lat, lng], { radius: 8, color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.9 }).addTo(previewMap);
+            }
+            previewMap.setView([lat, lng], 12);
+        }
+
+        function initPickerMap() {
+            try {
+                var lat = parseFloat($('#gpsLat').val()) || 30.0444;
+                var lng = parseFloat($('#gpsLng').val()) || 31.2357;
+                pickerMap = L.map('locationPickerMap', { dragging: !L.Browser.mobile, tap: !L.Browser.mobile }).setView([lat, lng], 13);
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(pickerMap);
+                pickerMarker = L.marker([lat, lng], { draggable: true }).addTo(pickerMap);
+
+                pickerMap.on('click', function(e) {
+                    pickerMarker.setLatLng(e.latlng);
+                });
+                pickerMarker.on('dragend', function() {
+                    // nothing extra; marker position will be read on save
+                });
+            } catch (e) { console.warn('Picker map init failed', e); }
+        }
+
+        function openLocationModal() {
+            var modalEl = document.getElementById('locationModal');
+            var bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            bsModal.show();
+            // Initialize picker once modal is visible (small timeout to ensure size)
+            setTimeout(function() {
+                if (!pickerMap) initPickerMap();
+                pickerMap.invalidateSize();
+            }, 200);
+        }
+
+        function savePickedLocation() {
+            if (!pickerMarker) return;
+            var pos = pickerMarker.getLatLng();
+            $('#gpsLat').val(pos.lat.toFixed(6));
+            $('#gpsLng').val(pos.lng.toFixed(6));
+            $('#gpsStatus').html('<i class="fas fa-check text-success"></i> تم تحديث الموقع يدوياً.');
+            updatePreviewMarker(pos.lat, pos.lng);
+            var modalEl = document.getElementById('locationModal');
+            bootstrap.Modal.getInstance(modalEl).hide();
+        }
+
         function fetchGpsCoords() {
+            $('#gpsStatus').html('جاري تحديد موقعك الجغرافي...');
             if ("geolocation" in navigator) {
                 navigator.geolocation.getCurrentPosition(
                     function(position) {
-                        $('#gpsLat').val(position.coords.latitude.toFixed(6));
-                        $('#gpsLng').val(position.coords.longitude.toFixed(6));
-                        $('#gpsStatus').html('<i class="fas fa-check text-success"></i> تم تحديد الإحداثيات بنجاح، سيتم حساب معامل تفشي الأوبئة بناءً عليها.');
+                        var lat = position.coords.latitude;
+                        var lng = position.coords.longitude;
+                        $('#gpsLat').val(lat.toFixed(6));
+                        $('#gpsLng').val(lng.toFixed(6));
+                        $('#gpsStatus').html('<i class="fas fa-check text-success"></i> تم تحديد الإحداثيات بنجاح، يمكنك التحقق أو تعديلها.');
+                        updatePreviewMarker(lat, lng);
                     },
                     function(error) {
                         console.warn("Location error:", error.message);
-                        $('#gpsStatus').html('<i class="fas fa-exclamation-triangle text-warning"></i> لم نتمكن من تحديد موقعك بدقة، سيتم حساب التقييم بالطريقة القياسية.');
+                        $('#gpsStatus').html('<i class="fas fa-exclamation-triangle text-warning"></i> تعذر تحديد الموقع تلقائياً. يمكنك إعادة المحاولة أو تحديده يدوياً.');
+                        // leave preview with default or previously set coords
                     },
                     { enableHighAccuracy: true, timeout: 8000 }
                 );
+            } else {
+                $('#gpsStatus').html('<i class="fas fa-exclamation-triangle text-warning"></i> متصفحك لا يدعم تحديد الموقع التلقائي. يمكنك تحديد الموقع يدوياً.');
             }
         }
+
+        // Wire up controls on ready
+        $(document).ready(function() {
+            // Do not initialize preview map until step 2 is visible (Leaflet needs visible container)
+
+            // Button handlers
+            $('#btnOpenMap').on('click', function() { openLocationModal(); });
+            $('#btnRetryGps').on('click', function() { fetchGpsCoords(); });
+            $('#btnUseCoords').on('click', function() {
+                $('#gpsStatus').html('<i class="fas fa-check text-success"></i> تم اختيار الموقع للاستخدام.');
+                // keep values in hidden inputs; user will submit form to persist
+            });
+            $('#saveLocationBtn').on('click', function() { savePickedLocation(); });
+
+        });
+
     </script>
 }

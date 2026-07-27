@@ -1,1291 +1,1291 @@
-@model Etmen_BLL.DTOs.Emergency.EmergencyRequestDto
-@{
-    ViewData["Title"] = "تتبع حالة الطوارئ والإسعاف";
-    Layout = "~/Views/Shared/_PatientLayout.cshtml";
-
-    var latestRisk       = ViewBag.LatestRisk as Etmen_Domain.Entities.RiskAssessment;
-    var currentStatus    = (string)(ViewBag.CurrentStatus ?? "Pending");
-    var acceptedPid      = ViewBag.AcceptedProviderId as int?;
-    var hospitalsJson    = System.Text.Json.JsonSerializer.Serialize(ViewBag.Hospitals);
-}
-
-<style>
-    .tracking-card {
-        background:#fff;border-radius:24px;
-        border:1px solid var(--border);
-        box-shadow:0 15px 35px rgba(0,0,0,.04);
-    }
-    /* ── Timeline ── */
-    .status-timeline{position:relative;padding-left:2.2rem;}
-    .status-timeline::before{content:'';position:absolute;top:0;bottom:0;left:9px;width:2px;background:#e2e8f0;}
-    .status-step{position:relative;padding-bottom:2rem;}
-    .status-step::before{content:'';position:absolute;left:-2.2rem;top:4px;width:20px;height:20px;border-radius:50%;
-        background:#fff;border:4px solid #cbd5e1;z-index:2;transition:all .4s ease;}
-    .status-step.active::before   {border-color:#f59e0b;background:#f59e0b;box-shadow:0 0 12px rgba(245,158,11,.5);}
-    .status-step.completed::before{border-color:#22c55e;background:#22c55e;box-shadow:0 0 12px rgba(34,197,94,.4);}
-    /* ── Delayed Section ── */
-    .delayed-section{background:#fef9f2;border:1px solid #fde68a;border-radius:20px;padding:24px;display:none;}
-    .hospital-map-container{height:350px;border-radius:16px;border:1px solid var(--border);overflow:hidden;margin-top:14px;}
-    .hospital-item{background:#fff;border:1px solid #f1f5f9;border-radius:12px;padding:12px;margin-bottom:10px;cursor:pointer;transition:all .2s;}
-    .hospital-item:hover{border-color:#1a6fbf;background:#f8fafc;}
-    /* ── Ambulance Track Map ── */
-    .amb-map-card{display:none;margin-top:20px;background:#0d1527;border-radius:20px;
-        border:2.5px solid #ef4444;box-shadow:0 0 30px rgba(239,68,68,.25);padding:18px;}
-    .amb-map-card.show{display:block;animation:fadeInUp .4s ease;}
-    #ambulanceTrackMap{height:520px;border-radius:14px;overflow:hidden;transition: height 0.3s ease;}
-
-    /* Fullscreen Button */
-    .btn-fullscreen-map {
-        position: absolute;
-        bottom: 15px;
-        right: 15px;
-        z-index: 1000;
-        width: 40px;
-        height: 40px;
-        background: rgba(10, 25, 41, 0.85);
-        border: 1.5px solid rgba(0, 240, 255, 0.45);
-        border-radius: 8px;
-        color: #ffffff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        transition: all 0.2s ease;
-    }
-    .btn-fullscreen-map:hover {
-        background: rgba(0, 240, 255, 0.2);
-        border-color: #00f0ff;
-        color: #00f0ff;
-        transform: scale(1.08);
-    }
-    /* Fullscreen specific stylesheet */
-    #ambulanceTrackMap:fullscreen {
-        width: 100% !important;
-        height: 100% !important;
-        border-radius: 0 !important;
-    }
-    #ambulanceTrackMap:-webkit-full-screen {
-        width: 100% !important;
-        height: 100% !important;
-        border-radius: 0 !important;
-    }
-
-    /* ── Map Overlay Header ── */
-    .map-overlay-header {
-        position: absolute;
-        top: 12px;
-        left: 12px;
-        z-index: 1000;
-        display: flex;
-        align-items: center;
-        background: rgba(10, 25, 41, 0.85);
-        border: 1.5px solid rgba(0, 240, 255, 0.45);
-        border-radius: 10px;
-        padding: 6px 12px;
-        box-shadow: 0 4px 15px rgba(0, 240, 255, 0.2);
-        backdrop-filter: blur(6px);
-        pointer-events: none;
-    }
-    .overlay-icon {
-        font-size: 14px;
-        color: #00f0ff;
-        margin-right: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 28px;
-        height: 28px;
-        background: rgba(0, 240, 255, 0.1);
-        border-radius: 6px;
-        animation: pulse-glow 2s infinite;
-    }
-    .overlay-details {
-        display: flex;
-        flex-direction: column;
-        text-align: left;
-    }
-    .overlay-title {
-        font-family: 'Outfit', 'Inter', sans-serif;
-        font-size: 9px;
-        font-weight: 800;
-        color: #ffffff;
-        letter-spacing: 0.8px;
-        margin: 0;
-        line-height: 1.1;
-    }
-    .overlay-status {
-        font-family: 'Inter', sans-serif;
-        font-size: 8px;
-        color: rgba(255, 255, 255, 0.6);
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        margin-top: 1px;
-    }
-    .live-indicator {
-        color: #ff4d4d;
-        font-weight: 700;
-        animation: flash-live 1s infinite alternate;
-    }
-    @@keyframes flash-live {
-        0% { opacity: 0.5; }
-        100% { opacity: 1; }
-    }
-    @@keyframes pulse-glow {
-        0% { box-shadow: 0 0 0 0 rgba(0, 240, 255, 0.4); }
-        70% { box-shadow: 0 0 0 8px rgba(0, 240, 255, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(0, 240, 255, 0); }
-    }
-
-    /* ── Glow Badge Styling ── */
-    .glow-badge {
-        display: flex;
-        align-items: center;
-        background: rgba(10, 25, 41, 0.9);
-        border: 1.5px solid #00f0ff;
-        border-radius: 20px;
-        padding: 4px 10px 4px 6px;
-        box-shadow: 0 0 15px rgba(0, 240, 255, 0.35);
-        color: #ffffff;
-        font-family: 'Inter', sans-serif;
-        white-space: nowrap;
-        width: fit-content;
-    }
-    .glow-badge.orange {
-        border-color: #ff9f00;
-        box-shadow: 0 0 15px rgba(255, 159, 0, 0.35);
-    }
-    .pulse-dot {
-        width: 8px;
-        height: 8px;
-        background: #00f0ff;
-        border-radius: 50%;
-        margin-right: 6px;
-        margin-left: 2px;
-        position: relative;
-        flex-shrink: 0;
-    }
-    .glow-badge.orange .pulse-dot {
-        background: #ff9f00;
-    }
-    .pulse-dot::after {
-        content: '';
-        position: absolute;
-        top: -6px;
-        left: -6px;
-        right: -6px;
-        bottom: -6px;
-        border: 2px solid #00f0ff;
-        border-radius: 50%;
-        animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
-    }
-    .glow-badge.orange .pulse-dot::after {
-        border-color: #ff9f00;
-    }
-    @@keyframes pulse-ring {
-        0% { transform: scale(0.35); opacity: 1; }
-        50% { opacity: 0.5; }
-        100% { transform: scale(1.5); opacity: 0; }
-    }
-    .badge-icon {
-        font-size: 13px;
-        margin-right: 6px;
-        display: flex;
-        align-items: center;
-    }
-    .badge-text {
-        display: flex;
-        flex-direction: column;
-        line-height: 1.1;
-        text-align: left;
-    }
-    .badge-title {
-        font-size: 9px;
-        font-weight: 700;
-        color: #00f0ff;
-        letter-spacing: 0.5px;
-    }
-    .glow-badge.orange .badge-title {
-        color: #ff9f00;
-    }
-    .badge-sub {
-        font-size: 8px;
-        color: rgba(255, 255, 255, 0.85);
-        font-weight: 600;
-    }
-
-    /* ── Hospital Glow Marker ── */
-    .hosp-glow-marker {
-        background: #ff9f00;
-        color: #fff;
-        border: 1.5px solid #fff;
-        border-radius: 50%;
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 0 12px #ff9f00;
-        font-size: 11px;
-    }
-
-    /* ── Patient Glow Marker ── */
-    .patient-glow-marker {
-        position: relative;
-        width: 14px;
-        height: 14px;
-        background: #ff4d4d;
-        border-radius: 50%;
-        border: 2px solid #fff;
-        box-shadow: 0 0 10px #ff4d4d;
-    }
-    .patient-pulse {
-        position: absolute;
-        width: 30px;
-        height: 30px;
-        border: 2px solid #ff4d4d;
-        border-radius: 50%;
-        top: -10px;
-        left: -10px;
-        animation: patient-pulse-ring 1.8s ease-out infinite;
-    }
-    @@keyframes patient-pulse-ring {
-        0% { transform: scale(0.5); opacity: 1; }
-        100% { transform: scale(1.8); opacity: 0; }
-    }
-    /* ── Capacity Bar ── */
-    .cap-bar-wrap{background:#f1f5f9;border-radius:8px;height:10px;overflow:hidden;margin-top:4px;}
-    .cap-bar{height:100%;border-radius:8px;transition:width .6s ease;}
-    /* ── ETA badge ── */
-    .eta-badge{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;
-        border-radius:12px;padding:8px 18px;font-weight:800;display:inline-block;font-size:1.1rem;}
-    /* ── Animations ── */
-    @@keyframes pulseMini  {0%,100%{transform:scale(1)} 50%{transform:scale(1.08)}}
-    @@keyframes fadeInUp   {from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)}}
-    @@keyframes fadeInDown {from{opacity:0;transform:translateY(-12px)} to{opacity:1;transform:translateY(0)}}
-    @@keyframes bounce     {0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)}}
-    
-    @@media (max-width: 768px) {
-        .hospital-map-container {
-            height: 280px;
-        }
-        #ambulanceTrackMap {
-            height: 280px;
-        }
-    }
-
-    /* Soundwaves animation style */
-    .sound-waves {
-        display: inline-flex;
-        align-items: flex-end;
-        gap: 3px;
-        height: 20px;
-    }
-    .sound-waves span {
-        width: 3px;
-        background-color: #3b82f6;
-        border-radius: 3px;
-        animation: wave-bounce 1s ease-in-out infinite;
-    }
-    .sound-waves span:nth-child(1) { height: 10px; animation-delay: 0.1s; }
-    .sound-waves span:nth-child(2) { height: 20px; animation-delay: 0.2s; }
-    .sound-waves span:nth-child(3) { height: 15px; animation-delay: 0.3s; }
-    .sound-waves span:nth-child(4) { height: 8px; animation-delay: 0.4s; }
-
-    @@keyframes wave-bounce {
-        0%, 100% { transform: scaleY(1); }
-        50% { transform: scaleY(2); }
-    }
-</style>
-
-<div class="container py-4 animate__animated animate__fadeIn" dir="rtl">
-
-    <!-- ── Arrival Toast ── -->
-    <div id="arrivalToast" style="display:none;position:fixed;top:20px;right:20px;z-index:9999;
-         background:linear-gradient(135deg,#22c55e,#15803d);color:#fff;padding:14px 22px;
-         border-radius:16px;font-weight:700;font-size:.95rem;box-shadow:0 8px 30px rgba(0,0,0,.25);
-         animation:fadeInDown .4s ease;">
-        <i class="fas fa-check-circle me-2"></i> سيارة الإسعاف وصلت إلى موقعك!
-    </div>
-
-    <!-- ── No-Ambulance Alert ── -->
-    <div id="noAmbAlert" style="display:none;" class="alert alert-danger border-0 mb-3 fw-bold" style="border-radius:14px;">
-        <i class="fas fa-exclamation-triangle me-2"></i>
-        <span id="noAmbMsg">جميع سيارات الإسعاف مشغولة حالياً.</span>
-        <span id="altHospitalsHint"></span>
-    </div>
-
-    <div class="row g-4 justify-content-center">
- 
-        <!-- ═══ LEFT Column: Status, Timeline, ETA, & First-Aid Guide (col-lg-5) ═══ -->
-        <div class="col-lg-5 col-12">
-            <div class="tracking-card p-4 h-100 d-flex flex-column justify-content-between" style="min-height: 520px;">
-                <div>
-                    <!-- Header -->
-                    <div class="d-flex align-items-center gap-3 mb-4">
-                        <div class="p-3 bg-danger text-white rounded-4"
-                             style="font-size:1.8rem;animation:pulseMini 1.5s infinite; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-ambulance"></i>
-                        </div>
-                        <div>
-                            <h4 class="fw-bold mb-1" style="font-size: 1.25rem;">طلب الإسعاف العاجل #@Model.Id</h4>
-                            <p class="text-muted small mb-0 fw-bold">نوع الطوارئ: @Model.EmergencyType</p>
-                        </div>
-                    </div>
-
-                    <!-- Timeline -->
-                    <div class="status-timeline mt-4 ms-3 text-start">
-                        <div class="status-step @(currentStatus != "Pending" ? "completed" : "active")" id="step-pending">
-                            <h6 class="fw-bold mb-1">تلقّي البلاغ في النظام</h6>
-                            <p class="text-muted small mb-0">جاري إشعار مستشفيات الطوارئ المحيطة.</p>
-                        </div>
-                        <div class="status-step @(currentStatus == "Accepted" ? "active" : currentStatus == "Completed" ? "completed" : "")" id="step-accepted">
-                            <h6 class="fw-bold mb-1">قبول الطلب وتوجيه الإسعاف</h6>
-                            <p class="text-muted small mb-0">تم قبول حالتك وجاري تحرك الإسعاف.</p>
-                        </div>
-                        <div class="status-step @(currentStatus == "Completed" ? "completed" : "")" id="step-completed">
-                            <h6 class="fw-bold mb-1">الوصول للمستشفى</h6>
-                            <p class="text-muted small mb-0">تم وصول الحالة والبدء في الرعاية الطبية.</p>
-                        </div>
-                    </div>
-
-                    <!-- Accepted Banner -->
-                    <div id="acceptedBanner" style="display:none;background:linear-gradient(135deg,#22c55e,#16a34a);
-                         color:#fff;border-radius:16px;padding:14px 18px;margin-top:14px;font-weight:700;
-                         animation:fadeInDown .4s ease;" class="text-start">
-                        <i class="fas fa-satellite-dish me-2 animate__animated animate__pulse animate__infinite"></i>
-                        <span id="acceptedHospName">المستشفى</span> قبلت طلبك — الإسعاف في الطريق!
-                    </div>
-
-                    <!-- ETA panel (visible when accepted) -->
-                    <div id="etaPanel" style="display:none;margin-top:14px;" class="text-start">
-                        <div class="d-flex align-items-center gap-3 justify-content-between flex-wrap p-3 bg-light rounded-3 border">
-                            <div>
-                                <div class="text-muted small fw-bold mb-1"><i class="fas fa-road me-1"></i> المسافة</div>
-                                <div class="fw-bold text-dark" id="distanceLabel">—</div>
-                            </div>
-                            <div class="text-center">
-                                <div class="text-muted small fw-bold mb-1"><i class="fas fa-clock me-1"></i> وقت الوصول</div>
-                                <div class="eta-badge" id="etaBadge" style="font-size: 0.9rem; padding: 6px 12px;">— دقيقة</div>
-                            </div>
-                            <div>
-                                <div class="text-muted small fw-bold mb-1"><i class="fas fa-tachometer-alt me-1"></i> تقدم الرحلة</div>
-                                <div class="progress-bar-container" style="width:100px;">
-                                    <div class="cap-bar-wrap" style="height: 6px;"><div class="cap-bar bg-danger" id="progressBar" style="width:100%;"></div></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Voice Guided First Aid Card -->
-                    <div class="card border-0 mt-4 shadow-sm" style="border-radius: 18px; background: linear-gradient(135deg, #1e293b, #0f172a); color: white;">
-                        <div class="card-body p-4 text-start">
-                            <div class="d-flex align-items-center justify-content-between mb-3">
-                                <div class="d-flex align-items-center gap-2.5">
-                                    <div class="bg-primary text-white rounded-3 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; font-size: 1.15rem; background: rgba(59, 130, 246, 0.2) !important;">
-                                        <i class="fas fa-volume-up text-primary" id="voiceIcon"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="fw-bold mb-0" style="font-size: 0.95rem;">المرشد الصوتي للإسعافات الأولية</h6>
-                                        <small style="font-size: 0.72rem; color: #94a3b8 !important;">إرشادات تفاعلية فورية لتهدئة المريض وأهله</small>
-                                    </div>
-                                </div>
-                                <!-- Sound waves animation -->
-                                <div class="sound-waves" id="soundWaves" style="display: none;">
-                                    <span></span>
-                                    <span></span>
-                                    <span></span>
-                                    <span></span>
-                                </div>
-                            </div>
-
-                            <div class="p-3 mb-3 text-start" style="background: rgba(255, 255, 255, 0.04); border-radius: 12px; border-right: 4px solid #3b82f6;">
-                                <h6 class="fw-bold text-primary mb-2" style="font-size: 0.88rem;"><i class="fas fa-notes-medical me-1"></i> الإرشادات الطبية العاجلة للحالة:</h6>
-                                <div id="firstAidText" style="font-size: 0.85rem; line-height: 1.6; color: #e2e8f0;">
-                                    <!-- Will be loaded dynamically -->
-                                </div>
-                            </div>
-
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-primary btn-sm fw-bold px-3 py-2" id="btnPlayVoice" onclick="playFirstAidSpeech()" style="border-radius: 8px;">
-                                    <i class="fas fa-play me-1"></i> استماع للإرشادات
-                                </button>
-                                <button class="btn btn-outline-light btn-sm fw-bold px-3 py-2" id="btnStopVoice" onclick="stopFirstAidSpeech()" style="border-radius: 8px;" disabled>
-                                    <i class="fas fa-stop me-1"></i> إيقاف
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Waiting Info -->
-                    <div class="alert alert-warning border-0 p-3 mt-3 text-start animate__animated animate__pulse animate__infinite" style="border-radius:16px; animation-duration: 3s;" id="waitingAlert">
-                        <h6 class="fw-bold mb-1" style="font-size: 0.92rem;"><i class="fas fa-clock"></i> زمن الانتظار المقدر: 10-15 دقيقة</h6>
-                        <p class="small mb-0 opacity-75">يرجى البقاء في موقعك، وسيصلك اتصال من طاقم الإسعاف قريباً.</p>
-                    </div>
-
-                    <!-- Handover Confirmation Card -->
-                    <div id="handoverCard" class="card mt-3 p-4 animate__animated animate__fadeInUp text-start" style="display:none; border-right: 5px solid #10B981; background: #F0FDF4; border-radius: 16px;">
-                        <h5 class="fw-bold text-success mb-3" style="font-size: 1.05rem;"><i class="fas fa-file-alt me-1"></i> تقرير تسليم وتأكيد الحالة الطبية</h5>
-                        <p class="text-muted small mb-3">تم اكتمال النقل الطبي بنجاح ووصول الحالة للمستشفى. تفاصيل التسليم:</p>
-                        
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <div class="p-2.5 bg-white rounded-3 border" style="box-shadow: 0 2px 4px rgba(0,0,0,0.01);">
-                                    <div class="text-muted small" style="font-size: 0.75rem;"><i class="far fa-clock text-primary"></i> زمن الاستجابة</div>
-                                    <div class="fw-bold mt-1" style="font-size: 0.85rem;" id="responseTimeVal">—</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="p-2.5 bg-white rounded-3 border" style="box-shadow: 0 2px 4px rgba(0,0,0,0.01);">
-                                    <div class="text-muted small" style="font-size: 0.75rem;"><i class="fas fa-shipping-fast text-success"></i> زمن النقل للمستشفى</div>
-                                    <div class="fw-bold mt-1" style="font-size: 0.85rem;" id="transportTimeVal">—</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="p-2.5 bg-white rounded-3 border" style="box-shadow: 0 2px 4px rgba(0,0,0,0.01);">
-                                    <div class="text-muted small" style="font-size: 0.75rem;"><i class="fas fa-road text-warning"></i> إجمالي المسافة</div>
-                                    <div class="fw-bold mt-1" style="font-size: 0.85rem;" id="totalDistanceVal">—</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="p-2.5 bg-white rounded-3 border" style="box-shadow: 0 2px 4px rgba(0,0,0,0.01);">
-                                    <div class="text-muted small" style="font-size: 0.75rem;"><i class="fas fa-user-md text-info"></i> الطبيب المستقبل</div>
-                                    <div class="fw-bold mt-1 text-truncate" style="font-size: 0.85rem;" id="supervisingDoctorVal">—</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="mt-3 alert alert-success border-0 small d-flex gap-2 align-items-center mb-0" style="border-radius: 8px;">
-                            <i class="fas fa-check-circle text-success fs-5"></i>
-                            <div class="small fw-bold">تم توثيق الحالة الطبية في سجل الطوارئ بنجاح وإغلاق طلب التتبع.</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Delayed Button -->
-                <button class="btn btn-outline-danger w-100 py-3 mt-4 fw-bold" style="border-radius:12px; font-size: 0.9rem;"
-                        onclick="toggleDelaySection()">
-                    <i class="fas fa-exclamation-circle me-1"></i> هل تأخرت سيارة الإسعاف؟ (التوجه الذاتي وبدائل المستشفيات)
-                </button>
-            </div>
-        </div>
- 
-        <!-- ═══ RIGHT Column: Hero Interactive Maps (col-lg-7) ═══ -->
-        <div class="col-lg-7 col-12">
-            <!-- Live Ambulance GPS Map Card -->
-            <div class="amb-map-card" id="ambulanceMapCard" style="display: none; background:#0d1527; border-radius:24px; border:2.5px solid #ef4444; box-shadow:0 0 30px rgba(239,68,68,.25); padding:18px;">
-                <h5 class="fw-bold text-danger mb-3 d-flex align-items-center justify-content-between" style="font-size: 1rem;">
-                    <span><i class="fas fa-map-marked-alt me-2 animate__animated animate__pulse animate__infinite"></i> تتبع حي ومباشر لسيارة الإسعاف</span>
-                    <span class="badge bg-danger-subtle text-danger px-2.5 py-1 rounded-pill" style="font-size: 0.72rem; border: 1px solid rgba(239, 68, 68, 0.2);"><i class="fas fa-satellite me-1"></i> GPS نشط</span>
-                </h5>
-                <div class="position-relative">
-                    <div class="map-overlay-header">
-                        <div class="overlay-icon"><i class="fas fa-star-of-life"></i></div>
-                        <div class="overlay-details">
-                            <div class="overlay-title">EMERGENCY MEDICAL DASHBOARD</div>
-                            <div class="overlay-status"><span class="utc-clock">--:--:-- UTC</span> | <span class="live-indicator">LIVE</span></div>
-                        </div>
-                    </div>
-                    <button type="button" class="btn-fullscreen-map" onclick="toggleMapFullscreen()" title="ملء الشاشة">
-                        <i class="fas fa-expand"></i>
-                    </button>
-                    <div id="ambulanceTrackMap" style="border: 2px solid #1e293b; box-shadow: 0 0 25px rgba(0, 240, 255, 0.12);"></div>
-                </div>
-                <div class="mt-2 d-flex gap-3 justify-content-center flex-wrap" style="font-size:.82rem; color: #94a3b8; font-weight: 700;">
-                    <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#ef4444;border:2px solid #fff;box-shadow:0 0 6px #ef4444;vertical-align:middle;margin-left:4px;"></span> موقعك الحالي</span>
-                    <span><span style="font-size:16px;margin-left:4px;">🚑</span> سيارة الإسعاف</span>
-                    <span><span style="display:inline-block;width:14px;height:14px;border-radius:4px;background:#3b82f6;border:2px solid #fff;vertical-align:middle;font-size:.7rem;color:#fff;text-align:center;line-height:10px;margin-left:4px;">H</span> المستشفى المستقبل</span>
-                </div>
-            </div>
-
-            <!-- Alternative Hospitals Selection Card -->
-            <div class="delayed-section shadow-sm w-100" id="delayedSection" style="background:#fff; border-radius:24px; border:1px solid var(--border); box-shadow:0 15px 35px rgba(0,0,0,.04); padding:24px; display:none;">
-                <h5 class="fw-bold text-danger mb-2 text-start" style="font-size: 1.15rem;"><i class="fas fa-route me-1"></i> التوجه بنفسك للمستشفى</h5>
-                <p class="text-muted small mb-3 text-start">اختر أقرب مستشفى طوارئ شاغر لعرض المسار وحجز سرير استقبال للتوجه إليه مباشرةً:</p>
-
-                <div class="hospital-map-container" style="height: 400px; border-radius: 16px; border: 1.5px solid var(--border); overflow: hidden; margin-top: 14px; position: relative;">
-                    <div id="hospitalMap" style="width:100%;height:100%;"></div>
-                </div>
-
-                <div class="row mt-4 text-start">
-                    <div class="col-md-7 col-12 mb-3">
-                        <h6 class="fw-bold mb-3" style="font-size: 0.92rem;"><i class="fas fa-hospital-alt text-primary me-1"></i> مستشفيات الطوارئ القريبة:</h6>
-                        <div id="hospitalsList" style="max-height:240px;overflow-y:auto;padding-left:5px;"></div>
-                    </div>
-                    <div class="col-md-5 col-12 border-start">
-                        <h6 class="fw-bold mb-2" style="font-size: 0.92rem;"><i class="fas fa-file-medical-alt text-danger me-1"></i> طلب استقبال عاجل:</h6>
-
-                        @if (latestRisk != null)
-                        {
-                            <div class="card bg-light border-0 p-2.5 mb-3" style="border-radius:10px;">
-                                <div class="text-muted" style="font-size: 0.7rem;"><i class="fas fa-heartbeat me-1"></i> آخر درجة فحص صحي:</div>
-                                <div class="fw-bold text-dark mt-1" style="font-size:.85rem;">
-                                    @(latestRisk.RiskLevel == Etmen_Domain.Enums.RiskLevel.Emergency ? "حالة حرجة جداً 🚨" : latestRisk.RiskLevel == Etmen_Domain.Enums.RiskLevel.High ? "حالة مرتفعة الخطورة ⚠️" : "حالة متوسطة")
-                                </div>
-                            </div>
-                        }
-
-                        <input type="hidden" id="selectedHospitalId" />
-                        <input type="hidden" id="latestRiskId" value="@(latestRisk?.Id)" />
-
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold">الأعراض أو الملاحظات</label>
-                            <textarea class="form-control" id="directNotes" rows="3"
-                                      style="border-radius:8px;font-size:.8rem;"
-                                      placeholder="اكتب حالتك..."></textarea>
-                        </div>
-                        <button class="btn btn-danger w-100 py-2 fw-bold" id="submitDirectBtn"
-                                disabled onclick="submitDirectRequest()" style="border-radius:8px;">
-                            <i class="fas fa-paper-plane"></i> طلب حجز سرير استقبال
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-@section Scripts {
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
-
-    <script>
-    // ── Server-injected constants ──
-    const REQUEST_ID      = @Model.Id;
-    const patientLat      = parseFloat("@Model.Latitude");
-    const patientLng      = parseFloat("@Model.Longitude");
-    let   hospitals       = @Html.Raw(hospitalsJson);
-    let   currentStatus   = "@currentStatus";
-    const initProviderId  = @(acceptedPid.HasValue ? acceptedPid.Value.ToString() : "null");
-
-    const requestedAtStr  = "@(ViewBag.RequestedAt != null ? ((DateTime)ViewBag.RequestedAt).ToString("o") : "")";
-    const acceptedAtStr   = "@(ViewBag.AcceptedAt != null ? ((DateTime)ViewBag.AcceptedAt).ToString("o") : "")";
-    const completedAtStr  = "@(ViewBag.CompletedAt != null ? ((DateTime)ViewBag.CompletedAt).ToString("o") : "")";
-    const doctorName      = "@(ViewBag.DoctorName ?? "طاقم الطوارئ المناوب")";
-
-    // Ambulance simulation: average Egyptian city speed ~40 km/h = 0.667 km/min
-    const AVG_KMH         = 40;
-    const ANIM_FPS        = 20;    // steps per second of animation
-    const ANIM_SPEEDUP    = 12;    // simulation speed multiplier (12× real-time)
-
-    // ── Map references ──
-    let selectionMap = null, trackMap = null;
-    let ambMarker = null, animTimer = null;
-    let selfNavPolyline = null;
-    let selectionMarkers = [];
-    let currentHospLat = null, currentHospLng = null;
-
-    /* ══════════════════════════════════════════
-       SECTION 1 — Haversine distance helper
-       ══════════════════════════════════════════ */
-    function haversineKm(lat1, lng1, lat2, lng2) {
-        const R = 6371;
-        const dLat = (lat2 - lat1) * Math.PI / 180;
-        const dLng = (lng2 - lng1) * Math.PI / 180;
-        const a = Math.sin(dLat/2)*Math.sin(dLat/2) +
-                  Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*
-                  Math.sin(dLng/2)*Math.sin(dLng/2);
-        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    }
-
-    /* ══════════════════════════════════════════
-       SECTION 2 — Hospital selection map (self-navigation)
-       ══════════════════════════════════════════ */
-    function toggleDelaySection() {
-        const el = document.getElementById('delayedSection');
-        const mapCard = document.getElementById('ambulanceMapCard');
-        if (!el.style.display || el.style.display === 'none') {
-            el.style.display = 'block';
-            setTimeout(initHospitalMap, 100);
-            if (mapCard && currentStatus !== 'Pending') {
-                mapCard.style.display = 'none';
-            }
-        } else {
-            el.style.display = 'none';
-            if (mapCard && currentStatus !== 'Pending') {
-                mapCard.style.display = 'block';
-                if (trackMap) {
-                    setTimeout(() => { trackMap.invalidateSize(); }, 100);
-                }
-            }
-        }
-    }
-
-    function initHospitalMap() {
-        if (selectionMap) return;
-        selectionMap = L.map('hospitalMap', { dragging: !L.Browser.mobile, tap: !L.Browser.mobile }).setView([patientLat, patientLng], 12);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-            {attribution:'&copy; OpenStreetMap'}).addTo(selectionMap);
-
-        // Patient marker
-        addCircleMarker(selectionMap, patientLat, patientLng, '#ef4444', 14, '<b>موقعك</b>', true);
-
-        updateSelectionMapUI();
-    }
-
-    function updateSelectionMapUI() {
-        if (!selectionMap) return;
-
-        // Clear existing hospital markers
-        selectionMarkers.forEach(m => selectionMap.removeLayer(m));
-        selectionMarkers = [];
-
-        let listHtml = '';
-        const sortedHospitals = [...hospitals].sort((a, b) => {
-            const distA = haversineKm(patientLat, patientLng, a.Latitude, a.Longitude);
-            const distB = haversineKm(patientLat, patientLng, b.Latitude, b.Longitude);
-            return distA - distB;
-        });
-
-        sortedHospitals.forEach(h => {
-            const hasBeds = h.AvailableBeds > 0;
-            const dist    = haversineKm(patientLat, patientLng, h.Latitude, h.Longitude);
-            const mc      = hasBeds ? '#22c55e' : '#ef4444';
-            
-            const marker = L.marker([h.Latitude, h.Longitude], {
-                icon: L.divIcon({
-                    className: '',
-                    html: `<div style="background:${mc};width:16px;height:16px;border:2px solid #fff;
-                                  border-radius:50%;box-shadow:0 0 8px ${mc};"></div>`,
-                    iconSize: [16, 16], iconAnchor: [8, 8]
-                })
-            }).addTo(selectionMap).bindPopup(
-                `<div style="font-family:'Tajawal',sans-serif;text-align:right;direction:rtl;">
-                    <b>${h.Name}</b><br>الأسرة المتاحة: <b>${h.AvailableBeds}</b><br>المسافة: ${dist.toFixed(1)} كم
-                 </div>`
-            );
-            
-            selectionMarkers.push(marker);
-
-            listHtml += `
-                <div class="hospital-item" onclick="selectHospital(${h.Id},'${h.Name}',${h.Latitude},${h.Longitude})">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <h6 class="fw-bold mb-0" style="font-size:.88rem;">${h.Name}</h6>
-                        <span class="badge ${hasBeds ? 'bg-success' : 'bg-danger'} rounded-pill" style="font-size:.68rem;">
-                            ${hasBeds ? 'شاغر' : 'ممتلئ'} (${h.AvailableBeds})
-                        </span>
-                    </div>
-                    <p class="text-muted small mb-0"><i class="fas fa-map-marker-alt me-1"></i>${h.Address}
-                        &nbsp;<span class="text-info fw-bold">${dist.toFixed(1)} كم</span></p>
-                </div>`;
-        });
-        document.getElementById('hospitalsList').innerHTML = listHtml;
-    }
-
-    function addCircleMarker(mapObj, lat, lng, color, size, popup, openPop) {
-        const m = L.marker([lat, lng], {
-            icon: L.divIcon({
-                className: '',
-                html: `<div style="background:${color};width:${size}px;height:${size}px;border:2px solid #fff;
-                              border-radius:50%;box-shadow:0 0 8px ${color};"></div>`,
-                iconSize: [size, size], iconAnchor: [size/2, size/2]
-            })
-        }).addTo(mapObj).bindPopup(popup);
-        if (openPop) m.openPopup();
-    }
-
-    function selectHospital(id, name, lat, lng) {
-        document.getElementById('selectedHospitalId').value = id;
-        const btn = document.getElementById('submitDirectBtn');
-        btn.removeAttribute('disabled');
-        btn.innerHTML = `<i class="fas fa-paper-plane"></i> إرسال لـ ${name}`;
-        
-        if (selectionMap) {
-            selectionMap.setView([lat, lng], 13);
-            
-            if (selfNavPolyline) selectionMap.removeLayer(selfNavPolyline);
-            
-            selfNavPolyline = L.polyline([[patientLat, patientLng], [lat, lng]], {
-                color: '#3b82f6',
-                dashArray: '8 5',
-                weight: 3.5,
-                opacity: 0.8
-            }).addTo(selectionMap);
-            
-            const bounds = L.latLngBounds([[patientLat, patientLng], [lat, lng]]);
-            selectionMap.fitBounds(bounds, { padding: [40, 40] });
-        }
-    }
-
-    function submitDirectRequest() {
-        const hospitalId = document.getElementById('selectedHospitalId').value;
-        if (!hospitalId) return;
-        const btn = document.getElementById('submitDirectBtn');
-        btn.setAttribute('disabled','true');
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري إرسال الطلب...';
-        $.ajax({
-            url:'/Emergency/RequestDirectReception', type:'POST',
-            data:{
-                hospitalId, notes: document.getElementById('directNotes').value,
-                riskAssessmentId: document.getElementById('latestRiskId').value,
-                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
-            },
-            success(res){ res.success ? (alert(res.message), location.reload()) : (alert(res.message||'خطأ'), btn.removeAttribute('disabled')); },
-            error(){ alert('خطأ في الاتصال.'); btn.removeAttribute('disabled'); }
-        });
-    }
-
-    /* ══════════════════════════════════════════
-       SECTION 3 — Ambulance GPS Tracking Map
-       ══════════════════════════════════════════ */
-    function getHospitalById(id) {
-        return id ? hospitals.find(h => h.Id === id) || null : null;
-    }
-
-    function toggleMapFullscreen() {
-        const mapElem = document.getElementById('ambulanceTrackMap');
-        const btn = document.querySelector('.btn-fullscreen-map i');
-        
-        if (!document.fullscreenElement) {
-            mapElem.requestFullscreen().then(() => {
-                if (btn) btn.className = "fas fa-compress";
-            }).catch(err => {
-                alert(`خطأ أثناء تفعيل ملء الشاشة: ${err.message}`);
-            });
-        } else {
-            document.exitFullscreen().then(() => {
-                if (btn) btn.className = "fas fa-expand";
-            });
-        }
-    }
-
-    document.addEventListener('fullscreenchange', () => {
-        const btn = document.querySelector('.btn-fullscreen-map i');
-        if (btn) {
-            if (document.fullscreenElement) {
-                btn.className = "fas fa-compress";
-            } else {
-                btn.className = "fas fa-expand";
-            }
-        }
-        if (trackMap) {
-            setTimeout(() => { trackMap.invalidateSize(); }, 200);
-        }
-    });
-
-    function initTrackingMap(hospLat, hospLng, hospName, distKm) {
-        const card = document.getElementById('ambulanceMapCard');
-        card.style.display = 'block';
-        card.classList.add('show');
-
-        const delaySec = document.getElementById('delayedSection');
-        if (delaySec) delaySec.style.display = 'none';
-
-        currentHospLat = hospLat;
-        currentHospLng = hospLng;
-
-        if (!trackMap) {
-            const midLat = (hospLat + patientLat) / 2;
-            const midLng = (hospLng + patientLng) / 2;
-            trackMap = L.map('ambulanceTrackMap', { dragging: !L.Browser.mobile, tap: !L.Browser.mobile }).setView([midLat, midLng], 12);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-                {attribution:'&copy; OpenStreetMap &copy; CartoDB'}).addTo(trackMap);
-
-            // Live UTC Clock updater
-            setInterval(() => {
-                const clocks = document.querySelectorAll('.utc-clock');
-                if (clocks.length) {
-                    const now = new Date();
-                    const pad = (n) => String(n).padStart(2, '0');
-                    const timeStr = `${pad(now.getUTCHours())}:${pad(now.getUTCMinutes())}:${pad(now.getUTCSeconds())} UTC`;
-                    clocks.forEach(c => c.textContent = timeStr);
-                }
-            }, 1000);
-
-            // Patient Marker (Pulsing Red)
-            L.marker([patientLat, patientLng], {
-                icon: L.divIcon({
-                    className:'',
-                    html:`<div class="patient-glow-marker"><div class="patient-pulse"></div></div>`,
-                    iconSize:[14,14], iconAnchor:[7,7]
-                })
-            }).addTo(trackMap).bindPopup('<b>موقعك</b>');
-
-            // Hospital (Glow Orange Marker)
-            L.marker([hospLat, hospLng], {
-                icon: L.divIcon({
-                    className:'',
-                    html:`<div class="hosp-glow-marker" style="background:#ff9f00;box-shadow:0 0 12px #ff9f00;"><i class="fas fa-hospital"></i></div>`,
-                    iconSize:[24,24], iconAnchor:[12,12]
-                })
-            }).addTo(trackMap).bindPopup(`<b>${hospName}</b>`);
-
-            // Route line (Glowing double polyline: back glow + front line)
-            L.polyline([[hospLat,hospLng],[patientLat,patientLng]], {
-                color:'#00f0ff', weight: 8, opacity: 0.16
-            }).addTo(trackMap);
-            L.polyline([[hospLat,hospLng],[patientLat,patientLng]], {
-                color:'#00f0ff', weight: 2.2, opacity: 0.8
-            }).addTo(trackMap);
-
-            // Ambulance marker (glowing badge styled exactly like the concept mockup)
-            ambMarker = L.marker([hospLat, hospLng], {
-                icon: L.divIcon({
-                    className:'',
-                    html:`<div class="glow-badge">
-                              <div class="pulse-dot"></div>
-                              <div class="badge-icon">🚑</div>
-                              <div class="badge-text">
-                                  <div class="badge-title">AMB-01</div>
-                                  <div class="badge-sub">تتبع حي للإسعاف</div>
-                              </div>
-                          </div>`,
-                    iconSize:[120,34], iconAnchor:[15,17]
-                }),
-                zIndexOffset:1000
-            }).addTo(trackMap).bindPopup('سيارة الإسعاف');
-        }
-
-        startAmbulanceAnimation(hospLat, hospLng, distKm);
-    }
-
-    function startAmbulanceAnimation(fromLat, fromLng, distKm) {
-        if (animTimer) clearInterval(animTimer);
-
-        // Real travel time in minutes, then convert to sim milliseconds
-        const realMinutes      = (distKm / AVG_KMH) * 60;          // real-world ETA in minutes
-        const phaseDurationMs  = (realMinutes / ANIM_SPEEDUP) * 60000; // compressed simulation phase duration ms
-        const intermissionMs   = 4000; // 4 seconds loading patient intermission
-        const totalDurationMs  = phaseDurationMs * 2 + intermissionMs;
-        
-        const stepMs           = 1000 / ANIM_FPS;
-
-        // If request is already completed, skip animation and position at hospital
-        if (currentStatus === 'Completed') {
-            if (ambMarker) ambMarker.setLatLng([fromLat, fromLng]);
-            showArrivalToast(true);
-            return;
-        }
-
-        // Retrieve start time from localStorage to survive refreshes
-        const startTimeKey = "amb_start_" + REQUEST_ID;
-        let startTimeStr = localStorage.getItem(startTimeKey);
-        if (!startTimeStr) {
-            startTimeStr = Date.now().toString();
-            localStorage.setItem(startTimeKey, startTimeStr);
-        }
-
-        const startTime = parseInt(startTimeStr);
-        
-        // Show ETA panel
-        document.getElementById('etaPanel').style.display = 'block';
-        document.getElementById('distanceLabel').textContent = distKm.toFixed(1) + ' كم';
-
-        const runTimerStep = () => {
-            let elapsedMs = Date.now() - startTime;
-            
-            // Phase 1: Hospital -> Patient
-            if (elapsedMs < phaseDurationMs) {
-                const t = elapsedMs / phaseDurationMs;
-                const ease = t < .5 ? 2*t*t : -1+(4-2*t)*t; // ease-in-out
-
-                const lat = fromLat + (patientLat - fromLat) * ease;
-                const lng = fromLng + (patientLng - fromLng) * ease;
-                if (ambMarker) ambMarker.setLatLng([lat, lng]);
-
-                // Update UI values
-                const currentEta = Math.max(1, Math.round(realMinutes * (1 - t)));
-                document.getElementById('etaBadge').textContent = currentEta + ' دقيقة (الوصول للمريض)';
-                
-                const remaining = Math.max(0, 100 - Math.round(t * 100));
-                document.getElementById('progressBar').style.width = remaining + '%';
-                
-                // Timeline steps
-                document.getElementById('step-pending').className  = 'status-step completed';
-                document.getElementById('step-accepted').className = 'status-step active';
-                document.getElementById('step-completed').className = 'status-step';
-
-                // Status text update
-                document.getElementById('waitingAlert').className = "alert alert-warning border-0 p-3 mt-3";
-                document.getElementById('waitingAlert').innerHTML = `
-                    <h6 class="fw-bold"><i class="fas fa-ambulance animate__animated animate__pulse animate__infinite text-danger"></i> الإسعاف في الطريق إليك</h6>
-                    <p class="small mb-0 opacity-75">سيارة الإسعاف تتحرك الآن من المستشفى للوصول إلى موقعك وإسعافك.</p>
-                `;
-            }
-            // Intermission: Loading Patient
-            else if (elapsedMs < phaseDurationMs + intermissionMs) {
-                if (ambMarker) ambMarker.setLatLng([patientLat, patientLng]);
-
-                document.getElementById('etaBadge').textContent = 'وصل للموقع';
-                document.getElementById('progressBar').style.width = '100%';
-
-                document.getElementById('step-pending').className  = 'status-step completed';
-                document.getElementById('step-accepted').className = 'status-step completed';
-                document.getElementById('step-completed').className = 'status-step active';
-
-                document.getElementById('waitingAlert').className = "alert alert-info border-0 p-3 mt-3 animate__animated animate__pulse animate__infinite";
-                document.getElementById('waitingAlert').innerHTML = `
-                    <h6 class="fw-bold"><i class="fas fa-user-injured text-primary"></i> تم الوصول لموقع المريض</h6>
-                    <p class="small mb-0 opacity-75">وصلت سيارة الإسعاف. يقوم الفريق الطبي حالياً بتجهيزك ونقلك للسيارة للعودة للمستشفى.</p>
-                `;
-            }
-            // Phase 2: Patient -> Hospital
-            else if (elapsedMs < totalDurationMs) {
-                const t = (elapsedMs - phaseDurationMs - intermissionMs) / phaseDurationMs;
-                const ease = t < .5 ? 2*t*t : -1+(4-2*t)*t; // ease-in-out
-
-                // Move back from patient to hospital
-                const lat = patientLat + (fromLat - patientLat) * ease;
-                const lng = patientLng + (fromLng - patientLng) * ease;
-                if (ambMarker) ambMarker.setLatLng([lat, lng]);
-
-                // Update UI values
-                const currentEta = Math.max(1, Math.round(realMinutes * (1 - t)));
-                document.getElementById('etaBadge').textContent = currentEta + ' دقيقة (الوصول للمستشفى)';
-                
-                const remaining = Math.round(t * 100);
-                document.getElementById('progressBar').style.width = remaining + '%';
-
-                document.getElementById('step-pending').className  = 'status-step completed';
-                document.getElementById('step-accepted').className = 'status-step completed';
-                document.getElementById('step-completed').className = 'status-step active';
-
-                document.getElementById('waitingAlert').className = "alert alert-danger border-0 p-3 mt-3";
-                document.getElementById('waitingAlert').innerHTML = `
-                    <h6 class="fw-bold"><i class="fas fa-hospital-symbol text-danger animate__animated animate__flash animate__infinite"></i> جاري النقل إلى المستشفى</h6>
-                    <p class="small mb-0 opacity-75">سيارة الإسعاف تتحرك الآن بأقصى سرعة ممكنة لنقل المريض إلى الطوارئ مباشرة.</p>
-                `;
-            }
-            // Completed
-            else {
-                clearInterval(animTimer);
-                if (ambMarker) ambMarker.setLatLng([fromLat, fromLng]);
-                showArrivalToast(false);
-            }
-        };
-
-        // Run the first step immediately
-        runTimerStep();
-
-        if ((Date.now() - startTime) < totalDurationMs) {
-            animTimer = setInterval(runTimerStep, stepMs);
-        } else {
-            showArrivalToast(true);
-        }
-    }
-
-    function showArrivalToast(alreadyCompleted = false) {
-        localStorage.removeItem("amb_start_" + REQUEST_ID);
-
-        // Update status timeline
-        ['step-pending','step-accepted','step-completed'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.className = 'status-step completed';
-        });
-
-        // Hide tracking cards
-        document.getElementById('etaPanel').style.display = 'none';
-        document.getElementById('waitingAlert').style.display = 'none';
-        document.getElementById('ambulanceMapCard').style.display = 'none';
-
-        // Display handover card
-        document.getElementById('handoverCard').style.display = 'block';
-
-        // Calculate and render durations
-        calculateHandoverMetrics();
-
-        if (!alreadyCompleted && currentStatus !== 'Completed') {
-            currentStatus = 'Completed';
-            
-            // Show toast message
-            const t = document.getElementById('arrivalToast');
-            if (t) {
-                t.innerHTML = `<i class="fas fa-check-circle me-2"></i> تم وصول الحالة بسلام للمستشفى!`;
-                t.style.display = 'block';
-                setTimeout(() => { if (t) t.style.display = 'none'; }, 6000);
-            }
-
-            // Call AJAX to complete request in database
-            $.ajax({
-                url: '/Emergency/CompleteRequest',
-                type: 'POST',
-                data: {
-                    id: REQUEST_ID,
-                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
-                },
-                success(res) {
-                    console.log('Request auto-completed on arrival:', res);
-                },
-                error(e) {
-                    console.error('Error completing request:', e);
-                }
-            });
-        }
-    }
-
-    function calculateHandoverMetrics() {
-        let reqTime = requestedAtStr ? new Date(requestedAtStr) : null;
-        let accTime = acceptedAtStr ? new Date(acceptedAtStr) : null;
-        let compTime = completedAtStr ? new Date(completedAtStr) : null;
-        
-        let responseMin = 0;
-        let transportMin = 0;
-
-        if (accTime && reqTime) {
-            responseMin = Math.max(1, Math.round((accTime - reqTime) / 60000));
-        } else {
-            responseMin = 3; 
-        }
-
-        if (compTime && accTime) {
-            transportMin = Math.max(1, Math.round((compTime - accTime) / 60000));
-        } else {
-            const dist = (currentHospLat && currentHospLng) 
-                ? haversineKm(patientLat, patientLng, currentHospLat, currentHospLng) 
-                : 4.5;
-            transportMin = Math.max(2, Math.round((dist / AVG_KMH) * 60));
-        }
-
-        const distance = (currentHospLat && currentHospLng)
-            ? haversineKm(patientLat, patientLng, currentHospLat, currentHospLng)
-            : 4.5;
-
-        document.getElementById('responseTimeVal').innerHTML = `<span class="text-primary fw-bold">${responseMin}</span> دقيقة`;
-        document.getElementById('transportTimeVal').innerHTML = `<span class="text-success fw-bold">${transportMin}</span> دقيقة`;
-        document.getElementById('totalDistanceVal').innerHTML = `<span class="text-warning-emphasis fw-bold">${(distance * 2).toFixed(1)}</span> كم (ذهاب وإياب)`;
-        document.getElementById('supervisingDoctorVal').textContent = doctorName;
-    }
-
-    /* ══════════════════════════════════════════
-       SECTION 4 — Apply accepted state
-       ══════════════════════════════════════════ */
-    function applyAcceptedState(providerId) {
-        document.getElementById('step-pending').className  = 'status-step completed';
-        document.getElementById('step-accepted').className = 'status-step active';
-
-        const hosp = getHospitalById(providerId);
-        const hName = hosp ? hosp.Name : 'المستشفى';
-
-        document.getElementById('acceptedBanner').style.display = 'block';
-        document.getElementById('acceptedHospName').textContent = hName;
-
-        if (hosp) {
-            const distKm = haversineKm(patientLat, patientLng, hosp.Latitude, hosp.Longitude);
-            initTrackingMap(hosp.Latitude, hosp.Longitude, hosp.Name, distKm);
-            checkAmbulanceCapacity(hosp);
-        }
-    }
-
-    function checkAmbulanceCapacity(hosp) {
-        if ((hosp.AvailableAmbulances ?? 0) <= 0) {
-            const nearest = hospitals
-                .filter(h => h.Id !== hosp.Id && h.AvailableBeds > 0 && h.AvailableAmbulances > 0)
-                .sort((a,b) => haversineKm(patientLat,patientLng,a.Latitude,a.Longitude)
-                               - haversineKm(patientLat,patientLng,b.Latitude,b.Longitude))[0];
-            const hint = nearest
-                ? ` يمكنك التوجه ذاتياً لـ <b>${nearest.Name}</b> (${haversineKm(patientLat,patientLng,nearest.Latitude,nearest.Longitude).toFixed(1)} كم)`
-                : '';
-            document.getElementById('noAmbMsg').textContent  = 'جميع سيارات الإسعاف في هذا المستشفى مشغولة حالياً — يمكنك الانتظار أو:';
-            document.getElementById('altHospitalsHint').innerHTML = hint;
-            document.getElementById('noAmbAlert').style.display = 'block';
-        } else {
-            document.getElementById('noAmbAlert').style.display = 'none';
-        }
-    }
-
-    /* ══════════════════════════════════════════
-       SECTION 5 — SignalR
-       ══════════════════════════════════════════ */
-    const connection = new signalR.HubConnectionBuilder()
-        .withUrl('/hubs/queue').withAutomaticReconnect().build();
-
-    connection.on('EmergencyRequestUpdated', update => {
-        if (update.requestId !== REQUEST_ID) return;
-        const st = (update.status || '').toString();
-        currentStatus = st;
-        if (st === 'Accepted') {
-            applyAcceptedState(update.providerId);
-        } else if (st === 'Completed') {
-            localStorage.removeItem("amb_start_" + REQUEST_ID);
-            showArrivalToast(true);
-        }
-    });
-
-    connection.on('HospitalBedsUpdated', update => {
-        console.log('Capacity broadcast received:', update);
-        const hosp = hospitals.find(h => h.Id === update.providerId);
-        if (hosp) {
-            hosp.AvailableBeds = update.availableBeds;
-            hosp.AvailableAmbulances = update.availableAmbulances;
-            hosp.AmbulanceCapacity = update.ambulanceCapacity;
-            
-            if (selectionMap) {
-                updateSelectionMapUI();
-            }
-            
-            if (initProviderId && update.providerId === initProviderId) {
-                checkAmbulanceCapacity(hosp);
-            }
-        }
-    });
-
-    connection.start()
-        .then(() => console.log('SignalR connected — tracking #' + REQUEST_ID))
-        .catch(e  => console.error('SignalR error:', e));
-
-    /* ══════════════════════════════════════════
-       SECTION 6 — On page load: restore state
-       ══════════════════════════════════════════ */
-    // First-aid instructions dictionary
-    const firstAidInstructions = {
-        "cardiovascular": {
-            text: "هدئ من روعك واجلس في وضع مستريح. قم بفك الملابس الضيقة حول الرقبة والصدر. إذا كان لديك دواء الأسبرين وكنت لا تعاني من حساسية منه، امضغ قرصاً واحداً ببطء. لا تبذل أي مجهود وتنفس بعمق بانتظار وصول الإسعاف.",
-            bullets: [
-                "الجلوس بوضعية نصف جالسة مريحة ومستندة.",
-                "فك الملابس الضيقة لتسهيل التنفس.",
-                "مضغ قرص أسبرين (إذا لم تكن هناك حساسية).",
-                "تجنب أي نشاط أو انفعال زائد."
-            ]
-        },
-        "respiratory": {
-            text: "اجلس مستقيماً ولا تستلقي على ظهرك. تأكد من تهوية المكان جيداً وافتح النوافذ القريبة. استخدم بخاخ الربو الإسعافي إذا كان متوفراً لديك بجرعتين. تنفس ببطء وعمق وحافظ على هدوئك تماماً.",
-            bullets: [
-                "الجلوس بشكل مستقيم لفتح مجرى الهواء وعدم الاستلقاء.",
-                "تهوية المكان فوراً بفتح النوافذ.",
-                "استخدام البخاخ الإسعافي (جرعتين).",
-                "محاولة التنفس ببطء لتقليل الذعر."
-            ]
-        },
-        "trauma": {
-            text: "إذا كان هناك نزيف، اضغط مباشرة بقوة على مكان الجرح باستخدام قطعة قماش نظيفة أو شاش معقم. لا تحرك العضو المصاب أو المكسور أبداً لتجنب تفاقم الإصابة. ثبت الكسر بوسادة بسيطة بلطف.",
-            bullets: [
-                "الضغط المباشر على الجرح النازف بقطعة قماش نظيفة.",
-                "تجنب تحريك أو تعديل العظام المكسورة.",
-                "تثبيت العضو المصاب بالوسائد أو الجبائر المؤقتة.",
-                "رفع الطرف المصاب قليلاً إن أمكن دون التسبب في ألم."
-            ]
-        },
-        "neurological": {
-            text: "إذا فقد المريض الوعي ولكنه لا يزال يتنفس، ضعه بلطف في وضعية الإفاقة الجانبية لتأمين مجرى الهواء. لا تضع أي شيء في فم المريض إذا كان يعاني من تشنجات وقم بحماية رأسه من الارتطام.",
-            bullets: [
-                "وضع المريض فاقد الوعي في وضعية الإفاقة الجانبية.",
-                "تأمين مجرى التنفس وإزالة أي عوائق.",
-                "عدم وضع أي شيء في الفم أثناء التشنجات.",
-                "مراقبة النبض والتنفس بدقة."
-            ]
-        },
-        "infectious": {
-            text: "عزل المريض في غرفة جيدة التهوية. تجنب الملامسة المباشرة لإفرازات المريض واستخدم الكمامة الطبية. شجع المريض على شرب السوائل واستخدم خافض حرارة بسيط عند الحاجة.",
-            bullets: [
-                "عزل المريض في غرفة مستقلة جيدة التهوية.",
-                "استخدام الكمامة وغسل اليدين باستمرار.",
-                "تشجيع المريض على شرب السوائل.",
-                "استخدام خافض للحرارة عند الضرورة."
-            ]
-        },
-        "general": {
-            text: "تأكد من سلامة المكان حولك وحول المريض. حافظ على هدوئك وتحدث مع المريض لطمأنته. راقب علاماته الحيوية مثل التنفس والوعي، وتجنب إعطائه أي طعام أو شراب بالكامل.",
-            bullets: [
-                "تأمين البيئة المحيطة بالمريض.",
-                "الحفاظ على الهدوء والحديث المستمر لطمأنة المريض.",
-                "مراقبة التنفس ودرجة الوعي باستمرار.",
-                "تجنب إعطاء المريض أي سوائل أو طعام بالفم."
-            ]
-        }
-    };
-
-    // Determine type key based on EmergencyType model value
-    let typeKey = "general";
-    const rawType = "@(Model.EmergencyType ?? "")".toLowerCase();
-    if (rawType.includes("cardio") || rawType.includes("heart") || rawType.includes("قلب") || rawType.includes("صدر")) {
-        typeKey = "cardiovascular";
-    } else if (rawType.includes("respir") || rawType.includes("breath") || rawType.includes("تنفس") || rawType.includes("رئة")) {
-        typeKey = "respiratory";
-    } else if (rawType.includes("trauma") || rawType.includes("fracture") || rawType.includes("كسر") || rawType.includes("نزيف") || rawType.includes("جرح")) {
-        typeKey = "trauma";
-    } else if (rawType.includes("neuro") || rawType.includes("وعي") || rawType.includes("جلطة") || rawType.includes("تشنج")) {
-        typeKey = "neurological";
-    } else if (rawType.includes("infect") || rawType.includes("عدوى") || rawType.includes("حمى")) {
-        typeKey = "infectious";
-    }
-
-    const currentGuide = firstAidInstructions[typeKey];
-
-    let speechUtterance = null;
-
-    function playFirstAidSpeech() {
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel();
-
-            speechUtterance = new SpeechSynthesisUtterance(currentGuide.text);
-            speechUtterance.lang = 'ar-SA';
-            
-            const voices = window.speechSynthesis.getVoices();
-            const arVoice = voices.find(v => v.lang.startsWith('ar'));
-            if (arVoice) {
-                speechUtterance.voice = arVoice;
-            }
-
-            speechUtterance.onstart = function() {
-                document.getElementById("soundWaves").style.display = "inline-flex";
-                document.getElementById("btnPlayVoice").innerHTML = '<i class="fas fa-volume-up me-1"></i> جاري القراءة...';
-                document.getElementById("btnStopVoice").removeAttribute("disabled");
-                document.getElementById("voiceIcon").className = "fas fa-volume-up animate__animated animate__pulse animate__infinite";
-            };
-
-            speechUtterance.onend = function() {
-                resetVoiceUI();
-            };
-
-            speechUtterance.onerror = function() {
-                resetVoiceUI();
-            };
-
-            window.speechSynthesis.speak(speechUtterance);
-        } else {
-            alert("عذراً، متصفحك لا يدعم خاصية نطق النصوص.");
-        }
-    }
-
-    function stopFirstAidSpeech() {
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel();
-            resetVoiceUI();
-        }
-    }
-
-    function resetVoiceUI() {
-        document.getElementById("soundWaves").style.display = "none";
-        document.getElementById("btnPlayVoice").innerHTML = '<i class="fas fa-play me-1"></i> استماع للإرشادات';
-        document.getElementById("btnStopVoice").setAttribute("disabled", "true");
-        document.getElementById("voiceIcon").className = "fas fa-volume-up";
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        // Render first aid text
-        const textDiv = document.getElementById("firstAidText");
-        if (textDiv) {
-            let html = `<p class="mb-2" style="font-weight: 700;">${currentGuide.text}</p><ul class="ps-3 mb-0" style="list-style: disc;">`;
-            currentGuide.bullets.forEach(b => {
-                html += `<li class="mb-1">${b}</li>`;
-            });
-            html += `</ul>`;
-            textDiv.innerHTML = html;
-        }
-
-        // Trigger loading voices (helps with Chrome bug where voices load late)
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.getVoices();
-        }
-
-        if (currentStatus === 'Accepted' && initProviderId) {
-            applyAcceptedState(initProviderId);
-        } else if (currentStatus === 'Completed') {
-            showArrivalToast(true);
-            if (initProviderId) {
-                const hosp = getHospitalById(initProviderId);
-                if (hosp) {
-                    currentHospLat = hosp.Latitude;
-                    currentHospLng = hosp.Longitude;
-                    calculateHandoverMetrics();
-                }
-            }
-        } else {
-            // Status is Pending: automatically display alternative hospitals section on load
-            toggleDelaySection();
-        }
-    });
-    </script>
-}
+﻿@model Etmen_BLL.DTOs.Emergency.EmergencyRequestDto
+@{
+    ViewData["Title"] = "تتبع حالة الطوارئ والإسعاف";
+    Layout = "~/Views/Shared/_PatientLayout.cshtml";
+
+    var latestRisk       = ViewBag.LatestRisk as Etmen_Domain.Entities.RiskAssessment;
+    var currentStatus    = (string)(ViewBag.CurrentStatus ?? "Pending");
+    var acceptedPid      = ViewBag.AcceptedProviderId as int?;
+    var hospitalsJson    = System.Text.Json.JsonSerializer.Serialize(ViewBag.Hospitals);
+}
+
+<style>
+    .tracking-card {
+        background:#fff;border-radius:24px;
+        border:1px solid var(--border);
+        box-shadow:0 15px 35px rgba(0,0,0,.04);
+    }
+    /* ── Timeline ── */
+    .status-timeline{position:relative;padding-left:2.2rem;}
+    .status-timeline::before{content:'';position:absolute;top:0;bottom:0;left:9px;width:2px;background:#e2e8f0;}
+    .status-step{position:relative;padding-bottom:2rem;}
+    .status-step::before{content:'';position:absolute;left:-2.2rem;top:4px;width:20px;height:20px;border-radius:50%;
+        background:#fff;border:4px solid #cbd5e1;z-index:2;transition:all .4s ease;}
+    .status-step.active::before   {border-color:#f59e0b;background:#f59e0b;box-shadow:0 0 12px rgba(245,158,11,.5);}
+    .status-step.completed::before{border-color:#22c55e;background:#22c55e;box-shadow:0 0 12px rgba(34,197,94,.4);}
+    /* ── Delayed Section ── */
+    .delayed-section{background:#fef9f2;border:1px solid #fde68a;border-radius:20px;padding:24px;display:none;}
+    .hospital-map-container{height:350px;border-radius:16px;border:1px solid var(--border);overflow:hidden;margin-top:14px;}
+    .hospital-item{background:#fff;border:1px solid #f1f5f9;border-radius:12px;padding:12px;margin-bottom:10px;cursor:pointer;transition:all .2s;}
+    .hospital-item:hover{border-color:#1a6fbf;background:#f8fafc;}
+    /* ── Ambulance Track Map ── */
+    .amb-map-card{display:none;margin-top:20px;background:#0d1527;border-radius:20px;
+        border:2.5px solid #ef4444;box-shadow:0 0 30px rgba(239,68,68,.25);padding:18px;}
+    .amb-map-card.show{display:block;animation:fadeInUp .4s ease;}
+    #ambulanceTrackMap{height:520px;border-radius:14px;overflow:hidden;transition: height 0.3s ease;}
+
+    /* Fullscreen Button */
+    .btn-fullscreen-map {
+        position: absolute;
+        bottom: 15px;
+        right: 15px;
+        z-index: 1000;
+        width: 40px;
+        height: 40px;
+        background: rgba(10, 25, 41, 0.85);
+        border: 1.5px solid rgba(0, 240, 255, 0.45);
+        border-radius: 8px;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        transition: all 0.2s ease;
+    }
+    .btn-fullscreen-map:hover {
+        background: rgba(0, 240, 255, 0.2);
+        border-color: #00f0ff;
+        color: #00f0ff;
+        transform: scale(1.08);
+    }
+    /* Fullscreen specific stylesheet */
+    #ambulanceTrackMap:fullscreen {
+        width: 100% !important;
+        height: 100% !important;
+        border-radius: 0 !important;
+    }
+    #ambulanceTrackMap:-webkit-full-screen {
+        width: 100% !important;
+        height: 100% !important;
+        border-radius: 0 !important;
+    }
+
+    /* ── Map Overlay Header ── */
+    .map-overlay-header {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        background: rgba(10, 25, 41, 0.85);
+        border: 1.5px solid rgba(0, 240, 255, 0.45);
+        border-radius: 10px;
+        padding: 6px 12px;
+        box-shadow: 0 4px 15px rgba(0, 240, 255, 0.2);
+        backdrop-filter: blur(6px);
+        pointer-events: none;
+    }
+    .overlay-icon {
+        font-size: 14px;
+        color: #00f0ff;
+        margin-right: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        background: rgba(0, 240, 255, 0.1);
+        border-radius: 6px;
+        animation: pulse-glow 2s infinite;
+    }
+    .overlay-details {
+        display: flex;
+        flex-direction: column;
+        text-align: left;
+    }
+    .overlay-title {
+        font-family: 'Outfit', 'Inter', sans-serif;
+        font-size: 9px;
+        font-weight: 800;
+        color: #ffffff;
+        letter-spacing: 0.8px;
+        margin: 0;
+        line-height: 1.1;
+    }
+    .overlay-status {
+        font-family: 'Inter', sans-serif;
+        font-size: 8px;
+        color: rgba(255, 255, 255, 0.6);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 1px;
+    }
+    .live-indicator {
+        color: #ff4d4d;
+        font-weight: 700;
+        animation: flash-live 1s infinite alternate;
+    }
+    @@keyframes flash-live {
+        0% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+    @@keyframes pulse-glow {
+        0% { box-shadow: 0 0 0 0 rgba(0, 240, 255, 0.4); }
+        70% { box-shadow: 0 0 0 8px rgba(0, 240, 255, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(0, 240, 255, 0); }
+    }
+
+    /* ── Glow Badge Styling ── */
+    .glow-badge {
+        display: flex;
+        align-items: center;
+        background: rgba(10, 25, 41, 0.9);
+        border: 1.5px solid #00f0ff;
+        border-radius: 20px;
+        padding: 4px 10px 4px 6px;
+        box-shadow: 0 0 15px rgba(0, 240, 255, 0.35);
+        color: #ffffff;
+        font-family: 'Inter', sans-serif;
+        white-space: nowrap;
+        width: fit-content;
+    }
+    .glow-badge.orange {
+        border-color: #ff9f00;
+        box-shadow: 0 0 15px rgba(255, 159, 0, 0.35);
+    }
+    .pulse-dot {
+        width: 8px;
+        height: 8px;
+        background: #00f0ff;
+        border-radius: 50%;
+        margin-right: 6px;
+        margin-left: 2px;
+        position: relative;
+        flex-shrink: 0;
+    }
+    .glow-badge.orange .pulse-dot {
+        background: #ff9f00;
+    }
+    .pulse-dot::after {
+        content: '';
+        position: absolute;
+        top: -6px;
+        left: -6px;
+        right: -6px;
+        bottom: -6px;
+        border: 2px solid #00f0ff;
+        border-radius: 50%;
+        animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+    }
+    .glow-badge.orange .pulse-dot::after {
+        border-color: #ff9f00;
+    }
+    @@keyframes pulse-ring {
+        0% { transform: scale(0.35); opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { transform: scale(1.5); opacity: 0; }
+    }
+    .badge-icon {
+        font-size: 13px;
+        margin-right: 6px;
+        display: flex;
+        align-items: center;
+    }
+    .badge-text {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.1;
+        text-align: left;
+    }
+    .badge-title {
+        font-size: 9px;
+        font-weight: 700;
+        color: #00f0ff;
+        letter-spacing: 0.5px;
+    }
+    .glow-badge.orange .badge-title {
+        color: #ff9f00;
+    }
+    .badge-sub {
+        font-size: 8px;
+        color: rgba(255, 255, 255, 0.85);
+        font-weight: 600;
+    }
+
+    /* ── Hospital Glow Marker ── */
+    .hosp-glow-marker {
+        background: #ff9f00;
+        color: #fff;
+        border: 1.5px solid #fff;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 0 12px #ff9f00;
+        font-size: 11px;
+    }
+
+    /* ── Patient Glow Marker ── */
+    .patient-glow-marker {
+        position: relative;
+        width: 14px;
+        height: 14px;
+        background: #ff4d4d;
+        border-radius: 50%;
+        border: 2px solid #fff;
+        box-shadow: 0 0 10px #ff4d4d;
+    }
+    .patient-pulse {
+        position: absolute;
+        width: 30px;
+        height: 30px;
+        border: 2px solid #ff4d4d;
+        border-radius: 50%;
+        top: -10px;
+        left: -10px;
+        animation: patient-pulse-ring 1.8s ease-out infinite;
+    }
+    @@keyframes patient-pulse-ring {
+        0% { transform: scale(0.5); opacity: 1; }
+        100% { transform: scale(1.8); opacity: 0; }
+    }
+    /* ── Capacity Bar ── */
+    .cap-bar-wrap{background:#f1f5f9;border-radius:8px;height:10px;overflow:hidden;margin-top:4px;}
+    .cap-bar{height:100%;border-radius:8px;transition:width .6s ease;}
+    /* ── ETA badge ── */
+    .eta-badge{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;
+        border-radius:12px;padding:8px 18px;font-weight:800;display:inline-block;font-size:1.1rem;}
+    /* ── Animations ── */
+    @@keyframes pulseMini  {0%,100%{transform:scale(1)} 50%{transform:scale(1.08)}}
+    @@keyframes fadeInUp   {from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)}}
+    @@keyframes fadeInDown {from{opacity:0;transform:translateY(-12px)} to{opacity:1;transform:translateY(0)}}
+    @@keyframes bounce     {0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)}}
+    
+    @@media (max-width: 768px) {
+        .hospital-map-container {
+            height: 280px;
+        }
+        #ambulanceTrackMap {
+            height: 280px;
+        }
+    }
+
+    /* Soundwaves animation style */
+    .sound-waves {
+        display: inline-flex;
+        align-items: flex-end;
+        gap: 3px;
+        height: 20px;
+    }
+    .sound-waves span {
+        width: 3px;
+        background-color: #3b82f6;
+        border-radius: 3px;
+        animation: wave-bounce 1s ease-in-out infinite;
+    }
+    .sound-waves span:nth-child(1) { height: 10px; animation-delay: 0.1s; }
+    .sound-waves span:nth-child(2) { height: 20px; animation-delay: 0.2s; }
+    .sound-waves span:nth-child(3) { height: 15px; animation-delay: 0.3s; }
+    .sound-waves span:nth-child(4) { height: 8px; animation-delay: 0.4s; }
+
+    @@keyframes wave-bounce {
+        0%, 100% { transform: scaleY(1); }
+        50% { transform: scaleY(2); }
+    }
+</style>
+
+<div class="container py-4 animate__animated animate__fadeIn" dir="rtl">
+
+    <!-- ── Arrival Toast ── -->
+    <div id="arrivalToast" style="display:none;position:fixed;top:20px;right:20px;z-index:9999;
+         background:linear-gradient(135deg,#22c55e,#15803d);color:#fff;padding:14px 22px;
+         border-radius:16px;font-weight:700;font-size:.95rem;box-shadow:0 8px 30px rgba(0,0,0,.25);
+         animation:fadeInDown .4s ease;">
+        <i class="fas fa-check-circle me-2"></i> سيارة الإسعاف وصلت إلى موقعك!
+    </div>
+
+    <!-- ── No-Ambulance Alert ── -->
+    <div id="noAmbAlert" style="display:none;" class="alert alert-danger border-0 mb-3 fw-bold" style="border-radius:14px;">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <span id="noAmbMsg">جميع سيارات الإسعاف مشغولة حالياً.</span>
+        <span id="altHospitalsHint"></span>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+ 
+        <!-- ═══ LEFT Column: Status, Timeline, ETA, & First-Aid Guide (col-lg-5) ═══ -->
+        <div class="col-lg-5 col-12">
+            <div class="tracking-card p-4 h-100 d-flex flex-column justify-content-between" style="min-height: 520px;">
+                <div>
+                    <!-- Header -->
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <div class="p-3 bg-danger text-white rounded-4"
+                             style="font-size:1.8rem;animation:pulseMini 1.5s infinite; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-ambulance"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-bold mb-1" style="font-size: 1.25rem;">طلب الإسعاف العاجل #@Model.Id</h4>
+                            <p class="text-muted small mb-0 fw-bold">نوع الطوارئ: @Model.EmergencyType</p>
+                        </div>
+                    </div>
+
+                    <!-- Timeline -->
+                    <div class="status-timeline mt-4 ms-3 text-start">
+                        <div class="status-step @(currentStatus != "Pending" ? "completed" : "active")" id="step-pending">
+                            <h6 class="fw-bold mb-1">تلقّي البلاغ في النظام</h6>
+                            <p class="text-muted small mb-0">جاري إشعار مستشفيات الطوارئ المحيطة.</p>
+                        </div>
+                        <div class="status-step @(currentStatus == "Accepted" ? "active" : currentStatus == "Completed" ? "completed" : "")" id="step-accepted">
+                            <h6 class="fw-bold mb-1">قبول الطلب وتوجيه الإسعاف</h6>
+                            <p class="text-muted small mb-0">تم قبول حالتك وجاري تحرك الإسعاف.</p>
+                        </div>
+                        <div class="status-step @(currentStatus == "Completed" ? "completed" : "")" id="step-completed">
+                            <h6 class="fw-bold mb-1">الوصول للمستشفى</h6>
+                            <p class="text-muted small mb-0">تم وصول الحالة والبدء في الرعاية الطبية.</p>
+                        </div>
+                    </div>
+
+                    <!-- Accepted Banner -->
+                    <div id="acceptedBanner" style="display:none;background:linear-gradient(135deg,#22c55e,#16a34a);
+                         color:#fff;border-radius:16px;padding:14px 18px;margin-top:14px;font-weight:700;
+                         animation:fadeInDown .4s ease;" class="text-start">
+                        <i class="fas fa-satellite-dish me-2 animate__animated animate__pulse animate__infinite"></i>
+                        <span id="acceptedHospName">المستشفى</span> قبلت طلبك — الإسعاف في الطريق!
+                    </div>
+
+                    <!-- ETA panel (visible when accepted) -->
+                    <div id="etaPanel" style="display:none;margin-top:14px;" class="text-start">
+                        <div class="d-flex align-items-center gap-3 justify-content-between flex-wrap p-3 bg-light rounded-3 border">
+                            <div>
+                                <div class="text-muted small fw-bold mb-1"><i class="fas fa-road me-1"></i> المسافة</div>
+                                <div class="fw-bold text-dark" id="distanceLabel">—</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-muted small fw-bold mb-1"><i class="fas fa-clock me-1"></i> وقت الوصول</div>
+                                <div class="eta-badge" id="etaBadge" style="font-size: 0.9rem; padding: 6px 12px;">— دقيقة</div>
+                            </div>
+                            <div>
+                                <div class="text-muted small fw-bold mb-1"><i class="fas fa-tachometer-alt me-1"></i> تقدم الرحلة</div>
+                                <div class="progress-bar-container" style="width:100px;">
+                                    <div class="cap-bar-wrap" style="height: 6px;"><div class="cap-bar bg-danger" id="progressBar" style="width:100%;"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Voice Guided First Aid Card -->
+                    <div class="card border-0 mt-4 shadow-sm" style="border-radius: 18px; background: linear-gradient(135deg, #1e293b, #0f172a); color: white;">
+                        <div class="card-body p-4 text-start">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <div class="d-flex align-items-center gap-2.5">
+                                    <div class="bg-primary text-white rounded-3 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; font-size: 1.15rem; background: rgba(59, 130, 246, 0.2) !important;">
+                                        <i class="fas fa-volume-up text-primary" id="voiceIcon"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold mb-0" style="font-size: 0.95rem;">المرشد الصوتي للإسعافات الأولية</h6>
+                                        <small style="font-size: 0.72rem; color: #94a3b8 !important;">إرشادات تفاعلية فورية لتهدئة المريض وأهله</small>
+                                    </div>
+                                </div>
+                                <!-- Sound waves animation -->
+                                <div class="sound-waves" id="soundWaves" style="display: none;">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
+                            </div>
+
+                            <div class="p-3 mb-3 text-start" style="background: rgba(255, 255, 255, 0.04); border-radius: 12px; border-right: 4px solid #3b82f6;">
+                                <h6 class="fw-bold text-primary mb-2" style="font-size: 0.88rem;"><i class="fas fa-notes-medical me-1"></i> الإرشادات الطبية العاجلة للحالة:</h6>
+                                <div id="firstAidText" style="font-size: 0.85rem; line-height: 1.6; color: #e2e8f0;">
+                                    <!-- Will be loaded dynamically -->
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary btn-sm fw-bold px-3 py-2" id="btnPlayVoice" onclick="playFirstAidSpeech()" style="border-radius: 8px;">
+                                    <i class="fas fa-play me-1"></i> استماع للإرشادات
+                                </button>
+                                <button class="btn btn-outline-light btn-sm fw-bold px-3 py-2" id="btnStopVoice" onclick="stopFirstAidSpeech()" style="border-radius: 8px;" disabled>
+                                    <i class="fas fa-stop me-1"></i> إيقاف
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Waiting Info -->
+                    <div class="alert alert-warning border-0 p-3 mt-3 text-start animate__animated animate__pulse animate__infinite" style="border-radius:16px; animation-duration: 3s;" id="waitingAlert">
+                        <h6 class="fw-bold mb-1" style="font-size: 0.92rem;"><i class="fas fa-clock"></i> زمن الانتظار المقدر: 10-15 دقيقة</h6>
+                        <p class="small mb-0 opacity-75">يرجى البقاء في موقعك، وسيصلك اتصال من طاقم الإسعاف قريباً.</p>
+                    </div>
+
+                    <!-- Handover Confirmation Card -->
+                    <div id="handoverCard" class="card mt-3 p-4 animate__animated animate__fadeInUp text-start" style="display:none; border-right: 5px solid #10B981; background: #F0FDF4; border-radius: 16px;">
+                        <h5 class="fw-bold text-success mb-3" style="font-size: 1.05rem;"><i class="fas fa-file-alt me-1"></i> تقرير تسليم وتأكيد الحالة الطبية</h5>
+                        <p class="text-muted small mb-3">تم اكتمال النقل الطبي بنجاح ووصول الحالة للمستشفى. تفاصيل التسليم:</p>
+                        
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="p-2.5 bg-white rounded-3 border" style="box-shadow: 0 2px 4px rgba(0,0,0,0.01);">
+                                    <div class="text-muted small" style="font-size: 0.75rem;"><i class="far fa-clock text-primary"></i> زمن الاستجابة</div>
+                                    <div class="fw-bold mt-1" style="font-size: 0.85rem;" id="responseTimeVal">—</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2.5 bg-white rounded-3 border" style="box-shadow: 0 2px 4px rgba(0,0,0,0.01);">
+                                    <div class="text-muted small" style="font-size: 0.75rem;"><i class="fas fa-shipping-fast text-success"></i> زمن النقل للمستشفى</div>
+                                    <div class="fw-bold mt-1" style="font-size: 0.85rem;" id="transportTimeVal">—</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2.5 bg-white rounded-3 border" style="box-shadow: 0 2px 4px rgba(0,0,0,0.01);">
+                                    <div class="text-muted small" style="font-size: 0.75rem;"><i class="fas fa-road text-warning"></i> إجمالي المسافة</div>
+                                    <div class="fw-bold mt-1" style="font-size: 0.85rem;" id="totalDistanceVal">—</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2.5 bg-white rounded-3 border" style="box-shadow: 0 2px 4px rgba(0,0,0,0.01);">
+                                    <div class="text-muted small" style="font-size: 0.75rem;"><i class="fas fa-user-md text-info"></i> الطبيب المستقبل</div>
+                                    <div class="fw-bold mt-1 text-truncate" style="font-size: 0.85rem;" id="supervisingDoctorVal">—</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3 alert alert-success border-0 small d-flex gap-2 align-items-center mb-0" style="border-radius: 8px;">
+                            <i class="fas fa-check-circle text-success fs-5"></i>
+                            <div class="small fw-bold">تم توثيق الحالة الطبية في سجل الطوارئ بنجاح وإغلاق طلب التتبع.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Delayed Button -->
+                <button class="btn btn-outline-danger w-100 py-3 mt-4 fw-bold" style="border-radius:12px; font-size: 0.9rem;"
+                        onclick="toggleDelaySection()">
+                    <i class="fas fa-exclamation-circle me-1"></i> هل تأخرت سيارة الإسعاف؟ (التوجه الذاتي وبدائل المستشفيات)
+                </button>
+            </div>
+        </div>
+ 
+        <!-- ═══ RIGHT Column: Hero Interactive Maps (col-lg-7) ═══ -->
+        <div class="col-lg-7 col-12">
+            <!-- Live Ambulance GPS Map Card -->
+            <div class="amb-map-card" id="ambulanceMapCard" style="display: none; background:#0d1527; border-radius:24px; border:2.5px solid #ef4444; box-shadow:0 0 30px rgba(239,68,68,.25); padding:18px;">
+                <h5 class="fw-bold text-danger mb-3 d-flex align-items-center justify-content-between" style="font-size: 1rem;">
+                    <span><i class="fas fa-map-marked-alt me-2 animate__animated animate__pulse animate__infinite"></i> تتبع حي ومباشر لسيارة الإسعاف</span>
+                    <span class="badge bg-danger-subtle text-danger px-2.5 py-1 rounded-pill" style="font-size: 0.72rem; border: 1px solid rgba(239, 68, 68, 0.2);"><i class="fas fa-satellite me-1"></i> GPS نشط</span>
+                </h5>
+                <div class="position-relative">
+                    <div class="map-overlay-header">
+                        <div class="overlay-icon"><i class="fas fa-star-of-life"></i></div>
+                        <div class="overlay-details">
+                            <div class="overlay-title">EMERGENCY MEDICAL DASHBOARD</div>
+                            <div class="overlay-status"><span class="utc-clock">--:--:-- UTC</span> | <span class="live-indicator">LIVE</span></div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-fullscreen-map" onclick="toggleMapFullscreen()" title="ملء الشاشة">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                    <div id="ambulanceTrackMap" style="border: 2px solid #1e293b; box-shadow: 0 0 25px rgba(0, 240, 255, 0.12);"></div>
+                </div>
+                <div class="mt-2 d-flex gap-3 justify-content-center flex-wrap" style="font-size:.82rem; color: #94a3b8; font-weight: 700;">
+                    <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#ef4444;border:2px solid #fff;box-shadow:0 0 6px #ef4444;vertical-align:middle;margin-left:4px;"></span> موقعك الحالي</span>
+                    <span><span style="font-size:16px;margin-left:4px;">🚑</span> سيارة الإسعاف</span>
+                    <span><span style="display:inline-block;width:14px;height:14px;border-radius:4px;background:#3b82f6;border:2px solid #fff;vertical-align:middle;font-size:.7rem;color:#fff;text-align:center;line-height:10px;margin-left:4px;">H</span> المستشفى المستقبل</span>
+                </div>
+            </div>
+
+            <!-- Alternative Hospitals Selection Card -->
+            <div class="delayed-section shadow-sm w-100" id="delayedSection" style="background:#fff; border-radius:24px; border:1px solid var(--border); box-shadow:0 15px 35px rgba(0,0,0,.04); padding:24px; display:none;">
+                <h5 class="fw-bold text-danger mb-2 text-start" style="font-size: 1.15rem;"><i class="fas fa-route me-1"></i> التوجه بنفسك للمستشفى</h5>
+                <p class="text-muted small mb-3 text-start">اختر أقرب مستشفى طوارئ شاغر لعرض المسار وحجز سرير استقبال للتوجه إليه مباشرةً:</p>
+
+                <div class="hospital-map-container" style="height: 400px; border-radius: 16px; border: 1.5px solid var(--border); overflow: hidden; margin-top: 14px; position: relative;">
+                    <div id="hospitalMap" style="width:100%;height:100%;"></div>
+                </div>
+
+                <div class="row mt-4 text-start">
+                    <div class="col-md-7 col-12 mb-3">
+                        <h6 class="fw-bold mb-3" style="font-size: 0.92rem;"><i class="fas fa-hospital-alt text-primary me-1"></i> مستشفيات الطوارئ القريبة:</h6>
+                        <div id="hospitalsList" style="max-height:240px;overflow-y:auto;padding-left:5px;"></div>
+                    </div>
+                    <div class="col-md-5 col-12 border-start">
+                        <h6 class="fw-bold mb-2" style="font-size: 0.92rem;"><i class="fas fa-file-medical-alt text-danger me-1"></i> طلب استقبال عاجل:</h6>
+
+                        @if (latestRisk != null)
+                        {
+                            <div class="card bg-light border-0 p-2.5 mb-3" style="border-radius:10px;">
+                                <div class="text-muted" style="font-size: 0.7rem;"><i class="fas fa-heartbeat me-1"></i> آخر درجة فحص صحي:</div>
+                                <div class="fw-bold text-dark mt-1" style="font-size:.85rem;">
+                                    @(latestRisk.RiskLevel == Etmen_Domain.Enums.RiskLevel.Emergency ? "حالة حرجة جداً 🚨" : latestRisk.RiskLevel == Etmen_Domain.Enums.RiskLevel.High ? "حالة مرتفعة الخطورة ⚠️" : "حالة متوسطة")
+                                </div>
+                            </div>
+                        }
+
+                        <input type="hidden" id="selectedHospitalId" />
+                        <input type="hidden" id="latestRiskId" value="@(latestRisk?.Id)" />
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">الأعراض أو الملاحظات</label>
+                            <textarea class="form-control" id="directNotes" rows="3"
+                                      style="border-radius:8px;font-size:.8rem;"
+                                      placeholder="اكتب حالتك..."></textarea>
+                        </div>
+                        <button class="btn btn-danger w-100 py-2 fw-bold" id="submitDirectBtn"
+                                disabled onclick="submitDirectRequest()" style="border-radius:8px;">
+                            <i class="fas fa-paper-plane"></i> طلب حجز سرير استقبال
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+
+    <script>
+    // ── Server-injected constants ──
+    const REQUEST_ID      = @Model.Id;
+    const patientLat      = parseFloat("@Model.Latitude");
+    const patientLng      = parseFloat("@Model.Longitude");
+    let   hospitals       = @Html.Raw(hospitalsJson);
+    let   currentStatus   = "@currentStatus";
+    const initProviderId  = @(acceptedPid.HasValue ? acceptedPid.Value.ToString() : "null");
+
+    const requestedAtStr  = "@(ViewBag.RequestedAt != null ? ((DateTime)ViewBag.RequestedAt).ToString("o") : "")";
+    const acceptedAtStr   = "@(ViewBag.AcceptedAt != null ? ((DateTime)ViewBag.AcceptedAt).ToString("o") : "")";
+    const completedAtStr  = "@(ViewBag.CompletedAt != null ? ((DateTime)ViewBag.CompletedAt).ToString("o") : "")";
+    const doctorName      = "@(ViewBag.DoctorName ?? "طاقم الطوارئ المناوب")";
+
+    // Ambulance simulation: average Egyptian city speed ~40 km/h = 0.667 km/min
+    const AVG_KMH         = 40;
+    const ANIM_FPS        = 20;    // steps per second of animation
+    const ANIM_SPEEDUP    = 12;    // simulation speed multiplier (12× real-time)
+
+    // ── Map references ──
+    let selectionMap = null, trackMap = null;
+    let ambMarker = null, animTimer = null;
+    let selfNavPolyline = null;
+    let selectionMarkers = [];
+    let currentHospLat = null, currentHospLng = null;
+
+    /* ══════════════════════════════════════════
+       SECTION 1 — Haversine distance helper
+       ══════════════════════════════════════════ */
+    function haversineKm(lat1, lng1, lat2, lng2) {
+        const R = 6371;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLng = (lng2 - lng1) * Math.PI / 180;
+        const a = Math.sin(dLat/2)*Math.sin(dLat/2) +
+                  Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*
+                  Math.sin(dLng/2)*Math.sin(dLng/2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
+    /* ══════════════════════════════════════════
+       SECTION 2 — Hospital selection map (self-navigation)
+       ══════════════════════════════════════════ */
+    function toggleDelaySection() {
+        const el = document.getElementById('delayedSection');
+        const mapCard = document.getElementById('ambulanceMapCard');
+        if (!el.style.display || el.style.display === 'none') {
+            el.style.display = 'block';
+            setTimeout(initHospitalMap, 100);
+            if (mapCard && currentStatus !== 'Pending') {
+                mapCard.style.display = 'none';
+            }
+        } else {
+            el.style.display = 'none';
+            if (mapCard && currentStatus !== 'Pending') {
+                mapCard.style.display = 'block';
+                if (trackMap) {
+                    setTimeout(() => { trackMap.invalidateSize(); }, 100);
+                }
+            }
+        }
+    }
+
+    function initHospitalMap() {
+        if (selectionMap) return;
+        selectionMap = L.map('hospitalMap', { dragging: !L.Browser.mobile, tap: !L.Browser.mobile }).setView([patientLat, patientLng], 12);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+            {attribution:'&copy; OpenStreetMap'}).addTo(selectionMap);
+
+        // Patient marker
+        addCircleMarker(selectionMap, patientLat, patientLng, '#ef4444', 14, '<b>موقعك</b>', true);
+
+        updateSelectionMapUI();
+    }
+
+    function updateSelectionMapUI() {
+        if (!selectionMap) return;
+
+        // Clear existing hospital markers
+        selectionMarkers.forEach(m => selectionMap.removeLayer(m));
+        selectionMarkers = [];
+
+        let listHtml = '';
+        const sortedHospitals = [...hospitals].sort((a, b) => {
+            const distA = haversineKm(patientLat, patientLng, a.Latitude, a.Longitude);
+            const distB = haversineKm(patientLat, patientLng, b.Latitude, b.Longitude);
+            return distA - distB;
+        });
+
+        sortedHospitals.forEach(h => {
+            const hasBeds = h.AvailableBeds > 0;
+            const dist    = haversineKm(patientLat, patientLng, h.Latitude, h.Longitude);
+            const mc      = hasBeds ? '#22c55e' : '#ef4444';
+            
+            const marker = L.marker([h.Latitude, h.Longitude], {
+                icon: L.divIcon({
+                    className: '',
+                    html: `<div style="background:${mc};width:16px;height:16px;border:2px solid #fff;
+                                  border-radius:50%;box-shadow:0 0 8px ${mc};"></div>`,
+                    iconSize: [16, 16], iconAnchor: [8, 8]
+                })
+            }).addTo(selectionMap).bindPopup(
+                `<div style="font-family:'Tajawal',sans-serif;text-align:right;direction:rtl;">
+                    <b>${h.Name}</b><br>الأسرة المتاحة: <b>${h.AvailableBeds}</b><br>المسافة: ${dist.toFixed(1)} كم
+                 </div>`
+            );
+            
+            selectionMarkers.push(marker);
+
+            listHtml += `
+                <div class="hospital-item" onclick="selectHospital(${h.Id},'${h.Name}',${h.Latitude},${h.Longitude})">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <h6 class="fw-bold mb-0" style="font-size:.88rem;">${h.Name}</h6>
+                        <span class="badge ${hasBeds ? 'bg-success' : 'bg-danger'} rounded-pill" style="font-size:.68rem;">
+                            ${hasBeds ? 'شاغر' : 'ممتلئ'} (${h.AvailableBeds})
+                        </span>
+                    </div>
+                    <p class="text-muted small mb-0"><i class="fas fa-map-marker-alt me-1"></i>${h.Address}
+                        &nbsp;<span class="text-info fw-bold">${dist.toFixed(1)} كم</span></p>
+                </div>`;
+        });
+        document.getElementById('hospitalsList').innerHTML = listHtml;
+    }
+
+    function addCircleMarker(mapObj, lat, lng, color, size, popup, openPop) {
+        const m = L.marker([lat, lng], {
+            icon: L.divIcon({
+                className: '',
+                html: `<div style="background:${color};width:${size}px;height:${size}px;border:2px solid #fff;
+                              border-radius:50%;box-shadow:0 0 8px ${color};"></div>`,
+                iconSize: [size, size], iconAnchor: [size/2, size/2]
+            })
+        }).addTo(mapObj).bindPopup(popup);
+        if (openPop) m.openPopup();
+    }
+
+    function selectHospital(id, name, lat, lng) {
+        document.getElementById('selectedHospitalId').value = id;
+        const btn = document.getElementById('submitDirectBtn');
+        btn.removeAttribute('disabled');
+        btn.innerHTML = `<i class="fas fa-paper-plane"></i> إرسال لـ ${name}`;
+        
+        if (selectionMap) {
+            selectionMap.setView([lat, lng], 13);
+            
+            if (selfNavPolyline) selectionMap.removeLayer(selfNavPolyline);
+            
+            selfNavPolyline = L.polyline([[patientLat, patientLng], [lat, lng]], {
+                color: '#3b82f6',
+                dashArray: '8 5',
+                weight: 3.5,
+                opacity: 0.8
+            }).addTo(selectionMap);
+            
+            const bounds = L.latLngBounds([[patientLat, patientLng], [lat, lng]]);
+            selectionMap.fitBounds(bounds, { padding: [40, 40] });
+        }
+    }
+
+    function submitDirectRequest() {
+        const hospitalId = document.getElementById('selectedHospitalId').value;
+        if (!hospitalId) return;
+        const btn = document.getElementById('submitDirectBtn');
+        btn.setAttribute('disabled','true');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري إرسال الطلب...';
+        $.ajax({
+            url:'/Emergency/RequestDirectReception', type:'POST',
+            data:{
+                hospitalId, notes: document.getElementById('directNotes').value,
+                riskAssessmentId: document.getElementById('latestRiskId').value,
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+            },
+            success(res){ res.success ? (alert(res.message), location.reload()) : (alert(res.message||'خطأ'), btn.removeAttribute('disabled')); },
+            error(){ alert('خطأ في الاتصال.'); btn.removeAttribute('disabled'); }
+        });
+    }
+
+    /* ══════════════════════════════════════════
+       SECTION 3 — Ambulance GPS Tracking Map
+       ══════════════════════════════════════════ */
+    function getHospitalById(id) {
+        return id ? hospitals.find(h => h.Id === id) || null : null;
+    }
+
+    function toggleMapFullscreen() {
+        const mapElem = document.getElementById('ambulanceTrackMap');
+        const btn = document.querySelector('.btn-fullscreen-map i');
+        
+        if (!document.fullscreenElement) {
+            mapElem.requestFullscreen().then(() => {
+                if (btn) btn.className = "fas fa-compress";
+            }).catch(err => {
+                alert(`خطأ أثناء تفعيل ملء الشاشة: ${err.message}`);
+            });
+        } else {
+            document.exitFullscreen().then(() => {
+                if (btn) btn.className = "fas fa-expand";
+            });
+        }
+    }
+
+    document.addEventListener('fullscreenchange', () => {
+        const btn = document.querySelector('.btn-fullscreen-map i');
+        if (btn) {
+            if (document.fullscreenElement) {
+                btn.className = "fas fa-compress";
+            } else {
+                btn.className = "fas fa-expand";
+            }
+        }
+        if (trackMap) {
+            setTimeout(() => { trackMap.invalidateSize(); }, 200);
+        }
+    });
+
+    function initTrackingMap(hospLat, hospLng, hospName, distKm) {
+        const card = document.getElementById('ambulanceMapCard');
+        card.style.display = 'block';
+        card.classList.add('show');
+
+        const delaySec = document.getElementById('delayedSection');
+        if (delaySec) delaySec.style.display = 'none';
+
+        currentHospLat = hospLat;
+        currentHospLng = hospLng;
+
+        if (!trackMap) {
+            const midLat = (hospLat + patientLat) / 2;
+            const midLng = (hospLng + patientLng) / 2;
+            trackMap = L.map('ambulanceTrackMap', { dragging: !L.Browser.mobile, tap: !L.Browser.mobile }).setView([midLat, midLng], 12);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+                {attribution:'&copy; OpenStreetMap &copy; CartoDB'}).addTo(trackMap);
+
+            // Live UTC Clock updater
+            setInterval(() => {
+                const clocks = document.querySelectorAll('.utc-clock');
+                if (clocks.length) {
+                    const now = new Date();
+                    const pad = (n) => String(n).padStart(2, '0');
+                    const timeStr = `${pad(now.getUTCHours())}:${pad(now.getUTCMinutes())}:${pad(now.getUTCSeconds())} UTC`;
+                    clocks.forEach(c => c.textContent = timeStr);
+                }
+            }, 1000);
+
+            // Patient Marker (Pulsing Red)
+            L.marker([patientLat, patientLng], {
+                icon: L.divIcon({
+                    className:'',
+                    html:`<div class="patient-glow-marker"><div class="patient-pulse"></div></div>`,
+                    iconSize:[14,14], iconAnchor:[7,7]
+                })
+            }).addTo(trackMap).bindPopup('<b>موقعك</b>');
+
+            // Hospital (Glow Orange Marker)
+            L.marker([hospLat, hospLng], {
+                icon: L.divIcon({
+                    className:'',
+                    html:`<div class="hosp-glow-marker" style="background:#ff9f00;box-shadow:0 0 12px #ff9f00;"><i class="fas fa-hospital"></i></div>`,
+                    iconSize:[24,24], iconAnchor:[12,12]
+                })
+            }).addTo(trackMap).bindPopup(`<b>${hospName}</b>`);
+
+            // Route line (Glowing double polyline: back glow + front line)
+            L.polyline([[hospLat,hospLng],[patientLat,patientLng]], {
+                color:'#00f0ff', weight: 8, opacity: 0.16
+            }).addTo(trackMap);
+            L.polyline([[hospLat,hospLng],[patientLat,patientLng]], {
+                color:'#00f0ff', weight: 2.2, opacity: 0.8
+            }).addTo(trackMap);
+
+            // Ambulance marker (glowing badge styled exactly like the concept mockup)
+            ambMarker = L.marker([hospLat, hospLng], {
+                icon: L.divIcon({
+                    className:'',
+                    html:`<div class="glow-badge">
+                              <div class="pulse-dot"></div>
+                              <div class="badge-icon">🚑</div>
+                              <div class="badge-text">
+                                  <div class="badge-title">AMB-01</div>
+                                  <div class="badge-sub">تتبع حي للإسعاف</div>
+                              </div>
+                          </div>`,
+                    iconSize:[120,34], iconAnchor:[15,17]
+                }),
+                zIndexOffset:1000
+            }).addTo(trackMap).bindPopup('سيارة الإسعاف');
+        }
+
+        startAmbulanceAnimation(hospLat, hospLng, distKm);
+    }
+
+    function startAmbulanceAnimation(fromLat, fromLng, distKm) {
+        if (animTimer) clearInterval(animTimer);
+
+        // Real travel time in minutes, then convert to sim milliseconds
+        const realMinutes      = (distKm / AVG_KMH) * 60;          // real-world ETA in minutes
+        const phaseDurationMs  = (realMinutes / ANIM_SPEEDUP) * 60000; // compressed simulation phase duration ms
+        const intermissionMs   = 4000; // 4 seconds loading patient intermission
+        const totalDurationMs  = phaseDurationMs * 2 + intermissionMs;
+        
+        const stepMs           = 1000 / ANIM_FPS;
+
+        // If request is already completed, skip animation and position at hospital
+        if (currentStatus === 'Completed') {
+            if (ambMarker) ambMarker.setLatLng([fromLat, fromLng]);
+            showArrivalToast(true);
+            return;
+        }
+
+        // Retrieve start time from localStorage to survive refreshes
+        const startTimeKey = "amb_start_" + REQUEST_ID;
+        let startTimeStr = localStorage.getItem(startTimeKey);
+        if (!startTimeStr) {
+            startTimeStr = Date.now().toString();
+            localStorage.setItem(startTimeKey, startTimeStr);
+        }
+
+        const startTime = parseInt(startTimeStr);
+        
+        // Show ETA panel
+        document.getElementById('etaPanel').style.display = 'block';
+        document.getElementById('distanceLabel').textContent = distKm.toFixed(1) + ' كم';
+
+        const runTimerStep = () => {
+            let elapsedMs = Date.now() - startTime;
+            
+            // Phase 1: Hospital -> Patient
+            if (elapsedMs < phaseDurationMs) {
+                const t = elapsedMs / phaseDurationMs;
+                const ease = t < .5 ? 2*t*t : -1+(4-2*t)*t; // ease-in-out
+
+                const lat = fromLat + (patientLat - fromLat) * ease;
+                const lng = fromLng + (patientLng - fromLng) * ease;
+                if (ambMarker) ambMarker.setLatLng([lat, lng]);
+
+                // Update UI values
+                const currentEta = Math.max(1, Math.round(realMinutes * (1 - t)));
+                document.getElementById('etaBadge').textContent = currentEta + ' دقيقة (الوصول للمريض)';
+                
+                const remaining = Math.max(0, 100 - Math.round(t * 100));
+                document.getElementById('progressBar').style.width = remaining + '%';
+                
+                // Timeline steps
+                document.getElementById('step-pending').className  = 'status-step completed';
+                document.getElementById('step-accepted').className = 'status-step active';
+                document.getElementById('step-completed').className = 'status-step';
+
+                // Status text update
+                document.getElementById('waitingAlert').className = "alert alert-warning border-0 p-3 mt-3";
+                document.getElementById('waitingAlert').innerHTML = `
+                    <h6 class="fw-bold"><i class="fas fa-ambulance animate__animated animate__pulse animate__infinite text-danger"></i> الإسعاف في الطريق إليك</h6>
+                    <p class="small mb-0 opacity-75">سيارة الإسعاف تتحرك الآن من المستشفى للوصول إلى موقعك وإسعافك.</p>
+                `;
+            }
+            // Intermission: Loading Patient
+            else if (elapsedMs < phaseDurationMs + intermissionMs) {
+                if (ambMarker) ambMarker.setLatLng([patientLat, patientLng]);
+
+                document.getElementById('etaBadge').textContent = 'وصل للموقع';
+                document.getElementById('progressBar').style.width = '100%';
+
+                document.getElementById('step-pending').className  = 'status-step completed';
+                document.getElementById('step-accepted').className = 'status-step completed';
+                document.getElementById('step-completed').className = 'status-step active';
+
+                document.getElementById('waitingAlert').className = "alert alert-info border-0 p-3 mt-3 animate__animated animate__pulse animate__infinite";
+                document.getElementById('waitingAlert').innerHTML = `
+                    <h6 class="fw-bold"><i class="fas fa-user-injured text-primary"></i> تم الوصول لموقع المريض</h6>
+                    <p class="small mb-0 opacity-75">وصلت سيارة الإسعاف. يقوم الفريق الطبي حالياً بتجهيزك ونقلك للسيارة للعودة للمستشفى.</p>
+                `;
+            }
+            // Phase 2: Patient -> Hospital
+            else if (elapsedMs < totalDurationMs) {
+                const t = (elapsedMs - phaseDurationMs - intermissionMs) / phaseDurationMs;
+                const ease = t < .5 ? 2*t*t : -1+(4-2*t)*t; // ease-in-out
+
+                // Move back from patient to hospital
+                const lat = patientLat + (fromLat - patientLat) * ease;
+                const lng = patientLng + (fromLng - patientLng) * ease;
+                if (ambMarker) ambMarker.setLatLng([lat, lng]);
+
+                // Update UI values
+                const currentEta = Math.max(1, Math.round(realMinutes * (1 - t)));
+                document.getElementById('etaBadge').textContent = currentEta + ' دقيقة (الوصول للمستشفى)';
+                
+                const remaining = Math.round(t * 100);
+                document.getElementById('progressBar').style.width = remaining + '%';
+
+                document.getElementById('step-pending').className  = 'status-step completed';
+                document.getElementById('step-accepted').className = 'status-step completed';
+                document.getElementById('step-completed').className = 'status-step active';
+
+                document.getElementById('waitingAlert').className = "alert alert-danger border-0 p-3 mt-3";
+                document.getElementById('waitingAlert').innerHTML = `
+                    <h6 class="fw-bold"><i class="fas fa-hospital-symbol text-danger animate__animated animate__flash animate__infinite"></i> جاري النقل إلى المستشفى</h6>
+                    <p class="small mb-0 opacity-75">سيارة الإسعاف تتحرك الآن بأقصى سرعة ممكنة لنقل المريض إلى الطوارئ مباشرة.</p>
+                `;
+            }
+            // Completed
+            else {
+                clearInterval(animTimer);
+                if (ambMarker) ambMarker.setLatLng([fromLat, fromLng]);
+                showArrivalToast(false);
+            }
+        };
+
+        // Run the first step immediately
+        runTimerStep();
+
+        if ((Date.now() - startTime) < totalDurationMs) {
+            animTimer = setInterval(runTimerStep, stepMs);
+        } else {
+            showArrivalToast(true);
+        }
+    }
+
+    function showArrivalToast(alreadyCompleted = false) {
+        localStorage.removeItem("amb_start_" + REQUEST_ID);
+
+        // Update status timeline
+        ['step-pending','step-accepted','step-completed'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.className = 'status-step completed';
+        });
+
+        // Hide tracking cards
+        document.getElementById('etaPanel').style.display = 'none';
+        document.getElementById('waitingAlert').style.display = 'none';
+        document.getElementById('ambulanceMapCard').style.display = 'none';
+
+        // Display handover card
+        document.getElementById('handoverCard').style.display = 'block';
+
+        // Calculate and render durations
+        calculateHandoverMetrics();
+
+        if (!alreadyCompleted && currentStatus !== 'Completed') {
+            currentStatus = 'Completed';
+            
+            // Show toast message
+            const t = document.getElementById('arrivalToast');
+            if (t) {
+                t.innerHTML = `<i class="fas fa-check-circle me-2"></i> تم وصول الحالة بسلام للمستشفى!`;
+                t.style.display = 'block';
+                setTimeout(() => { if (t) t.style.display = 'none'; }, 6000);
+            }
+
+            // Call AJAX to complete request in database
+            $.ajax({
+                url: '/Emergency/CompleteRequest',
+                type: 'POST',
+                data: {
+                    id: REQUEST_ID,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success(res) {
+                    console.log('Request auto-completed on arrival:', res);
+                },
+                error(e) {
+                    console.error('Error completing request:', e);
+                }
+            });
+        }
+    }
+
+    function calculateHandoverMetrics() {
+        let reqTime = requestedAtStr ? new Date(requestedAtStr) : null;
+        let accTime = acceptedAtStr ? new Date(acceptedAtStr) : null;
+        let compTime = completedAtStr ? new Date(completedAtStr) : null;
+        
+        let responseMin = 0;
+        let transportMin = 0;
+
+        if (accTime && reqTime) {
+            responseMin = Math.max(1, Math.round((accTime - reqTime) / 60000));
+        } else {
+            responseMin = 3; 
+        }
+
+        if (compTime && accTime) {
+            transportMin = Math.max(1, Math.round((compTime - accTime) / 60000));
+        } else {
+            const dist = (currentHospLat && currentHospLng) 
+                ? haversineKm(patientLat, patientLng, currentHospLat, currentHospLng) 
+                : 4.5;
+            transportMin = Math.max(2, Math.round((dist / AVG_KMH) * 60));
+        }
+
+        const distance = (currentHospLat && currentHospLng)
+            ? haversineKm(patientLat, patientLng, currentHospLat, currentHospLng)
+            : 4.5;
+
+        document.getElementById('responseTimeVal').innerHTML = `<span class="text-primary fw-bold">${responseMin}</span> دقيقة`;
+        document.getElementById('transportTimeVal').innerHTML = `<span class="text-success fw-bold">${transportMin}</span> دقيقة`;
+        document.getElementById('totalDistanceVal').innerHTML = `<span class="text-warning-emphasis fw-bold">${(distance * 2).toFixed(1)}</span> كم (ذهاب وإياب)`;
+        document.getElementById('supervisingDoctorVal').textContent = doctorName;
+    }
+
+    /* ══════════════════════════════════════════
+       SECTION 4 — Apply accepted state
+       ══════════════════════════════════════════ */
+    function applyAcceptedState(providerId) {
+        document.getElementById('step-pending').className  = 'status-step completed';
+        document.getElementById('step-accepted').className = 'status-step active';
+
+        const hosp = getHospitalById(providerId);
+        const hName = hosp ? hosp.Name : 'المستشفى';
+
+        document.getElementById('acceptedBanner').style.display = 'block';
+        document.getElementById('acceptedHospName').textContent = hName;
+
+        if (hosp) {
+            const distKm = haversineKm(patientLat, patientLng, hosp.Latitude, hosp.Longitude);
+            initTrackingMap(hosp.Latitude, hosp.Longitude, hosp.Name, distKm);
+            checkAmbulanceCapacity(hosp);
+        }
+    }
+
+    function checkAmbulanceCapacity(hosp) {
+        if ((hosp.AvailableAmbulances ?? 0) <= 0) {
+            const nearest = hospitals
+                .filter(h => h.Id !== hosp.Id && h.AvailableBeds > 0 && h.AvailableAmbulances > 0)
+                .sort((a,b) => haversineKm(patientLat,patientLng,a.Latitude,a.Longitude)
+                               - haversineKm(patientLat,patientLng,b.Latitude,b.Longitude))[0];
+            const hint = nearest
+                ? ` يمكنك التوجه ذاتياً لـ <b>${nearest.Name}</b> (${haversineKm(patientLat,patientLng,nearest.Latitude,nearest.Longitude).toFixed(1)} كم)`
+                : '';
+            document.getElementById('noAmbMsg').textContent  = 'جميع سيارات الإسعاف في هذا المستشفى مشغولة حالياً — يمكنك الانتظار أو:';
+            document.getElementById('altHospitalsHint').innerHTML = hint;
+            document.getElementById('noAmbAlert').style.display = 'block';
+        } else {
+            document.getElementById('noAmbAlert').style.display = 'none';
+        }
+    }
+
+    /* ══════════════════════════════════════════
+       SECTION 5 — SignalR
+       ══════════════════════════════════════════ */
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl('/hubs/queue').withAutomaticReconnect().build();
+
+    connection.on('EmergencyRequestUpdated', update => {
+        if (update.requestId !== REQUEST_ID) return;
+        const st = (update.status || '').toString();
+        currentStatus = st;
+        if (st === 'Accepted') {
+            applyAcceptedState(update.providerId);
+        } else if (st === 'Completed') {
+            localStorage.removeItem("amb_start_" + REQUEST_ID);
+            showArrivalToast(true);
+        }
+    });
+
+    connection.on('HospitalBedsUpdated', update => {
+        console.log('Capacity broadcast received:', update);
+        const hosp = hospitals.find(h => h.Id === update.providerId);
+        if (hosp) {
+            hosp.AvailableBeds = update.availableBeds;
+            hosp.AvailableAmbulances = update.availableAmbulances;
+            hosp.AmbulanceCapacity = update.ambulanceCapacity;
+            
+            if (selectionMap) {
+                updateSelectionMapUI();
+            }
+            
+            if (initProviderId && update.providerId === initProviderId) {
+                checkAmbulanceCapacity(hosp);
+            }
+        }
+    });
+
+    connection.start()
+        .then(() => console.log('SignalR connected — tracking #' + REQUEST_ID))
+        .catch(e  => console.error('SignalR error:', e));
+
+    /* ══════════════════════════════════════════
+       SECTION 6 — On page load: restore state
+       ══════════════════════════════════════════ */
+    // First-aid instructions dictionary
+    const firstAidInstructions = {
+        "cardiovascular": {
+            text: "هدئ من روعك واجلس في وضع مستريح. قم بفك الملابس الضيقة حول الرقبة والصدر. إذا كان لديك دواء الأسبرين وكنت لا تعاني من حساسية منه، امضغ قرصاً واحداً ببطء. لا تبذل أي مجهود وتنفس بعمق بانتظار وصول الإسعاف.",
+            bullets: [
+                "الجلوس بوضعية نصف جالسة مريحة ومستندة.",
+                "فك الملابس الضيقة لتسهيل التنفس.",
+                "مضغ قرص أسبرين (إذا لم تكن هناك حساسية).",
+                "تجنب أي نشاط أو انفعال زائد."
+            ]
+        },
+        "respiratory": {
+            text: "اجلس مستقيماً ولا تستلقي على ظهرك. تأكد من تهوية المكان جيداً وافتح النوافذ القريبة. استخدم بخاخ الربو الإسعافي إذا كان متوفراً لديك بجرعتين. تنفس ببطء وعمق وحافظ على هدوئك تماماً.",
+            bullets: [
+                "الجلوس بشكل مستقيم لفتح مجرى الهواء وعدم الاستلقاء.",
+                "تهوية المكان فوراً بفتح النوافذ.",
+                "استخدام البخاخ الإسعافي (جرعتين).",
+                "محاولة التنفس ببطء لتقليل الذعر."
+            ]
+        },
+        "trauma": {
+            text: "إذا كان هناك نزيف، اضغط مباشرة بقوة على مكان الجرح باستخدام قطعة قماش نظيفة أو شاش معقم. لا تحرك العضو المصاب أو المكسور أبداً لتجنب تفاقم الإصابة. ثبت الكسر بوسادة بسيطة بلطف.",
+            bullets: [
+                "الضغط المباشر على الجرح النازف بقطعة قماش نظيفة.",
+                "تجنب تحريك أو تعديل العظام المكسورة.",
+                "تثبيت العضو المصاب بالوسائد أو الجبائر المؤقتة.",
+                "رفع الطرف المصاب قليلاً إن أمكن دون التسبب في ألم."
+            ]
+        },
+        "neurological": {
+            text: "إذا فقد المريض الوعي ولكنه لا يزال يتنفس، ضعه بلطف في وضعية الإفاقة الجانبية لتأمين مجرى الهواء. لا تضع أي شيء في فم المريض إذا كان يعاني من تشنجات وقم بحماية رأسه من الارتطام.",
+            bullets: [
+                "وضع المريض فاقد الوعي في وضعية الإفاقة الجانبية.",
+                "تأمين مجرى التنفس وإزالة أي عوائق.",
+                "عدم وضع أي شيء في الفم أثناء التشنجات.",
+                "مراقبة النبض والتنفس بدقة."
+            ]
+        },
+        "infectious": {
+            text: "عزل المريض في غرفة جيدة التهوية. تجنب الملامسة المباشرة لإفرازات المريض واستخدم الكمامة الطبية. شجع المريض على شرب السوائل واستخدم خافض حرارة بسيط عند الحاجة.",
+            bullets: [
+                "عزل المريض في غرفة مستقلة جيدة التهوية.",
+                "استخدام الكمامة وغسل اليدين باستمرار.",
+                "تشجيع المريض على شرب السوائل.",
+                "استخدام خافض للحرارة عند الضرورة."
+            ]
+        },
+        "general": {
+            text: "تأكد من سلامة المكان حولك وحول المريض. حافظ على هدوئك وتحدث مع المريض لطمأنته. راقب علاماته الحيوية مثل التنفس والوعي، وتجنب إعطائه أي طعام أو شراب بالكامل.",
+            bullets: [
+                "تأمين البيئة المحيطة بالمريض.",
+                "الحفاظ على الهدوء والحديث المستمر لطمأنة المريض.",
+                "مراقبة التنفس ودرجة الوعي باستمرار.",
+                "تجنب إعطاء المريض أي سوائل أو طعام بالفم."
+            ]
+        }
+    };
+
+    // Determine type key based on EmergencyType model value
+    let typeKey = "general";
+    const rawType = "@(Model.EmergencyType ?? "")".toLowerCase();
+    if (rawType.includes("cardio") || rawType.includes("heart") || rawType.includes("قلب") || rawType.includes("صدر")) {
+        typeKey = "cardiovascular";
+    } else if (rawType.includes("respir") || rawType.includes("breath") || rawType.includes("تنفس") || rawType.includes("رئة")) {
+        typeKey = "respiratory";
+    } else if (rawType.includes("trauma") || rawType.includes("fracture") || rawType.includes("كسر") || rawType.includes("نزيف") || rawType.includes("جرح")) {
+        typeKey = "trauma";
+    } else if (rawType.includes("neuro") || rawType.includes("وعي") || rawType.includes("جلطة") || rawType.includes("تشنج")) {
+        typeKey = "neurological";
+    } else if (rawType.includes("infect") || rawType.includes("عدوى") || rawType.includes("حمى")) {
+        typeKey = "infectious";
+    }
+
+    const currentGuide = firstAidInstructions[typeKey];
+
+    let speechUtterance = null;
+
+    function playFirstAidSpeech() {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+
+            speechUtterance = new SpeechSynthesisUtterance(currentGuide.text);
+            speechUtterance.lang = 'ar-SA';
+            
+            const voices = window.speechSynthesis.getVoices();
+            const arVoice = voices.find(v => v.lang.startsWith('ar'));
+            if (arVoice) {
+                speechUtterance.voice = arVoice;
+            }
+
+            speechUtterance.onstart = function() {
+                document.getElementById("soundWaves").style.display = "inline-flex";
+                document.getElementById("btnPlayVoice").innerHTML = '<i class="fas fa-volume-up me-1"></i> جاري القراءة...';
+                document.getElementById("btnStopVoice").removeAttribute("disabled");
+                document.getElementById("voiceIcon").className = "fas fa-volume-up animate__animated animate__pulse animate__infinite";
+            };
+
+            speechUtterance.onend = function() {
+                resetVoiceUI();
+            };
+
+            speechUtterance.onerror = function() {
+                resetVoiceUI();
+            };
+
+            window.speechSynthesis.speak(speechUtterance);
+        } else {
+            alert("عذراً، متصفحك لا يدعم خاصية نطق النصوص.");
+        }
+    }
+
+    function stopFirstAidSpeech() {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            resetVoiceUI();
+        }
+    }
+
+    function resetVoiceUI() {
+        document.getElementById("soundWaves").style.display = "none";
+        document.getElementById("btnPlayVoice").innerHTML = '<i class="fas fa-play me-1"></i> استماع للإرشادات';
+        document.getElementById("btnStopVoice").setAttribute("disabled", "true");
+        document.getElementById("voiceIcon").className = "fas fa-volume-up";
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Render first aid text
+        const textDiv = document.getElementById("firstAidText");
+        if (textDiv) {
+            let html = `<p class="mb-2" style="font-weight: 700;">${currentGuide.text}</p><ul class="ps-3 mb-0" style="list-style: disc;">`;
+            currentGuide.bullets.forEach(b => {
+                html += `<li class="mb-1">${b}</li>`;
+            });
+            html += `</ul>`;
+            textDiv.innerHTML = html;
+        }
+
+        // Trigger loading voices (helps with Chrome bug where voices load late)
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.getVoices();
+        }
+
+        if (currentStatus === 'Accepted' && initProviderId) {
+            applyAcceptedState(initProviderId);
+        } else if (currentStatus === 'Completed') {
+            showArrivalToast(true);
+            if (initProviderId) {
+                const hosp = getHospitalById(initProviderId);
+                if (hosp) {
+                    currentHospLat = hosp.Latitude;
+                    currentHospLng = hosp.Longitude;
+                    calculateHandoverMetrics();
+                }
+            }
+        } else {
+            // Status is Pending: automatically display alternative hospitals section on load
+            toggleDelaySection();
+        }
+    });
+    </script>
+}

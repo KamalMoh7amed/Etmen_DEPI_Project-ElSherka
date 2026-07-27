@@ -49,7 +49,6 @@ namespace Etmen_PL.Filters
                         var controller = context.RouteData.Values["controller"]?.ToString();
                         var action = context.RouteData.Values["action"]?.ToString();
                         
-                        // Allow Onboarding page actions and Account Logout action
                         bool isAllowedAction = (controller == "DoctorDashboard" && (action == "Onboarding" || action == "SaveOnboarding"))
                                                || (controller == "Account" && action == "Logout");
                                                

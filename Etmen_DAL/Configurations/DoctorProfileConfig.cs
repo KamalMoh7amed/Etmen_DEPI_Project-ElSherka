@@ -24,9 +24,6 @@ namespace Etmen_DAL.Configurations
             builder.Property(x => x.Bio).HasMaxLength(500);
             builder.Property(x => x.ConsultationFee).HasColumnType("decimal(10,2)");
             builder.Property(x => x.CreatedAt).IsRequired();
-
-            // ❌ تم حذف أسطر الـ HasMany(x => x.Appointments) والـ AvailableSlots من هنا لمنع 
-
             builder.HasIndex(x => x.LicenseNumber).IsUnique();
         }
     }

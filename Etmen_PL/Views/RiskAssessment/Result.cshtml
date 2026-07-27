@@ -1049,6 +1049,21 @@
         function setRiskIdInModal(riskId) {
             var field = document.getElementById('navRiskAssessmentId');
             if (field) field.value = riskId;
+
+            // ── FIX: sync location from this risk assessment to the ambulance modal ──
+            // This ensures the ambulance tracking map shows the same location the
+            // patient chose during the risk assessment, not the browser's current GPS.
+            var assessmentLat  = @(Model.Latitude.HasValue  ? Model.Latitude.Value.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) : "null");
+            var assessmentLng  = @(Model.Longitude.HasValue ? Model.Longitude.Value.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) : "null");
+
+            if (assessmentLat !== null && assessmentLng !== null && !isNaN(assessmentLat) && !isNaN(assessmentLng)) {
+                var latField = document.getElementById('navGpsLat');
+                var lngField = document.getElementById('navGpsLng');
+                if (latField) latField.value = assessmentLat;
+                if (lngField) lngField.value = assessmentLng;
+                var statusEl = document.getElementById('navGpsStatus');
+                if (statusEl) statusEl.innerHTML = '<i class="fas fa-check text-success"></i> تم تحديد موقعك من التقييم الصحي بنجاح';
+            }
         }
     </script>
 }

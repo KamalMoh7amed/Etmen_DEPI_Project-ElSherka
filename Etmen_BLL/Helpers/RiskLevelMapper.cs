@@ -1,4 +1,4 @@
-using Etmen_Domain.Enums;
+﻿using Etmen_Domain.Enums;
 
 namespace Etmen_BLL.Helpers
 {
@@ -9,7 +9,6 @@ namespace Etmen_BLL.Helpers
     /// </summary>
     public static class RiskLevelMapper
     {
-        /// <summary>Maps a score to a <see cref="RiskLevel"/> using the standard thresholds.</summary>
         public static RiskLevel ToLevel(decimal score) => score switch
         {
             >= 0.70m => RiskLevel.High,
@@ -17,7 +16,6 @@ namespace Etmen_BLL.Helpers
             _        => RiskLevel.Low
         };
 
-        /// <summary>Returns a Bootstrap / Tailwind colour token for the given level.</summary>
         public static string ToColor(RiskLevel level) => level switch
         {
             RiskLevel.Low       => "#10B981", // Emerald Green
@@ -28,7 +26,6 @@ namespace Etmen_BLL.Helpers
             _                   => "#3B82F6"  // Blue
         };
 
-        /// <summary>Returns an Arabic label for display in views.</summary>
         public static string ToArabicLabel(RiskLevel level) => level switch
         {
             RiskLevel.Low       => "خطر منخفض",

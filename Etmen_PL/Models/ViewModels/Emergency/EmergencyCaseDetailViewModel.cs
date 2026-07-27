@@ -1,4 +1,4 @@
-using Etmen_Domain.Enums;
+﻿using Etmen_Domain.Enums;
 
 namespace Etmen_PL.Models.ViewModels.Emergency
 {

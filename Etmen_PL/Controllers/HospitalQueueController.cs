@@ -134,6 +134,16 @@ namespace Etmen_PL.Controllers
 
                 ViewBag.IsAiModeActive = ProviderAiModes.TryGetValue(providerId.Value, out var val) && val;
 
+                var logsResult = await _hospitalStaffService.GetLogsAsync(providerId.Value);
+                if (logsResult.IsSuccess && logsResult.Data != null)
+                {
+                    ViewBag.HandoverLogs = logsResult.Data.Where(l => l.Action == "ShiftHandover").ToList();
+                }
+                else
+                {
+                    ViewBag.HandoverLogs = new List<Etmen_BLL.DTOs.HospitalStaff.StaffActivityLogDto>();
+                }
+
                 return View(viewModel);
             }
             catch (Exception ex)
@@ -812,6 +822,427 @@ namespace Etmen_PL.Controllers
                 _logger.LogError(ex, "Error updating staff personal profile");
                 TempData["Error"] = "خطأ أثناء تحديث البيانات الشخصية";
                 return View(viewModel);
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAdmittedPatients()
+        {
+            var providerId = await GetCurrentProviderIdAsync();
+            if (!providerId.HasValue) return Json(new { success = false, message = "غير مصرح لك" });
+
+            var result = await _hospitalStaffService.GetAdmittedPatientsAsync(providerId.Value);
+            if (result.IsSuccess)
+            {
+                return Json(new { success = true, data = result.Data });
+            }
+            return Json(new { success = false, message = result.ErrorMessage });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Discharge(int requestId, string? recommendations, string? medications)
+        {
+            try
+            {
+                var providerId = await GetCurrentProviderIdAsync();
+                if (!providerId.HasValue)
+                {
+                    TempData["Error"] = "حسابك غير مرتبط بأي منشأة طبية.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var request = await _uow.EmergencyRequests.Table
+                    .FirstOrDefaultAsync(r => r.Id == requestId && r.HealthcareProviderId == providerId.Value);
+
+                if (request == null)
+                {
+                    TempData["Error"] = "لم يتم العثور على المريض.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var provider = await _uow.HealthcareProviders.GetByIdAsync(providerId.Value);
+                if (provider == null) return RedirectToAction(nameof(Index));
+
+                request.Status = EmergencyRequestStatus.Discharged;
+                request.PatientRecommendations = recommendations;
+                request.PrescribedMedications = medications;
+                request.CompletedAt ??= DateTime.UtcNow;
+
+                // Auto-reclaim bed
+                provider.AvailableBeds = Math.Min(provider.BedCapacity ?? 150, (provider.AvailableBeds ?? 0) + 1);
+
+                _uow.EmergencyRequests.Update(request);
+                _uow.HealthcareProviders.Update(provider);
+
+                // Log Shift Activity
+                var staffUser = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var staffProfile = await _uow.StaffProfiles.Table.FirstOrDefaultAsync(sp => sp.ApplicationUserId == staffUser);
+                if (staffProfile != null)
+                {
+                    var log = new StaffActivityLog
+                    {
+                        StaffProfileId = staffProfile.Id,
+                        Action = $"Request_{requestId}_Journey",
+                        Details = $"تم السماح بالخروج للمريض. الأدوية الموصوفة: {medications ?? "لا يوجد"}. التوصيات: {recommendations ?? "لا يوجد"}.",
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    await _uow.StaffActivityLogs.AddAsync(log);
+                }
+
+                await _uow.CompleteAsync();
+
+                // Broadcast updates
+                await _queueHubContext.Clients.All.SendAsync("HospitalBedsUpdated", new
+                {
+                    providerId = provider.Id,
+                    availableBeds = provider.AvailableBeds ?? 0,
+                    bedCapacity = provider.BedCapacity ?? 150,
+                    availableAmbulances = provider.AvailableAmbulances ?? 0,
+                    ambulanceCapacity = provider.AmbulanceCapacity ?? 4
+                });
+
+                TempData["Success"] = "تم السماح بالخروج للمريض بنجاح وتحرير السرير تلقائياً.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error discharging patient");
+                TempData["Error"] = "حدث خطأ أثناء السماح بالخروج.";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeclareDeceased(int requestId, string causeOfDeath, string? details)
+        {
+            try
+            {
+                var providerId = await GetCurrentProviderIdAsync();
+                if (!providerId.HasValue)
+                {
+                    TempData["Error"] = "حسابك غير مرتبط بأي منشأة طبية.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var request = await _uow.EmergencyRequests.Table
+                    .FirstOrDefaultAsync(r => r.Id == requestId && r.HealthcareProviderId == providerId.Value);
+
+                if (request == null)
+                {
+                    TempData["Error"] = "لم يتم العثور على المريض.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var provider = await _uow.HealthcareProviders.GetByIdAsync(providerId.Value);
+                if (provider == null) return RedirectToAction(nameof(Index));
+
+                request.Status = EmergencyRequestStatus.Deceased;
+                request.ResponseNotes = $"وفاة - السبب: {causeOfDeath}. تفاصيل: {details}";
+                request.CompletedAt ??= DateTime.UtcNow;
+
+                // Auto-reclaim bed
+                provider.AvailableBeds = Math.Min(provider.BedCapacity ?? 150, (provider.AvailableBeds ?? 0) + 1);
+
+                _uow.EmergencyRequests.Update(request);
+                _uow.HealthcareProviders.Update(provider);
+
+                // Log Shift Activity
+                var staffUser = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var staffProfile = await _uow.StaffProfiles.Table.FirstOrDefaultAsync(sp => sp.ApplicationUserId == staffUser);
+                if (staffProfile != null)
+                {
+                    var log = new StaffActivityLog
+                    {
+                        StaffProfileId = staffProfile.Id,
+                        Action = $"Request_{requestId}_Journey",
+                        Details = $"وفاة المريض. السبب: {causeOfDeath}. التفاصيل: {details ?? "لا يوجد"}",
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    await _uow.StaffActivityLogs.AddAsync(log);
+                }
+
+                await _uow.CompleteAsync();
+
+                // Broadcast updates
+                await _queueHubContext.Clients.All.SendAsync("HospitalBedsUpdated", new
+                {
+                    providerId = provider.Id,
+                    availableBeds = provider.AvailableBeds ?? 0,
+                    bedCapacity = provider.BedCapacity ?? 150,
+                    availableAmbulances = provider.AvailableAmbulances ?? 0,
+                    ambulanceCapacity = provider.AmbulanceCapacity ?? 4
+                });
+
+                TempData["Success"] = "تم تسجيل حالة الوفاة نظامياً وتحرير السرير تلقائياً.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error declaring deceased");
+                TempData["Error"] = "حدث خطأ أثناء تسجيل حالة الوفاة.";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetNearbyProvidersWithBeds(int requestId)
+        {
+            try
+            {
+                var currentProviderId = await GetCurrentProviderIdAsync();
+                if (!currentProviderId.HasValue) return Json(new { success = false, message = "غير مصرح" });
+
+                var request = await _uow.EmergencyRequests.GetByIdAsync(requestId);
+                if (request == null || !request.Latitude.HasValue || !request.Longitude.HasValue)
+                {
+                    return Json(new { success = false, message = "طلب الطوارئ أو إحداثيات المريض غير متوفرة." });
+                }
+
+                var providers = await _uow.HealthcareProviders.Table
+                    .Where(p => p.IsEmergencyCenter && p.IsActive && p.AvailableBeds > 0 && p.Id != currentProviderId.Value)
+                    .ToListAsync();
+
+                var results = providers.Select(p => {
+                    double dist = Etmen_BLL.Helpers.GeoHelper.CalculateDistanceKm(
+                        (double)request.Latitude.Value, (double)request.Longitude.Value,
+                        (double)p.Latitude, (double)p.Longitude);
+                    int etaMin = (int)Math.Round((dist / 50.0) * 60.0 + 2.0);
+                    return new {
+                        id = p.Id,
+                        name = p.Name,
+                        address = p.Address,
+                        availableBeds = p.AvailableBeds,
+                        distance = Math.Round(dist, 2),
+                        eta = etaMin
+                    };
+                }).OrderBy(p => p.distance).ToList();
+
+                return Json(new { success = true, data = results });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting nearby providers");
+                return Json(new { success = false, message = "حدث خطأ أثناء البحث عن مشافي مجاورة." });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ReferToProvider(int requestId, int targetProviderId)
+        {
+            try
+            {
+                var currentProviderId = await GetCurrentProviderIdAsync();
+                if (!currentProviderId.HasValue)
+                {
+                    TempData["Error"] = "غير مصرح لك.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var request = await _uow.EmergencyRequests.GetByIdAsync(requestId);
+                if (request == null)
+                {
+                    TempData["Error"] = "الطلب غير موجود.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var targetProvider = await _uow.HealthcareProviders.GetByIdAsync(targetProviderId);
+                if (targetProvider == null || targetProvider.AvailableBeds <= 0)
+                {
+                    TempData["Error"] = "المستشفى المستهدف غير موجود أو لا يحتوي أسرة شاغرة.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var oldProviderId = request.HealthcareProviderId;
+                request.HealthcareProviderId = targetProviderId;
+                request.Status = EmergencyRequestStatus.Pending;
+                request.ResponseNotes = "تم تحويل الحالة من مستشفى آخر.";
+
+                _uow.EmergencyRequests.Update(request);
+
+                // Log handover / referral
+                var staffUser = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var staffProfile = await _uow.StaffProfiles.Table.FirstOrDefaultAsync(sp => sp.ApplicationUserId == staffUser);
+                if (staffProfile != null)
+                {
+                    var log = new StaffActivityLog
+                    {
+                        StaffProfileId = staffProfile.Id,
+                        Action = $"Request_{requestId}_Journey",
+                        Details = $"تم تحويل المريض إلى مستشفى {targetProvider.Name}",
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    await _uow.StaffActivityLogs.AddAsync(log);
+                }
+
+                await _uow.CompleteAsync();
+
+                // Notify target hospital and refresh counts
+                await _queueHubContext.Clients.Group($"Provider_{targetProviderId}").SendAsync("EmergencyRequestUpdated", new {
+                    requestId = request.Id,
+                    status = "Pending",
+                    providerId = targetProviderId
+                });
+
+                TempData["Success"] = $"تم تحويل الحالة بنجاح إلى {targetProvider.Name}.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error referring patient");
+                TempData["Error"] = "حدث خطأ أثناء تحويل المريض.";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SaveHandover(string handoverNotes)
+        {
+            try
+            {
+                var providerId = await GetCurrentProviderIdAsync();
+                if (!providerId.HasValue)
+                {
+                    TempData["Error"] = "غير مصرح لك.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var staffUser = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var staffProfile = await _uow.StaffProfiles.Table.FirstOrDefaultAsync(sp => sp.ApplicationUserId == staffUser);
+                if (staffProfile == null)
+                {
+                    TempData["Error"] = "لم يتم العثور على ملف الموظف.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var log = new StaffActivityLog
+                {
+                    StaffProfileId = staffProfile.Id,
+                    Action = "ShiftHandover",
+                    Details = handoverNotes,
+                    CreatedAt = DateTime.UtcNow
+                };
+                await _uow.StaffActivityLogs.AddAsync(log);
+                await _uow.CompleteAsync();
+
+                TempData["Success"] = "تم تسجيل تسليم الوردية بنجاح.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving shift handover");
+                TempData["Error"] = "حدث خطأ أثناء حفظ تسليم الوردية.";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAILoadPrediction()
+        {
+            try
+            {
+                var providerId = await GetCurrentProviderIdAsync();
+                if (!providerId.HasValue) return Json(new { success = false, score = 0 });
+
+                var provider = await _uow.HealthcareProviders.GetByIdAsync(providerId.Value);
+                if (provider == null) return Json(new { success = false, score = 0 });
+
+                // 1. Bed occupancy weight (up to 40%)
+                double cap = provider.BedCapacity ?? 150.0;
+                double avail = provider.AvailableBeds ?? 0.0;
+                double occupancyRate = (cap - avail) / cap;
+                double bedWeight = occupancyRate * 40.0;
+
+                // 2. Incoming active emergency requests weight (up to 30%)
+                int incomingCount = await _uow.EmergencyRequests.Table
+                    .CountAsync(e => e.HealthcareProviderId == providerId.Value && e.Status == EmergencyRequestStatus.Pending);
+                double incomingWeight = Math.Min(30.0, incomingCount * 10.0);
+
+                // 3. Outbreak Zone overlap weight (up to 20%)
+                var outbreakZones = await _uow.OutbreakZones.Table.ToListAsync();
+                bool hasNearbyOutbreak = outbreakZones.Any(o => {
+                    double dist = Etmen_BLL.Helpers.GeoHelper.CalculateDistanceKm(
+                        (double)provider.Latitude, (double)provider.Longitude,
+                        (double)o.CenterLatitude, (double)o.CenterLongitude);
+                    return dist <= 15.0;
+                });
+                double outbreakWeight = hasNearbyOutbreak ? 20.0 : 0.0;
+
+                // 4. Time/Day Weight (up to 10%)
+                var now = DateTime.Now;
+                double timeWeight = 0.0;
+                if (now.DayOfWeek == DayOfWeek.Friday || now.DayOfWeek == DayOfWeek.Saturday) timeWeight += 5.0;
+                if (now.Hour >= 22 || now.Hour <= 6) timeWeight += 5.0;
+
+                double totalScore = Math.Round(bedWeight + incomingWeight + outbreakWeight + timeWeight, 0);
+                totalScore = Math.Clamp(totalScore, 5.0, 99.0);
+
+                string description = "مستقر";
+                if (totalScore >= 75) description = "حرِج للغاية (خطر تكدس الحالات)";
+                else if (totalScore >= 50) description = "نشط / ضغط عمل متوسط";
+
+                return Json(new { success = true, score = totalScore, text = description });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting AI prediction");
+                return Json(new { success = false, score = 30, text = "خطأ في التنبؤ" });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetWorkloadStats()
+        {
+            try
+            {
+                var providerId = await GetCurrentProviderIdAsync();
+                if (!providerId.HasValue) return Json(new { success = false });
+
+                var allDoctors = await _uow.DoctorProfiles.Table
+                    .Include(d => d.ApplicationUser)
+                    .Where(d => d.IsOnboarded && !string.IsNullOrEmpty(d.OnboardingDataJson))
+                    .ToListAsync();
+
+                var providerDoctors = allDoctors.Where(d => {
+                    try
+                     {
+                         var data = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(d.OnboardingDataJson!);
+                         if (data != null && data.TryGetValue("HealthcareProviderId", out var hpIdVal) && int.TryParse(hpIdVal.ToString(), out var hpId))
+                         {
+                             return hpId == providerId.Value;
+                         }
+                     }
+                     catch {}
+                     return false;
+                }).ToList();
+
+                var results = new List<object>();
+                foreach (var doc in providerDoctors)
+                {
+                    int activeCases = await _uow.EmergencyRequests.Table
+                        .CountAsync(e => e.AssignedDoctorUserId == doc.ApplicationUserId && e.Status == EmergencyRequestStatus.Accepted);
+
+                    string loadStatus = "Low";
+                    if (activeCases >= 3) loadStatus = "High";
+                    else if (activeCases >= 2) loadStatus = "Medium";
+
+                    results.Add(new {
+                        name = doc.FullName,
+                        specialization = doc.Specialization,
+                        activeCases = activeCases,
+                        loadStatus = loadStatus
+                    });
+                }
+
+                return Json(new { success = true, data = results });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting workload stats");
+                return Json(new { success = false });
             }
         }
     }

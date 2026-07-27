@@ -15,23 +15,23 @@ using System.Threading.Tasks;
 
 namespace Etmen_PL.Controllers
 {
-    /// <summary>
-    /// Admin Dashboard Controller
-    /// System overview telemetry dashboard
-    /// </summary>
+    
     [Authorize(Roles = "Admin,HospitalStaff")]
     public class AdminDashboardController : Controller
     {
         private readonly IAdminService _adminService;
+        private readonly ICriticalIntelligenceService _criticalIntelligenceService;
         private readonly IUnitOfWork _uow;
         private readonly ILogger<AdminDashboardController> _logger;
 
         public AdminDashboardController(
             IAdminService adminService,
+            ICriticalIntelligenceService criticalIntelligenceService,
             IUnitOfWork uow,
             ILogger<AdminDashboardController> logger)
         {
             _adminService = adminService;
+            _criticalIntelligenceService = criticalIntelligenceService;
             _uow = uow;
             _logger = logger;
         }
@@ -47,10 +47,7 @@ namespace Etmen_PL.Controllers
             base.OnActionExecuting(context);
         }
 
-        /// <summary>
-        /// GET: /AdminDashboard/Index
-        /// Shows active users, appointments, and crisis status
-        /// </summary>
+        
         [HttpGet]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index()
@@ -85,26 +82,19 @@ namespace Etmen_PL.Controllers
             }
         }
 
-        /// <summary>
-        /// GET: /AdminDashboard/NormalMap
-        /// Shows full screen map of clinics, hospitals, doctors, and emergency cases in normal mode
-        /// </summary>
+      
         [HttpGet]
         public IActionResult NormalMap()
         {
             return View();
         }
 
-        /// <summary>
-        /// GET: /AdminDashboard/GetMapData
-        /// Returns system telemetry mapping coordinates for clinics, hospitals, doctors, and critical cases
-        /// </summary>
+     
         [HttpGet]
         public async Task<IActionResult> GetMapData()
         {
             try
             {
-                // 1. Query Healthcare Providers (Clinics and Hospitals)
                 var providersList = await _uow.HealthcareProviders.Table
                     .Where(p => p.IsActive)
                     .Select(p => new
@@ -119,7 +109,6 @@ namespace Etmen_PL.Controllers
                     })
                     .ToListAsync();
 
-                // 2. Query Doctors (registered, with onboarding location)
                 var doctorsListRaw = await _uow.DoctorProfiles.Table
                     .Include(d => d.ApplicationUser)
                     .Where(d => d.IsOnboarded && !string.IsNullOrEmpty(d.OnboardingDataJson))
@@ -165,7 +154,6 @@ namespace Etmen_PL.Controllers
                     double? lat = (double?)req.Latitude;
                     double? lng = (double?)req.Longitude;
 
-                    // Fallback to patient profile coordinates if request doesn't have them
                     if ((lat == null || lat == 0) && req.PatientProfile != null)
                     {
                         lat = (double?)req.PatientProfile.Latitude;
@@ -198,6 +186,37 @@ namespace Etmen_PL.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching map markers data");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// GET: /AdminDashboard/GetCrisisHeatmapData
+        /// Returns all real outbreak zones, critical cases, and hospitals for mini crisis map
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetCrisisHeatmapData(int? crisisId = null)
+        {
+            try
+            {
+                var result = await _criticalIntelligenceService.GetCrisisHeatmapAsync(crisisId);
+                if (!result.IsSuccess || result.Data is null)
+                {
+                    return Json(new { success = false, message = result.ErrorMessage ?? "فشل تحميل بيانات الأزمات" });
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    totalCases = result.Data.TotalGeoTaggedCriticalCases,
+                    zones = result.Data.Zones,
+                    points = result.Data.Points,
+                    hospitals = result.Data.Hospitals
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching crisis heatmap data");
                 return Json(new { success = false, message = ex.Message });
             }
         }

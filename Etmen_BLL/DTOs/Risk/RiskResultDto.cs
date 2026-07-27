@@ -21,5 +21,9 @@ namespace Etmen_BLL.DTOs.Risk
         public string News2Rating { get; set; } = string.Empty;
         public string News2RatingArabic { get; set; } = string.Empty;
         public List<string> News2Breakdown { get; set; } = new List<string>();
+
+        // Geographic coordinates chosen by the patient during the assessment
+        public decimal? Latitude { get; set; }
+        public decimal? Longitude { get; set; }
     }
 }

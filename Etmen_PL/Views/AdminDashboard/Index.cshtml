@@ -2,22 +2,23 @@
 @{
     Layout = null;
 }
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>لوحة القيادة والتحكم المركزي — إطمن</title>
-    
     <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.rtl.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
-
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <style>
+        .leaflet-container {
+            direction: ltr !important;
+        }
         :root {
             /* Light Theme Palette (WellNest) */
             --light-bg: #F4F7F9;
@@ -31,8 +32,6 @@
             --light-primary-light: #E8F4FD;
             --light-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
             --light-gradient: linear-gradient(135deg, #1A6FBF 0%, #3cd5cb 100%);
-
-
             /* Dark Theme Palette (Crisis Analytical tools) */
             --dark-bg: #0B0E14;
             --dark-card-bg: #151A22;
@@ -43,12 +42,10 @@
             --dark-primary: #00B0FF;
             --dark-primary-light: rgba(0, 176, 255, 0.1);
             --dark-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
-
             --danger: #E74C3C;
             --success: #27AE60;
             --warning: #F39C12;
         }
-
         body.theme-light .theme-input {
             background-color: #ffffff !important;
             border-color: var(--light-border) !important;
@@ -69,14 +66,12 @@
             border-color: var(--dark-border) !important;
             color: var(--dark-text-muted) !important;
         }
-
         body.theme-light .text-muted {
             color: var(--light-text-muted) !important;
         }
         body.theme-dark .text-muted {
             color: var(--dark-text-muted) !important;
         }
-
         body {
             font-family: 'Tajawal', sans-serif;
             margin: 0;
@@ -84,7 +79,6 @@
             min-height: 100vh;
             transition: all 0.5s ease-in-out;
         }
-
         /* ═══ THEME APPLIERS ═══════════════════════════════════ */
         body.theme-light {
             background-color: #f5f8fa;
@@ -95,7 +89,6 @@
             background-color: var(--dark-bg);
             color: var(--dark-text);
         }
-
         /* Navbars */
         .admin-navbar {
             padding: 0.9rem 2.5rem;
@@ -112,7 +105,6 @@
             border-color: var(--dark-border);
             box-shadow: 0 4px 30px rgba(0,0,0,0.3);
         }
-
         .brand-section {
             display: flex;
             align-items: center;
@@ -143,7 +135,6 @@
         body.theme-dark .brand-title span { color: var(--dark-accent); }
         body.theme-light .brand-subtitle { color: var(--light-text-muted); }
         body.theme-dark .brand-subtitle { color: var(--dark-text-muted); }
-
         /* Search input from WellNest */
         .search-bar-container {
             position: relative;
@@ -176,7 +167,6 @@
             background: #161B22;
             border-color: var(--dark-primary);
         }
-
         /* Cards */
         .dashboard-card {
             border-radius: 20px;
@@ -209,7 +199,6 @@
             box-shadow: 0 15px 35px rgba(231, 76, 60, 0.12);
             border-color: rgba(231, 76, 60, 0.45);
         }
-
         .card-header-sm {
             display: flex;
             justify-content: justify;
@@ -220,7 +209,6 @@
         }
         body.theme-light .card-header-sm { color: var(--light-text); }
         body.theme-dark .card-header-sm { color: var(--dark-text); }
-
         /* Stats Blocks */
         .stats-grid {
             display: grid;
@@ -269,7 +257,6 @@
         }
         body.theme-light .stat-card-title { color: var(--light-text-muted); }
         body.theme-dark .stat-card-title { color: var(--dark-text-muted); }
-        
         .stat-card-val {
             font-size: 2.1rem;
             font-weight: 900;
@@ -278,7 +265,6 @@
         }
         body.theme-light .stat-card-val { color: var(--light-text); }
         body.theme-dark .stat-card-val { color: var(--dark-text); }
-
         .trend-pill {
             font-size: 0.7rem;
             font-weight: 800;
@@ -293,7 +279,6 @@
         }
         .trend-up { background: #E8F8F5; color: #27AE60; }
         .trend-down { background: #FDE8E8; color: #E74C3C; }
-
         /* Digital Calendar widget */
         .calendar-header {
             display: flex;
@@ -316,7 +301,6 @@
         }
         body.theme-light .calendar-day-label { color: var(--light-text-muted); }
         body.theme-dark .calendar-day-label { color: var(--dark-text-muted); }
-        
         .calendar-day {
             padding: 6px 0;
             border-radius: 8px;
@@ -328,18 +312,15 @@
         body.theme-light .calendar-day:hover { background: var(--light-primary-light); }
         body.theme-dark .calendar-day { color: var(--dark-text); }
         body.theme-dark .calendar-day:hover { background: var(--dark-primary-light); }
-        
         .calendar-day.active {
             color: white !important;
             font-weight: 800;
         }
         body.theme-light .calendar-day.active { background: var(--light-primary); }
         body.theme-dark .calendar-day.active { background: var(--dark-primary); }
-        
         .calendar-day.muted {
             color: #BDC3C7;
         }
-
         /* Calendar range selection */
         .calendar-day.range-start {
             color: white !important;
@@ -373,7 +354,6 @@
         body.theme-light .calendar-mode-toggle:hover, body.theme-light .calendar-mode-toggle.active { background: var(--light-primary); color: white; }
         body.theme-dark .calendar-mode-toggle { border-color: var(--dark-primary); color: var(--dark-primary); background: transparent; }
         body.theme-dark .calendar-mode-toggle:hover, body.theme-dark .calendar-mode-toggle.active { background: var(--dark-primary); color: white; }
-
         /* Recent Activity Feed */
         .activity-item {
             display: flex;
@@ -402,7 +382,6 @@
         }
         body.theme-light .activity-time { color: var(--light-text-muted); }
         body.theme-dark .activity-time { color: var(--dark-text-muted); }
-
         /* Admin Launchpad Controls - POWER OVER EVERYTHING */
         .launchpad-grid {
             display: grid;
@@ -440,7 +419,6 @@
             border-color: var(--dark-accent);
             box-shadow: 0 10px 25px rgba(0, 230, 118, 0.15);
         }
-
         .launch-icon {
             width: 48px; height: 48px;
             border-radius: 12px;
@@ -454,7 +432,6 @@
         .launchpad-card:hover .launch-icon {
             transform: scale(1.08) rotate(5deg);
         }
-
         .launch-title {
             font-size: 1rem; font-weight: 800; margin: 0 0 4px 0;
         }
@@ -463,7 +440,6 @@
         }
         body.theme-light .launch-desc { color: var(--light-text-muted); }
         body.theme-dark .launch-desc { color: var(--dark-text-muted); }
-
         /* Switch Mode Alert Banner */
         .mode-banner {
             border-radius: 20px;
@@ -485,7 +461,6 @@
             background: #1C2128;
             border-color: var(--dark-border);
         }
-
         .btn-premium {
             background: linear-gradient(135deg, var(--light-primary) 0%, var(--light-primary-dark) 100%);
             color: white; border: none; border-radius: 12px;
@@ -499,7 +474,6 @@
             box-shadow: 0 6px 20px rgba(26, 111, 191, 0.3);
             color: white;
         }
-
         .btn-premium-danger {
             background: linear-gradient(135deg, var(--danger) 0%, #C0392B 100%);
             box-shadow: 0 4px 15px rgba(231, 76, 60, 0.2);
@@ -508,7 +482,6 @@
             box-shadow: 0 6px 20px rgba(231, 76, 60, 0.3);
             color: white;
         }
-
         /* Map Embed Card */
         #embedMap {
             width: 100%;
@@ -518,12 +491,10 @@
         }
         body.theme-light #embedMap { border-color: var(--light-border); }
         body.theme-dark #embedMap { border-color: var(--dark-border); }
-
         body.theme-dark .bg-dark-glass {
             background: rgba(18, 22, 31, 0.85);
             backdrop-filter: blur(10px);
         }
-
         /* Daily Stats Panel CSS adaptive styling */
         body.theme-light #dailyStatsPanel {
             border-color: var(--light-primary) !important;
@@ -539,7 +510,6 @@
         body.theme-light #dailyStatsPanel strong.text-primary-theme {
             color: var(--light-primary) !important;
         }
-
         body.theme-dark #dailyStatsPanel {
             border-color: rgba(231, 76, 60, 0.35) !important;
             background: linear-gradient(135deg, #151a22, #1c2330) !important;
@@ -555,20 +525,17 @@
         body.theme-dark #dailyStatsPanel strong.text-primary-theme {
             color: #00b0ff !important;
         }
-
         .pulse-dot {
             width: 12px; height: 12px; border-radius: 50%;
             display: inline-block; animation: pulse-ring 1.5s infinite;
         }
         .pulse-dot.danger { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
         .pulse-dot.success { background: var(--success); box-shadow: 0 0 10px var(--success); }
-        
         @@keyframes pulse-ring {
             0% { transform: scale(0.95); opacity: 0.4; }
             50% { transform: scale(1.1); opacity: 1; }
             100% { transform: scale(0.95); opacity: 0.4; }
         }
-        
         @@keyframes heartBeat {
             0% { transform: scale(1); }
             14% { transform: scale(1.1); }
@@ -576,7 +543,6 @@
             42% { transform: scale(1.1); }
             70% { transform: scale(1); }
         }
-
         @@keyframes bannerPulse {
             0% {
                 background-color: #dc3545;
@@ -591,25 +557,43 @@
                 box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
             }
         }
-
         #liveAlertBanner {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 100000;
-            width: 90%;
-            max-width: 800px;
-            border-radius: 12px;
-            border: 2px solid white;
-            padding: 12px 24px !important;
-            box-shadow: 0 10px 35px rgba(220, 53, 69, 0.5);
-            animation: bannerPulse 2s infinite;
-            font-size: 0.9rem;
-            font-weight: bold;
-            color: white;
+            position: relative;
+            width: 100%;
+            background: linear-gradient(135deg, #991b1b 0%, #dc2626 50%, #7f1d1d 100%);
+            color: #ffffff;
+            border-bottom: 2px solid rgba(239, 68, 68, 0.5);
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.2);
+            padding: 10px 20px !important;
+            font-size: 0.88rem;
+            font-weight: 700;
+            z-index: 1000;
+            transition: all 0.3s ease;
         }
-
+        #liveAlertBanner .banner-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            text-align: center;
+        }
+        #dangerGovNames {
+            background: #ffffff;
+            color: #b91c1c;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 0.85rem;
+            display: inline-block;
+            max-width: 100%;
+            white-space: normal;
+            word-break: break-word;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(220, 53, 69, 0.3);
+        }
         /* Responsive optimizations for mobile screens */
         @@media (max-width: 767.98px) {
             #liveAlertBanner {
@@ -655,7 +639,6 @@
     </style>
 </head>
 <body class="@(Model.IsCrisisModeActive ? "theme-dark" : "theme-light")">
-
     @if (TempData["Success"] != null)
     {
         <div class="alert alert-success text-center py-2 px-3 fw-bold m-0 border-0 rounded-0" style="z-index: 9999; font-size: 0.95rem; background-color: #2ec4b6; color: white;">
@@ -668,17 +651,17 @@
             <i class="fas fa-exclamation-triangle me-1"></i> @TempData["Error"]
         </div>
     }
-
-    <!-- Top Live Alert Banner -->
-    <div id="liveAlertBanner" class="bg-danger text-white text-center fw-bold" style="display: none;">
-        <span class="d-flex align-items-center justify-content-center gap-2 flex-wrap">
-            <i class="fas fa-triangle-exclamation animate__animated animate__swing animate__infinite me-1"></i>
-            تحذير صحي عاجل: تم رصد مستوى (خطر مرتفع جداً) في المحافظات التالية: 
-            <span id="dangerGovNames" class="badge bg-white text-danger px-2 py-1" style="font-size:0.85rem; font-weight:800;"></span>
-            - يرجى توجيه عربات الإسعاف وتفعيل فرز الطوارئ فوراً.
-        </span>
+    <!-- Top Live Alert Banner (Positioned statically at top of page) -->
+    <div id="liveAlertBanner" style="display: none;">
+        <div class="banner-container">
+            <span class="d-inline-flex align-items-center gap-2">
+                <i class="fas fa-triangle-exclamation animate__animated animate__pulse animate__infinite" style="color: #fbbf24; font-size: 1.1rem;"></i>
+                <strong style="color: #fef08a;">تحذير صحي عاجل:</strong> تم رصد مستوى (خطر مرتفع جداً) في المحافظات التالية:
+            </span>
+            <span id="dangerGovNames"></span>
+            <span>— يرجى توجيه عربات الإسعاف وتفعيل فرز الطوارئ فوراً.</span>
+        </div>
     </div>
-
     <!-- Navbar -->
     <nav class="admin-navbar">
         <div class="container-fluid d-flex align-items-center justify-content-between">
@@ -691,13 +674,11 @@
                     <span class="brand-subtitle">نظام الإدارة والتحكم المركزي</span>
                 </div>
             </a>
-
             <!-- Search box -->
             <div class="search-bar-container d-none d-md-block">
                 <i class="fas fa-search position-absolute top-50 translate-middle-y" style="right: 15px; opacity:0.5;"></i>
                 <input type="text" class="search-input" placeholder="بحث عن أطباء، مرضى، بلاغات..." />
             </div>
-
             <!-- Profile and Controls -->
             <div class="d-flex align-items-center gap-3">
                 <span class="badge @(Model.IsCrisisModeActive ? "bg-danger" : "bg-primary") px-3 py-2 rounded-pill font-monospace" style="border: 1px solid rgba(255,255,255,0.2);">
@@ -711,10 +692,8 @@
             </div>
         </div>
     </nav>
-
     <!-- Main Container -->
     <div class="container-fluid px-4 py-4">
-        
         <!-- Dynamic Header Switch Banner -->
         <div class="mode-banner animate__animated animate__fadeIn">
             <div class="d-flex align-items-center gap-3">
@@ -734,7 +713,6 @@
                 </a>
             </div>
         </div>
-
         <!-- Telemetry Counters Grid -->
         <div class="stats-grid animate__animated animate__fadeIn" id="adminStatsGrid">
             <div class="stat-card">
@@ -749,7 +727,6 @@
                     <i class="fas fa-arrow-trend-up"></i> +2.14% اليوم
                 </div>
             </div>
-
             <div class="stat-card">
                 <div>
                     <div class="stat-card-title">
@@ -762,7 +739,6 @@
                     <i class="fas fa-arrow-trend-up"></i> +3.78% اليوم
                 </div>
             </div>
-
             <div class="stat-card">
                 <div>
                     <div class="stat-card-title">
@@ -775,7 +751,6 @@
                     <i class="fas fa-arrow-trend-down"></i> -1.56% أمس
                 </div>
             </div>
-
             <div class="stat-card">
                 <div>
                     <div class="stat-card-title">
@@ -789,20 +764,16 @@
                 </div>
             </div>
         </div>
-
         <!-- Middle Layout Row -->
         <div class="row g-4 mb-4">
-            
             <!-- Center Section (Charts & Launchpad) -->
             <div class="col-lg-8">
-                
                 <!-- Graphic Telemetry Charts Card -->
                 <div class="dashboard-card animate__animated animate__fadeInUp">
                     <h3 class="card-header-sm">
                         <i class="fas fa-chart-line text-primary me-2"></i>
                         نظرة عامة على Telemetry العمليات ومعدل التدهور الوبائي
                     </h3>
-
                     <!-- SVG Chart that dynamically updates styles -->
                     @if (Model.IsCrisisModeActive)
                     {
@@ -877,14 +848,12 @@
                         </div>
                     }
                 </div>
-
                 <!-- Admin Launchpad Controls (POWER OVER EVERYTHING) -->
                 <div class="dashboard-card animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
                     <h3 class="card-header-sm">
                         <i class="fas fa-toolbox text-primary me-2"></i>
                         لوحة التحكم الشاملة والعمليات الطبية (Control Center)
                     </h3>
-                    
                     <div class="launchpad-grid">
                         @if (Model.IsCrisisModeActive)
                         {
@@ -898,7 +867,6 @@
                                     <p class="launch-desc">عرض ورصد جغرافي حي لمدن انتشار الفيروس ومعدلات انتقال العدوى ومواقع المرضى.</p>
                                 </div>
                             </a>
-
                             <!-- Command Center -->
                             <a href="/AdminCrisis/CommandCenter" class="launchpad-card">
                                 <div class="launch-icon bg-danger">
@@ -909,7 +877,6 @@
                                     <p class="launch-desc">مراقبة الـ Telemetry، حساب أوقات انتظار عربات الإسعاف ومعدل استجابة المستشفيات.</p>
                                 </div>
                             </a>
-
                             <!-- Crisis Settings -->
                             <a href="/AdminCrisis" class="launchpad-card">
                                 <div class="launch-icon bg-danger">
@@ -920,7 +887,6 @@
                                     <p class="launch-desc">تعديل أوزان الأعراض (Symptom Weights)، تعيين عتبات المخاطر والتحكم بتفعيل الأزمات.</p>
                                 </div>
                             </a>
-
                             <!-- Maintenance Settings -->
                             <a href="#" class="launchpad-card" data-bs-toggle="modal" data-bs-target="#maintenanceSettingsModal">
                                 <div class="launch-icon" style="background:#f39c12;color:white;">
@@ -944,7 +910,6 @@
                                     <p class="launch-desc">عرض تفاعلي متكامل لجميع المستشفيات، العيادات، الأطباء، وحالات الطوارئ الميدانية.</p>
                                 </div>
                             </a>
-
                             <!-- Providers manager -->
                             <a href="/AdminProviders" class="launchpad-card">
                                 <div class="launch-icon bg-primary">
@@ -955,7 +920,6 @@
                                     <p class="launch-desc">مراجعة المستشفيات والعيادات، واعتماد تراخيصهم ومراقبة سعة الأسرة الشاغرة لديهم.</p>
                                 </div>
                             </a>
-
                             <!-- Users manager -->
                             <a href="/AdminUsers" class="launchpad-card">
                                 <div class="launch-icon bg-primary">
@@ -966,7 +930,6 @@
                                     <p class="launch-desc">تأكيد هويات الأطباء، مراجعة تصاريح مزاولة المهنة وتوزيع صلاحيات طواقم المستشفيات.</p>
                                 </div>
                             </a>
-
                             <!-- Reports manager -->
                             <a href="/AdminReports" class="launchpad-card">
                                 <div class="launch-icon bg-primary">
@@ -977,7 +940,6 @@
                                     <p class="launch-desc">توليد تقارير أداء الكادر الطبي، إحصائيات العدوى وسجلات الاستجابة للحالات الحرجة.</p>
                                 </div>
                             </a>
-
                             <!-- Maintenance Settings -->
                             <a href="#" class="launchpad-card" data-bs-toggle="modal" data-bs-target="#maintenanceSettingsModal">
                                 <div class="launch-icon" style="background:#1A6FBF;color:white;">
@@ -991,12 +953,9 @@
                         }
                     </div>
                 </div>
-
             </div>
-
             <!-- Right Section (Calendar & Activity Widgets) -->
             <div class="col-lg-4">
-                
                 <!-- Dynamic Digital Calendar Widget -->
                 <div class="dashboard-card animate__animated animate__fadeInRight">
                     <div class="calendar-header">
@@ -1018,7 +977,6 @@
                         <button type="button" class="btn btn-xs btn-outline-primary w-100 rounded-pill px-1 py-1" onclick="selectCalendarQuickFilter('month')">الشهر الحالي</button>
                     </div>
                 </div>
-
                 <!-- Interactive Calendar Stats Panel -->
                 <div id="dailyStatsPanel" class="dashboard-card animate__animated animate__fadeInRight mt-3" style="display:none;">
                     <h4 id="statsPanelTitle" class="card-header-sm mb-3 text-primary-theme" style="font-size: 0.92rem;">
@@ -1051,7 +1009,6 @@
                         </div>
                     </div>
                 </div>
-
                     <!-- Outbreak Settings Panel -->
                     <div class="dashboard-card animate__animated animate__fadeInRight mt-3">
                         <h4 class="card-header-sm mb-3 text-danger" style="font-size: 0.95rem;">
@@ -1092,7 +1049,6 @@
                             </button>
                         </form>
                     </div>
-
                 <!-- Recent Activity Feed (Real Data via AJAX) -->
                 <div class="dashboard-card animate__animated animate__fadeInRight" style="animation-delay: 0.1s;">
                     <h3 class="card-header-sm" style="font-size: 1rem; margin-bottom: 20px;">
@@ -1105,7 +1061,6 @@
                         </div>
                     </div>
                 </div>
-
                 <!-- Leaflet interactive mini-map widget -->
                 <div class="dashboard-card animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
                     <h3 class="card-header-sm" style="font-size: 0.95rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
@@ -1145,9 +1100,7 @@
                     </div>
                 </div>
             </div>
-
         </div>
-
         @if (!Model.IsCrisisModeActive)
         {
             <!-- Normal Mode Telemetry Read-out & Governorate Risks -->
@@ -1160,7 +1113,6 @@
                         </h3>
                         <div class="p-2">
                             <p class="text-muted small mb-4">تلخيص لسلامة تدفق البيانات وتوافر الكادر الطبي واستغلال الأصول في الوقت الفعلي.</p>
-                            
                             <div class="mb-3">
                                 <div class="d-flex justify-content-between mb-1 small fw-bold">
                                     <span>معدل توفر الأطباء العامين والمتخصصين</span>
@@ -1170,7 +1122,6 @@
                                     <div id="telemetryDoctorBar" class="progress-bar bg-primary" role="progressbar" style="width: 0%" aria-valuemin="0" aria-valuemax="100"></div>
                                 </div>
                             </div>
-                            
                             <div class="mb-3">
                                 <div class="d-flex justify-content-between mb-1 small fw-bold">
                                     <span>نسبة إشغال الأسرة الكلية بالمستشفيات</span>
@@ -1180,7 +1131,6 @@
                                     <div id="telemetryBedBar" class="progress-bar bg-warning" role="progressbar" style="width: 0%" aria-valuemin="0" aria-valuemax="100"></div>
                                 </div>
                             </div>
-
                             <div class="mb-3">
                                 <div class="d-flex justify-content-between mb-1 small fw-bold">
                                     <span>نسبة الاستجابة لحالات الطوارئ خلال 15 دقيقة</span>
@@ -1190,7 +1140,6 @@
                                     <div id="telemetryEmergencyBar" class="progress-bar bg-success" role="progressbar" style="width: 0%" aria-valuemin="0" aria-valuemax="100"></div>
                                 </div>
                             </div>
-
                             <div class="mb-2">
                                 <div class="d-flex justify-content-between mb-1 small fw-bold">
                                     <span>معدل رضا المرضى عن الاستشارات الافتراضية</span>
@@ -1203,7 +1152,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="col-lg-6">
                     <div class="dashboard-card h-100">
                         <h3 class="card-header-sm">
@@ -1234,7 +1182,6 @@
                 </div>
             </div>
         }
-
         @if (Model.IsCrisisModeActive)
         {
             <!-- Crisis Mode Telemetry Read-out & Governorate Crisis details -->
@@ -1247,7 +1194,6 @@
                         </h3>
                         <div class="p-2">
                             <p class="text-muted small mb-4">مراقبة حية لمعدل تكاثر الفيروس وتعبئة الموارد الطبية وسعة العناية المركزة.</p>
-                            
                             <div class="mb-3">
                                 <div class="d-flex justify-content-between mb-1 small fw-bold">
                                     <span>معدل انتشار وتكاثر العدوى الحرج (\(R_0\))</span>
@@ -1257,7 +1203,6 @@
                                     <div class="progress-bar bg-danger" role="progressbar" style="width: 75%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
                                 </div>
                             </div>
-                            
                             <div class="mb-3">
                                 <div class="d-flex justify-content-between mb-1 small fw-bold">
                                     <span>نسبة إشغال أسرة العزل والعناية المركزة (ICU)</span>
@@ -1267,7 +1212,6 @@
                                     <div class="progress-bar bg-danger" role="progressbar" style="width: 84%" aria-valuenow="84" aria-valuemin="0" aria-valuemax="100"></div>
                                 </div>
                             </div>
-
                             <div class="mb-3">
                                 <div class="d-flex justify-content-between mb-1 small fw-bold">
                                     <span>متوسط سرعة استجابة سيارات الإسعاف (بالدقائق)</span>
@@ -1277,7 +1221,6 @@
                                     <div class="progress-bar bg-warning" role="progressbar" style="width: 68%" aria-valuenow="68" aria-valuemin="0" aria-valuemax="100"></div>
                                 </div>
                             </div>
-
                             <div class="mb-2">
                                 <div class="d-flex justify-content-between mb-1 small fw-bold">
                                     <span>معامل استنفار وتعبئة الكادر الطبي الاحتياطي</span>
@@ -1290,7 +1233,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="col-lg-6">
                     <div class="dashboard-card h-100 bg-dark-glass text-white" style="border-color: rgba(231, 76, 60, 0.25);">
                         <h3 class="card-header-sm text-danger">
@@ -1321,13 +1263,10 @@
                 </div>
             </div>
         }
-
-
         <!-- ════════════════════════════════════════════════════════
              🚑  GLOBAL AMBULANCE DISPATCH MAP  (Normal + Crisis)
         ════════════════════════════════════════════════════════ -->
         <div class="dashboard-card animate__animated animate__fadeInUp mt-3" style="padding:22px;">
-
             <!-- Header row -->
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
                 <h3 class="card-header-sm m-0">
@@ -1341,7 +1280,6 @@
                     <span class="badge rounded-pill px-3 py-2" style="background:#22c55e;"><i class="fas fa-circle me-1" style="font-size:.5rem;"></i> إسعاف متاح في المستشفى</span>
                 </div>
             </div>
-
             <!-- Overview Stats Row -->
             <div class="row g-3 mb-3" id="ambOverviewRow">
                 <div class="col-6 col-md-3">
@@ -1369,7 +1307,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- Map -->
             <div class="position-relative">
                 <div class="map-overlay-header">
@@ -1383,7 +1320,6 @@
                      border:2.5px solid @(Model.IsCrisisModeActive ? "#ef4444" : "#1e293b");
                      box-shadow:0 0 30px rgba(0, 240, 255, 0.15);"></div>
             </div>
-
             <!-- Dispatch table -->
             <div class="mt-3 table-responsive">
                 <table class="table table-sm align-middle" style="font-size:.82rem;" id="globalDispatchTable">
@@ -1405,22 +1341,17 @@
                 </table>
             </div>
         </div>
-
         <!-- Footer -->
         <footer class="text-center py-4 mt-5 border-top opacity-50" style="font-size:0.8rem; border-color: rgba(255,255,255,0.1) !important;">
             <span>© @DateTime.Now.Year — منصة إطمن للخدمات الطبية | لوحة الإدارة والتحكم المركزي</span>
         </footer>
-
     </div>
-
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
-
     <!-- Leaflet map integration script for crisis mode widget -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script>
         $(document).ready(function() {
@@ -1429,7 +1360,6 @@
                 const highRiskGovs = stats
                     .filter(s => s.threatLevel === 'خطر مرتفع جداً')
                     .map(s => s.governorate);
-                
                 if (highRiskGovs.length > 0) {
                     $('#dangerGovNames').text(highRiskGovs.join('، '));
                     $('#liveAlertBanner').fadeIn(300);
@@ -1438,12 +1368,10 @@
                 }
             }
             window.checkLiveAlerts = checkLiveAlerts;
-
             window.selectCalendarQuickFilter = function(filter) {
                 const now = new Date();
                 const year = now.getFullYear();
                 const month = now.getMonth() + 1; // 1-indexed for backend
-                
                 if (filter === 'today') {
                     calMode = 'single';
                     $('#calendarModeBtn').removeClass('active').html('<i class="fas fa-calendar-week me-1"></i> نطاق');
@@ -1460,17 +1388,13 @@
                     selectedSingleDay = null;
                     const weekAgo = new Date();
                     weekAgo.setDate(now.getDate() - 7);
-                    
                     calMonth = now.getMonth();
                     calYear = now.getFullYear();
-                    
                     rangeStart = weekAgo.getDate();
                     rangeEnd = now.getDate();
                     renderCalendar();
-                    
                     const fromStr = `${weekAgo.getFullYear()}-${String(weekAgo.getMonth() + 1).padStart(2, '0')}-${String(weekAgo.getDate()).padStart(2, '0')}`;
                     const toStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-                    
                     const monthNames = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
                     $.getJSON('/AdminDashboard/GetRangeStats', { from: fromStr, to: toStr }, function(data) {
                         if (data && data.success) {
@@ -1479,10 +1403,8 @@
                             $('#statsAppointments').text(data.appointments);
                             $('#statsDoctors').text(data.activeDoctors);
                             $('#statsBeds').text(data.totalBeds);
-                            
                             const isCrisisMode = $('body').hasClass('theme-dark');
                             $('#statsSecondLabel').text(isCrisisMode ? 'الحالات الحرجة' : 'المواعيد المحجوزة');
-                            
                             if ($('#dailyStatsPanel').is(':hidden')) {
                                 $('#dailyStatsPanel').slideDown(300);
                             } else {
@@ -1495,44 +1417,101 @@
                     calMode = 'range';
                     $('#calendarModeBtn').addClass('active').html('<i class="fas fa-calendar-day me-1"></i> يوم');
                     selectedSingleDay = null;
-                    
                     calMonth = now.getMonth();
                     calYear = now.getFullYear();
-                    
                     rangeStart = 1;
                     rangeEnd = new Date(year, month, 0).getDate();
                     renderCalendar();
-                    
                     fetchRangeStats(year, month, rangeStart, rangeEnd);
                 }
             };
-
             // Initialize map centered on Cairo
             const map = L.map('embedMap', {
                 zoomControl: true,
                 attributionControl: false
             }).setView([30.0444, 31.2357], 11);
-
+            setTimeout(function() { map.invalidateSize(); }, 300);
+            setTimeout(function() { map.invalidateSize(); }, 1000);
+            $(window).on('resize', function() { if (map) map.invalidateSize(); });
             const isDark = $('body').hasClass('theme-dark');
             const tileUrl = isDark 
                 ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
                 : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
-
             L.tileLayer(tileUrl, {
                 maxZoom: 20
             }).addTo(map);
-
             @if (Model.IsCrisisModeActive)
             {
                 <text>
-                // Add a mock pulsing crisis circle
-                L.circle([30.0444, 31.2357], {
-                    color: '#E74C3C',
-                    fillColor: '#E74C3C',
-                    fillOpacity: 0.25,
-                    radius: 2000,
-                    weight: 2
-                }).addTo(map);
+                // Load all real outbreak zones & critical cases dynamically via API
+                $.getJSON('/AdminDashboard/GetCrisisHeatmapData', function(data) {
+                    if (data && data.success) {
+                        let allBounds = [];
+
+                        // 1. Plot Outbreak Zones (Circles for ALL infected zones)
+                        if (data.zones && data.zones.length > 0) {
+                            data.zones.forEach(function(zone) {
+                                const lat = parseFloat(zone.centerLatitude);
+                                const lng = parseFloat(zone.centerLongitude);
+                                const radiusMeters = parseFloat(zone.radiusInKm) * 1000;
+                                if (!isNaN(lat) && !isNaN(lng)) {
+                                    allBounds.push([lat, lng]);
+
+                                    let zoneColor = '#00C9A7'; // Teal
+                                    let zoneLabel = 'خطر عادي';
+                                    if (zone.riskLevel === 4 || zone.riskLevel === 3) {
+                                        zoneColor = '#E74C3C'; // Red
+                                        zoneLabel = 'خطر طارئ جداً';
+                                    } else if (zone.riskLevel === 2) {
+                                        zoneColor = '#E67E22'; // Orange
+                                        zoneLabel = 'خطر مرتفع';
+                                    } else if (zone.riskLevel === 1) {
+                                        zoneColor = '#F1C40F'; // Yellow
+                                        zoneLabel = 'خطر متوسط';
+                                    }
+
+                                    L.circle([lat, lng], {
+                                        radius: radiusMeters,
+                                        color: zoneColor,
+                                        fillColor: zoneColor,
+                                        fillOpacity: 0.25,
+                                        weight: 2,
+                                        dashArray: '5, 5'
+                                    }).bindPopup(`<strong>${zone.zoneName}</strong><br/>مستوى الخطورة: ${zoneLabel}<br/>الحالات الحالية: ${zone.criticalCasesInside}<br/>حالة الدعم: ${zone.supportStatus}`).addTo(map);
+                                }
+                            });
+                        }
+
+                        // 2. Plot Critical Cases Points
+                        if (data.points && data.points.length > 0) {
+                            data.points.forEach(function(pt) {
+                                const lat = parseFloat(pt.latitude);
+                                const lng = parseFloat(pt.longitude);
+                                if (!isNaN(lat) && !isNaN(lng)) {
+                                    allBounds.push([lat, lng]);
+
+                                    let markerHtml = `<div style="background-color: #ff5252; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 8px rgba(255, 82, 82, 0.8);"></div>`;
+                                    let customIcon = L.divIcon({
+                                        html: markerHtml,
+                                        className: 'custom-div-icon',
+                                        iconSize: [14, 14],
+                                        iconAnchor: [7, 7]
+                                    });
+                                    L.marker([lat, lng], { icon: customIcon })
+                                        .bindPopup(`<strong>بؤرة حالة حرجة: ${pt.patientName || 'مريض'}</strong><br/>نوع الطوارئ: ${pt.emergencyType || '-'}`)
+                                        .addTo(map);
+                                }
+                            });
+                        }
+
+                        // 3. Fit bounds to display ALL active outbreak zones
+                        if (allBounds.length > 0) {
+                            map.fitBounds(allBounds, { padding: [30, 30] });
+                        } else {
+                            map.setView([30.0444, 31.2357], 7);
+                        }
+                    }
+                });
                 </text>
             }
             else
@@ -1541,7 +1520,6 @@
                 // Load normal mode markers asynchronously via API
                 $.getJSON('/AdminDashboard/GetMapData', function(data) {
                     if (data && data.success) {
-                        
                         // 1. Plot Healthcare Providers (Clinics & Hospitals)
                         data.providers.forEach(function(item) {
                             let color = item.type === 'Hospital' ? '#e74c3c' : '#3498db';
@@ -1552,12 +1530,10 @@
                                 iconSize: [12, 12],
                                 iconAnchor: [6, 6]
                             });
-
                             let marker = L.marker([item.latitude, item.longitude], { icon: customIcon })
                                 .bindPopup(`<strong>${item.name}</strong><br/>نوع المنشأة: ${item.type === 'Hospital' ? 'مستشفى' : 'عيادة'}<br/>العنوان: ${item.address || '-'}`)
                                 .addTo(map);
                         });
-
                         // 2. Plot Registered Doctors
                         data.doctors.forEach(function(item) {
                             let markerHtml = `<div style="background-color: #2ecc71; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.5);"></div>`;
@@ -1567,12 +1543,10 @@
                                 iconSize: [12, 12],
                                 iconAnchor: [6, 6]
                             });
-
                             let marker = L.marker([item.latitude, item.longitude], { icon: customIcon })
                                 .bindPopup(`<strong>د. ${item.name}</strong><br/>التخصص: ${item.specialization || '-'}<br/>رسوم الاستشارة: ${item.consultationFee || '-'} ج.م.`)
                                 .addTo(map);
                         });
-
                         // 3. Plot Critical Cases (Emergency requests or critical risk assessments)
                         data.criticalCases.forEach(function(item) {
                             let markerHtml = `<div style="background-color: #f1c40f; width: 14px; height: 14px; border-radius: 50%; border: 2px solid red; box-shadow: 0 0 8px rgba(231, 76, 60, 0.8); animation: pulse 1.5s infinite;"></div>`;
@@ -1582,7 +1556,6 @@
                                 iconSize: [14, 14],
                                 iconAnchor: [7, 7]
                             });
-
                             let marker = L.marker([item.latitude, item.longitude], { icon: customIcon })
                                 .bindPopup(`<strong>حالة طارئة: ${item.patientName}</strong><br/>النوع: ${item.emergencyType || '-'}<br/>التفاصيل: ${item.description || '-'}<br/>الأولوية: ${item.priorityScore}`)
                                 .addTo(map);
@@ -1591,7 +1564,6 @@
                 });
                 </text>
             }
-
             // Load Normal Mode Charts
             @if (!Model.IsCrisisModeActive)
             {
@@ -1621,7 +1593,6 @@
                                 }
                             }
                         });
-
                         // 2. Beds by Governorate
                         const bedsCtx = document.getElementById('bedsGovChart').getContext('2d');
                         new Chart(bedsCtx, {
@@ -1648,7 +1619,6 @@
                                 }
                             }
                         });
-
                         // 3. Appointments Trend
                         const dayNamesArabic = {
                             'Sunday': 'الأحد',
@@ -1661,7 +1631,6 @@
                         };
                         const trendLabels = data.appointmentsTrend.map(t => dayNamesArabic[t.Day] || t.Day);
                         const trendValues = data.appointmentsTrend.map(t => t.Count);
-
                         const trendCtx = document.getElementById('appointmentsTrendChart').getContext('2d');
                         new Chart(trendCtx, {
                             type: 'line',
@@ -1691,7 +1660,6 @@
                         });
                     }
                 });
-
                 // Load Governorate Risk Stats
                 $.getJSON('/AdminDashboard/GetGovernorateRiskStats', function(data) {
                     if (data && data.success) {
@@ -1720,7 +1688,6 @@
                 });
                 </text>
             }
-
             // Load Crisis Mode Charts and Tables
             @if (Model.IsCrisisModeActive)
             {
@@ -1733,7 +1700,6 @@
                             let badgeClass = 'bg-success';
                             let outbreakStatus = 'احتواء كامل';
                             let quarantineBeds = Math.max(0, 100 - (item.totalCases * 4));
-                            
                             if (item.threatLevel === 'خطر مرتفع جداً') {
                                 badgeClass = 'bg-danger';
                                 outbreakStatus = 'تفشي متسارع';
@@ -1741,7 +1707,6 @@
                                 badgeClass = 'bg-warning text-dark';
                                 outbreakStatus = 'تفشي محدود';
                             }
-                            
                             rowsHtml += `
                                 <tr style="border-bottom: 1px solid rgba(231, 76, 60, 0.15);">
                                     <td class="text-white"><strong>${item.governorate}</strong></td>
@@ -1757,7 +1722,6 @@
                         $('#crisisGovRiskTableBody').html('<tr><td colspan="4" class="text-center text-danger">فشل تحميل البيانات الوبائية</td></tr>');
                     }
                 });
-
                 // Load Crisis Charts Data
                 $.getJSON('/AdminDashboard/GetDashboardProjectCharts', function(data) {
                     if (data && data.success) {
@@ -1766,7 +1730,6 @@
                             if (riskData && riskData.success) {
                                 const labels = riskData.stats.map(s => s.governorate);
                                 const cases = riskData.stats.map(s => s.totalCases);
-                                
                                 const outbreakCtx = document.getElementById('crisisOutbreakChart').getContext('2d');
                                 new Chart(outbreakCtx, {
                                     type: 'bar',
@@ -1795,7 +1758,6 @@
                                 });
                             }
                         });
-
                         // 2. Critical Symptoms Frequency - Doughnut (Real data from DB)
                         $.getJSON('/AdminDashboard/GetSymptomsStats', function(sympData) {
                             const sympColors = ['#ff5252', '#ff9800', '#00b0ff', '#8b949e', '#e040fb'];
@@ -1823,7 +1785,6 @@
                                 }
                             });
                         });
-
                         // 3. Epidemic spread trend - Line
                         const dayNamesArabic = {
                             'Sunday': 'الأحد',
@@ -1836,7 +1797,6 @@
                         };
                         const trendLabels = data.appointmentsTrend.map(t => dayNamesArabic[t.Day] || t.Day);
                         const trendValues = data.appointmentsTrend.map(t => t.Count * 2 + 5);
-
                         const trendCtx = document.getElementById('crisisTrendsChart').getContext('2d');
                         new Chart(trendCtx, {
                             type: 'line',
@@ -1870,7 +1830,6 @@
                 });
                 </text>
             }
-
             // ══════════════════════════════════════════════════════════════
             // DYNAMIC CALENDAR ENGINE
             // ══════════════════════════════════════════════════════════════
@@ -1880,44 +1839,35 @@
                 const arabicDigits = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
                 return String(n).split('').map(d => arabicDigits[parseInt(d)] || d).join('');
             }
-
             let calYear = new Date().getFullYear();
             let calMonth = new Date().getMonth(); // 0-indexed
             let calMode = 'single'; // 'single' or 'range'
             let rangeStart = null;
             let rangeEnd = null;
             let selectedSingleDay = null;
-
             function renderCalendar() {
                 const grid = $('#calendarGrid');
                 grid.empty();
-
                 // Month label
                 $('#calendarMonthLabel').text(arabicMonths[calMonth] + ' ' + toArabicNum(calYear));
-
                 // Day labels row
                 dayLabels.forEach(label => {
                     grid.append(`<div class="calendar-day-label">${label}</div>`);
                 });
-
                 const firstDay = new Date(calYear, calMonth, 1).getDay();
                 const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
                 const prevMonthDays = new Date(calYear, calMonth, 0).getDate();
                 const today = new Date();
-
                 // Previous month filler days
                 for (let i = firstDay - 1; i >= 0; i--) {
                     grid.append(`<div class="calendar-day muted">${toArabicNum(prevMonthDays - i)}</div>`);
                 }
-
                 // Current month days
                 for (let d = 1; d <= daysInMonth; d++) {
                     let classes = 'calendar-day clickable-day';
                     const thisDate = new Date(calYear, calMonth, d);
-                    
                     // Highlight today
                     const isToday = (d === today.getDate() && calMonth === today.getMonth() && calYear === today.getFullYear());
-
                     if (calMode === 'single') {
                         if (selectedSingleDay === d) {
                             classes += ' active';
@@ -1936,27 +1886,22 @@
                             classes += ' range-start active';
                         }
                     }
-
                     grid.append(`<div class="${classes}" data-day="${d}" data-month="${calMonth + 1}" data-year="${calYear}">${toArabicNum(d)}</div>`);
                 }
-
                 // Next month filler
                 const totalCells = firstDay + daysInMonth;
                 const remaining = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
                 for (let i = 1; i <= remaining; i++) {
                     grid.append(`<div class="calendar-day muted">${toArabicNum(i)}</div>`);
                 }
-
                 // Bind click events
                 bindCalendarClicks();
             }
-
             function bindCalendarClicks() {
                 $('.clickable-day').off('click').on('click', function() {
                     const day = parseInt($(this).data('day'));
                     const month = parseInt($(this).data('month'));
                     const year = parseInt($(this).data('year'));
-
                     if (calMode === 'single') {
                         selectedSingleDay = day;
                         renderCalendar();
@@ -1984,7 +1929,6 @@
                     }
                 });
             }
-
             function fetchDailyStats(year, month, day) {
                 const monthNames = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
                 $.getJSON('/AdminDashboard/GetDailyStats', { year: year, month: month, day: day }, function(data) {
@@ -1994,10 +1938,8 @@
                         $('#statsAppointments').text(data.appointments);
                         $('#statsDoctors').text(data.activeDoctors);
                         $('#statsBeds').text(data.totalBeds);
-                        
                         const isCrisisMode = $('body').hasClass('theme-dark');
                         $('#statsSecondLabel').text(isCrisisMode ? 'الحالات الحرجة' : 'المواعيد المحجوزة');
-                        
                         if ($('#dailyStatsPanel').is(':hidden')) {
                             $('#dailyStatsPanel').slideDown(300);
                         } else {
@@ -2007,12 +1949,10 @@
                     }
                 });
             }
-
             function fetchRangeStats(year, month, startDay, endDay) {
                 const monthNames = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
                 const fromStr = `${year}-${String(month).padStart(2, '0')}-${String(startDay).padStart(2, '0')}`;
                 const toStr = `${year}-${String(month).padStart(2, '0')}-${String(endDay).padStart(2, '0')}`;
-
                 $.getJSON('/AdminDashboard/GetRangeStats', { from: fromStr, to: toStr }, function(data) {
                     if (data && data.success) {
                         $('#statsPanelTitleText').text(`إحصائيات من ${toArabicNum(startDay)} إلى ${toArabicNum(endDay)} ${monthNames[month - 1]} ${toArabicNum(year)}`);
@@ -2020,10 +1960,8 @@
                         $('#statsAppointments').text(data.appointments);
                         $('#statsDoctors').text(data.activeDoctors);
                         $('#statsBeds').text(data.totalBeds);
-                        
                         const isCrisisMode = $('body').hasClass('theme-dark');
                         $('#statsSecondLabel').text(isCrisisMode ? 'الحالات الحرجة' : 'المواعيد المحجوزة');
-                        
                         if ($('#dailyStatsPanel').is(':hidden')) {
                             $('#dailyStatsPanel').slideDown(300);
                         } else {
@@ -2033,7 +1971,6 @@
                     }
                 });
             }
-
             // Calendar navigation
             $('#calendarPrev').on('click', function() {
                 calMonth--;
@@ -2049,7 +1986,6 @@
                 $('#dailyStatsPanel').slideUp(200);
                 renderCalendar();
             });
-
             // Calendar mode toggle
             $('#calendarModeBtn').on('click', function() {
                 if (calMode === 'single') {
@@ -2064,10 +2000,8 @@
                 $('#dailyStatsPanel').slideUp(200);
                 renderCalendar();
             });
-
             // Initial calendar render
             renderCalendar();
-
             // ══════════════════════════════════════════════════════════════
             // LOAD REAL ACTIVITY FEED
             // ══════════════════════════════════════════════════════════════
@@ -2095,7 +2029,6 @@
                     $('#activityFeed').html('<div class="text-center text-muted py-3"><i class="fas fa-inbox me-1"></i> لا توجد نشاطات حديثة</div>');
                 }
             });
-
             function getTimeAgo(dateStr) {
                 const date = new Date(dateStr);
                 const now = new Date();
@@ -2103,14 +2036,12 @@
                 const diffMins = Math.floor(diffMs / 60000);
                 const diffHours = Math.floor(diffMs / 3600000);
                 const diffDays = Math.floor(diffMs / 86400000);
-
                 if (diffMins < 1) return 'الآن';
                 if (diffMins < 60) return `منذ ${toArabicNum(diffMins)} دقيقة`;
                 if (diffHours < 24) return `منذ ${toArabicNum(diffHours)} ساعة`;
                 if (diffDays < 7) return `منذ ${toArabicNum(diffDays)} يوم`;
                 return date.toLocaleDateString('ar-EG');
             }
-
             // ══════════════════════════════════════════════════════════════
             // LOAD REAL TELEMETRY STATS (Progress Bars)
             // ══════════════════════════════════════════════════════════════
@@ -2121,27 +2052,22 @@
                     if (data && data.success) {
                         $('#telemetryDoctorVal').text(data.doctorAvailability + '%');
                         $('#telemetryDoctorBar').css('width', data.doctorAvailability + '%');
-                        
                         $('#telemetryBedVal').text(data.bedOccupancy + '%');
                         $('#telemetryBedBar').css('width', data.bedOccupancy + '%');
-                        
                         $('#telemetryEmergencyVal').text(data.emergencyResponse + '%');
                         $('#telemetryEmergencyBar').css('width', data.emergencyResponse + '%');
-                        
                         $('#telemetrySatisfactionVal').text(data.patientSatisfaction + '%');
                         $('#telemetrySatisfactionBar').css('width', data.patientSatisfaction + '%');
                     }
                 });
                 </text>
             }
-
             // Real-time reloading helpers
             function reloadGovernorateRiskTable() {
                 const url = '/AdminDashboard/GetGovernorateRiskStats';
                 $.getJSON(url, function(data) {
                     if (data && data.success) {
                         checkLiveAlerts(data.stats);
-                        
                         // Normal mode table
                         if ($('#govRiskTableBody').length) {
                             let rowsHtml = '';
@@ -2158,7 +2084,6 @@
                             });
                             $('#govRiskTableBody').html(rowsHtml);
                         }
-
                         // Crisis mode table
                         if ($('#crisisGovRiskTableBody').length) {
                             let rowsHtml = '';
@@ -2180,7 +2105,6 @@
                     }
                 });
             }
-
             function reloadTelemetryStats() {
                 if ($('#telemetryDoctorVal').length) {
                     $.getJSON('/AdminDashboard/GetTelemetryStats', function(data) {
@@ -2197,7 +2121,6 @@
                     });
                 }
             }
-
             function reloadRecentActivities() {
                 $.getJSON('/AdminDashboard/GetRecentActivities', function(data) {
                     if (data && data.success && data.activities.length > 0) {
@@ -2222,19 +2145,16 @@
                     }
                 });
             }
-
             function reloadStatsGrid() {
                 if ($('#adminStatsGrid').length) {
                     $('#adminStatsGrid').load(window.location.href + ' #adminStatsGrid > *');
                 }
             }
-
             // SignalR Connection for Real-Time Telemetry
             const connection = new signalR.HubConnectionBuilder()
                 .withUrl("/hubs/queue")
                 .withAutomaticReconnect()
                 .build();
-
             connection.on("NewEmergencyRequest", function(request) {
                 console.log("SignalR: New emergency request received.");
                 reloadGovernorateRiskTable();
@@ -2243,7 +2163,6 @@
                 reloadStatsGrid();
                 if (window.reloadDispatchMap) window.reloadDispatchMap();
             });
-
             connection.on("EmergencyRequestUpdated", function(update) {
                 console.log("SignalR: Emergency request status updated.");
                 reloadGovernorateRiskTable();
@@ -2252,7 +2171,6 @@
                 reloadStatsGrid();
                 if (window.reloadDispatchMap) window.reloadDispatchMap();
             });
-
             connection.on("HospitalBedsUpdated", function(update) {
                 console.log("SignalR: Hospital beds count updated.");
                 reloadGovernorateRiskTable();
@@ -2261,7 +2179,6 @@
                 reloadStatsGrid();
                 if (window.reloadDispatchMap) window.reloadDispatchMap();
             });
-
             connection.start().then(function() {
                 console.log("SignalR connected to QueueHub in Admin Dashboard.");
             }).catch(function(err) {
@@ -2288,7 +2205,6 @@
             0%, 100% { transform: translateY(0); }
             50%       { transform: translateY(-5px); }
         }
-
         /* ── Map Overlay Header ── */
         .map-overlay-header {
             position: absolute;
@@ -2355,7 +2271,6 @@
             70% { box-shadow: 0 0 0 8px rgba(0, 240, 255, 0); }
             100% { box-shadow: 0 0 0 0 rgba(0, 240, 255, 0); }
         }
-
         /* ── Glow Badge Styling ── */
         .glow-badge {
             display: flex;
@@ -2432,7 +2347,6 @@
             color: rgba(255, 255, 255, 0.85);
             font-weight: 600;
         }
-
         /* ── Hospital Glow Marker ── */
         .hosp-glow-marker {
             background: #ff9f00;
@@ -2447,7 +2361,6 @@
             box-shadow: 0 0 12px #ff9f00;
             font-size: 11px;
         }
-
         /* ── Patient Glow Marker ── */
         .patient-glow-marker {
             position: relative;
@@ -2479,18 +2392,16 @@
         const AVG_KMH  = 40;
         const SPEEDUP  = 12;
         const ANIM_FPS = 15;
-
         function hvKm(lat1,lng1,lat2,lng2){
             const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;
             const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
             return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
         }
-
         // Default center Egypt
-        const gMap = L.map('globalAmbMap').setView([26.8206, 30.8025], 6);
+        const gMap = L.map('globalAmbMap').setView([30.0444, 31.2357], 7);
+        setTimeout(function() { gMap.invalidateSize(); }, 600);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
             {attribution:'&copy; OpenStreetMap &copy; CartoDB'}).addTo(gMap);
-
         // Live UTC Clock updater
         setInterval(() => {
             const clocks = document.querySelectorAll('.utc-clock');
@@ -2501,7 +2412,6 @@
                 clocks.forEach(c => c.textContent = timeStr);
             }
         }, 1000);
-
         function clearMapLayers() {
             gMap.eachLayer(function (layer) {
                 if (layer instanceof L.Marker || layer instanceof L.Polyline) {
@@ -2509,25 +2419,20 @@
                 }
             });
         }
-
         function initGlobalDispatchMap(data) {
             if (!data || !data.success) return;
             const dispatches = data.dispatches || [];
             const hospitals  = data.hospitals  || [];
-
             // Clear map layers before rendering new ones
             clearMapLayers();
-
             // ── Stats ──
             document.getElementById('ambStatTotal').textContent     = dispatches.length;
             document.getElementById('ambStatEnRoute').textContent   = dispatches.length;
             document.getElementById('ambStatHospitals').textContent = hospitals.length;
-
             let totalEta = 0;
             dispatches.forEach(d => { totalEta += d.etaMinutes || 0; });
             document.getElementById('ambStatAvgEta').textContent =
                 dispatches.length > 0 ? Math.round(totalEta / dispatches.length) : 0;
-
             // ── Hospital markers ──
             hospitals.forEach(h => {
                 if (!h.latitude || !h.longitude) return;
@@ -2539,18 +2444,15 @@
                     })
                 }).addTo(gMap).bindPopup(`<b>${h.name}</b><br>الأسرة: ${h.availableBeds}`);
             });
-
             // ── Dispatch ambulances ──
             let tableHtml = '';
             dispatches.forEach((d, idx) => {
                 if (!d.patientLat || !d.patientLng || !d.hospitalLat || !d.hospitalLng) return;
-
                 const dist   = hvKm(d.hospitalLat, d.hospitalLng, d.patientLat, d.patientLng);
                 const etaMin = Math.round((dist / AVG_KMH) * 60);
                 const simMs  = (etaMin * 60000) / SPEEDUP;
                 const stepMs = 1000 / ANIM_FPS;
                 const steps  = Math.max(1, Math.ceil(simMs / stepMs));
-
                 // Patient marker
                 L.marker([d.patientLat, d.patientLng], {
                     icon: L.divIcon({
@@ -2559,7 +2461,6 @@
                         iconSize:[14,14], iconAnchor:[7,7]
                     })
                 }).addTo(gMap).bindPopup(`<b>${d.patientName}</b><br>${d.emergencyType}`);
-
                 // Route line (Glowing double polyline: back glow + front line)
                 const isCyan = (idx % 2 === 0);
                 const neonColor = isCyan ? '#00f0ff' : '#ff9f00';
@@ -2569,7 +2470,6 @@
                 L.polyline([[d.hospitalLat, d.hospitalLng],[d.patientLat, d.patientLng]], {
                     color: neonColor, weight: 2.5, opacity: 0.85
                 }).addTo(gMap);
-
                 // Ambulance marker (glowing badge styled exactly like the concept mockup)
                 const badgeColorClass = isCyan ? '' : 'orange';
                 const ambM = L.marker([d.hospitalLat, d.hospitalLng], {
@@ -2587,7 +2487,6 @@
                     }),
                     zIndexOffset: 1000 + idx
                 }).addTo(gMap).bindPopup(`إسعاف → ${d.patientName}`);
-
                 // Animate hospital → patient
                 let step = 0;
                 const timer = setInterval(() => {
@@ -2616,7 +2515,6 @@
                         }, 4000);
                     }
                 }, stepMs);
-
                 // Table row
                 tableHtml += `<tr>
                     <td><i class="fas fa-hospital-alt text-primary me-1"></i>${d.hospitalName}</td>
@@ -2627,22 +2525,23 @@
                     <td class="text-center"><span class="badge bg-success">متحرك 🚑</span></td>
                 </tr>`;
             });
-
             if (dispatches.length === 0) {
                 tableHtml = `<tr><td colspan="6" class="text-center text-success py-3 fw-700">
                     <i class="fas fa-check-circle me-1"></i> لا توجد سيارات إسعاف متحركة حالياً — الجميع في المستشفيات
                 </td></tr>`;
             }
-
             document.getElementById('globalDispatchBody').innerHTML = tableHtml;
-
             // Fit map to markers
             if (dispatches.length > 0) {
                 const bounds = dispatches.map(d => [[d.patientLat, d.patientLng],[d.hospitalLat,d.hospitalLng]]).flat();
                 gMap.fitBounds(bounds, {padding:[30,30]});
+            } else if (hospitals.length > 0) {
+                const bounds = hospitals.map(h => [h.latitude, h.longitude]);
+                gMap.fitBounds(bounds, {padding:[30,30]});
+            } else {
+                gMap.setView([30.0444, 31.2357], 7);
             }
         }
-
         // Expose dispatch map reloading globally
         window.reloadDispatchMap = function() {
             $.getJSON('/AdminDashboard/GetActiveDispatchMap', function(data) {
@@ -2658,10 +2557,14 @@
                 clearMapLayers();
             });
         };
-
         // Run initial load
         window.reloadDispatchMap();
-
+        
+        window.addEventListener('resize', function() {
+            gMap.invalidateSize();
+        });
+        setTimeout(function() { gMap.invalidateSize(); }, 300);
+        setTimeout(function() { gMap.invalidateSize(); }, 1000);
     })();
     </script>
     <!-- Modal: Control Maintenance Mode -->
@@ -2677,7 +2580,6 @@
                 <form action="/AdminDashboard/UpdateMaintenanceSettings" method="post" id="maintenanceForm">
                     @Html.AntiForgeryToken()
                     <div class="modal-body p-4" style="background-color: #F4F7F9;">
-                        
                         <!-- Patient Maintenance -->
                         <div class="card border-0 shadow-sm mb-4 p-3" style="border-radius: 12px; background-color: #ffffff;">
                             <div class="d-flex align-items-center justify-content-between mb-3">
@@ -2691,7 +2593,6 @@
                                 <textarea class="form-control" name="PatientMaintenanceMessage" id="PatientMaintenanceMessage" rows="3" style="border-radius: 8px; font-size: 0.9rem;" required>@Etmen_BLL.Helpers.MaintenanceSettingsHelper.PatientMaintenanceMessage</textarea>
                             </div>
                         </div>
-
                         <!-- Staff Maintenance -->
                         <div class="card border-0 shadow-sm p-3" style="border-radius: 12px; background-color: #ffffff;">
                             <div class="d-flex align-items-center justify-content-between mb-3">
@@ -2705,7 +2606,6 @@
                                 <textarea class="form-control" name="StaffMaintenanceMessage" id="StaffMaintenanceMessage" rows="3" style="border-radius: 8px; font-size: 0.9rem;" required>@Etmen_BLL.Helpers.MaintenanceSettingsHelper.StaffMaintenanceMessage</textarea>
                             </div>
                         </div>
-
                     </div>
                     <div class="modal-footer border-0 p-3" style="background-color: #F4F7F9;">
                         <button type="button" class="btn btn-secondary fw-bold px-4" data-bs-dismiss="modal" style="border-radius: 10px;">إلغاء</button>

@@ -1,270 +1,270 @@
-@model Etmen_BLL.Helpers.PaginatedResult<Etmen_BLL.DTOs.Admin.ProviderListItemDto>
-@{
-    ViewData["Title"] = "إدارة مقدمي الخدمات الطبية والمستشفيات";
-    Layout = "~/Views/Shared/_AdminLayout.cshtml";
-}
-
-<style>
-    .triage-table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0 12px;
-        margin-top: -12px;
-    }
-    .triage-table th {
-        border: none;
-        color: var(--text-muted);
-        font-weight: 800;
-        font-size: 0.85rem;
-        padding: 8px 16px;
-    }
-    .triage-row {
-        background: #FFFFFF;
-        border-radius: 16px;
-        transition: all 0.3s;
-    }
-    .triage-row td {
-        padding: 18px 16px;
-        border-top: 1px solid var(--card-border);
-        border-bottom: 1px solid var(--card-border);
-        background: #FFFFFF;
-        font-size: 0.9rem;
-        font-weight: 600;
-    }
-    .triage-row td:first-child {
-        border-right: 1px solid var(--card-border);
-        border-top-right-radius: 16px;
-        border-bottom-right-radius: 16px;
-    }
-    .triage-row td:last-child {
-        border-left: 1px solid var(--card-border);
-        border-top-left-radius: 16px;
-        border-bottom-left-radius: 16px;
-    }
-    .triage-row:hover td {
-        background: #F9FBFC;
-        border-color: rgba(26, 111, 191, 0.2);
-    }
-    .triage-row:hover {
-        box-shadow: 0 8px 25px rgba(0,0,0,0.03);
-    }
-
-    .badge-pill-custom {
-        font-size: 0.75rem;
-        font-weight: 800;
-        padding: 4px 12px;
-        border-radius: 20px;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-    }
-    .badge-active { background: #E8F8F5; color: #27AE60; }
-    .badge-inactive { background: #F5F7F8; color: #7F8C8D; }
-    .badge-emergency { background: #FDE8E8; color: #E74C3C; }
-
-    /* Beautiful Pagination shape */
-    .pagination-rounded .page-link {
-        border-radius: 50% !important;
-        margin: 0 4px;
-        border: 1px solid #e2e8f0;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        color: #475569;
-        background-color: #ffffff;
-        transition: all 0.2s ease-in-out;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-    }
-    .pagination-rounded .page-item.active .page-link {
-        background-color: var(--primary) !important;
-        border-color: var(--primary) !important;
-        color: white !important;
-        box-shadow: 0 4px 12px rgba(26, 111, 191, 0.3);
-    }
-    .pagination-rounded .page-link:hover {
-        background-color: #f1f5f9;
-        color: var(--primary);
-        border-color: #cbd5e1;
-        transform: translateY(-1px);
-    }
-    
-    @@media (max-width: 575.98px) {
-        .pagination-rounded .page-link {
-            width: 32px !important;
-            height: 32px !important;
-            margin: 0 2px !important;
-            font-size: 0.8rem !important;
-        }
-    }
-</style>
-
-<div class="row g-4 animate__animated animate__fadeIn">
-    
-    <!-- Top actions header -->
-    <div class="col-12 d-flex align-items-center justify-content-between flex-wrap gap-3 mb-2">
-        <div>
-            <h2 class="fw-900 m-0" style="font-weight: 900;">مقدمي الخدمات الطبية والمستشفيات</h2>
-            <p class="text-muted small mb-0"><i class="fas fa-hospital me-1"></i> مراجعة المستشفيات والعيادات، ومراقبة سعة أسرتهم الاستيعابية.</p>
-        </div>
-        <div>
-            <a href="/AdminProviders/Create" class="btn btn-primary rounded-pill px-4 py-2 fw-800">
-                <i class="fas fa-plus me-1"></i> تسجيل منشأة طبية جديدة
-            </a>
-        </div>
-    </div>
-
-    <div class="col-12">
-        <div class="dashboard-card">
-            <h3 class="card-header-sm">
-                <i class="fas fa-list-check text-primary"></i>
-                قائمة المنشآت الطبية النشطة بالمنصة
-            </h3>
-
-            <!-- Search & Filter Area -->
-            <form method="get" action="/AdminProviders" class="row g-2 mb-4 p-3 border rounded-4 bg-light align-items-end">
-                <div class="col-md-5 col-12">
-                    <label class="form-label small fw-bold text-dark">ابحث عن منشأة</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0 rounded-start-pill"><i class="fas fa-search text-muted"></i></span>
-                        <input type="text" name="searchTerm" value="@ViewBag.SearchTerm" class="form-control border-start-0 rounded-end-pill" placeholder="ابحث بالاسم، العنوان، الهاتف..." />
-                    </div>
-                </div>
-                <div class="col-md-4 col-12">
-                    <label class="form-label small fw-bold text-dark">ترتيب حسب</label>
-                    <select name="sortBy" class="form-select rounded-pill">
-                        <option value="" selected="@(string.IsNullOrEmpty(ViewBag.SortBy))">الأحدث تسجيلاً</option>
-                        <option value="name_asc" selected="@(ViewBag.SortBy == "name_asc")">الاسم تصاعدياً (أ-ي)</option>
-                        <option value="name_desc" selected="@(ViewBag.SortBy == "name_desc")">الاسم تنازلياً (ي-أ)</option>
-                        <option value="beds_desc" selected="@(ViewBag.SortBy == "beds_desc")">الأسرة المتاحة (الأكثر أولاً)</option>
-                        <option value="beds_asc" selected="@(ViewBag.SortBy == "beds_asc")">الأسرة المتاحة (الأقل أولاً)</option>
-                        <option value="nearest" selected="@(ViewBag.SortBy == "nearest")">الأقرب جغرافياً</option>
-                        <option value="farthest" selected="@(ViewBag.SortBy == "farthest")">الأبعد جغرافياً</option>
-                    </select>
-                </div>
-                <div class="col-md-3 col-12 d-flex gap-2">
-                    <button type="submit" class="btn btn-primary rounded-pill w-100 fw-bold"><i class="fas fa-filter me-1"></i> تصفية</button>
-                    @if (!string.IsNullOrEmpty(ViewBag.SearchTerm) || !string.IsNullOrEmpty(ViewBag.SortBy))
-                    {
-                        <a href="/AdminProviders" class="btn btn-outline-secondary rounded-pill w-100 fw-bold">إلغاء</a>
-                    }
-                </div>
-            </form>
-
-            @if (Model.Items.Count == 0)
-            {
-                <div class="text-center py-5 text-muted opacity-75">
-                    <i class="fas fa-hospital-user fs-1 text-primary mb-3"></i>
-                    <h5>لا توجد أي منشآت طبية مسجلة حالياً.</h5>
-                    <p class="small mb-0">ابدأ بتسجيل مستشفى أو عيادة استقبال لفرز حالات الطوارئ.</p>
-                </div>
-            }
-            else
-            {
-                <div class="table-responsive">
-                    <table class="triage-table">
-                        <thead>
-                            <tr>
-                                <th>اسم المنشأة</th>
-                                <th>نوع المنشأة</th>
-                                <th>العنوان</th>
-                                <th>الهاتف</th>
-                                <th>الأسرة المتاحة</th>
-                                <th>وضع الطوارئ</th>
-                                <th>الحالة</th>
-                                <th class="text-center">الإجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in Model.Items)
-                            {
-                                <tr class="triage-row">
-                                    <td>
-                                        <div class="fw-800 text-dark">@item.Name</div>
-                                        <div class="text-muted small">ID: #@item.Id</div>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-light text-dark border p-2 rounded-3">@item.Type</span>
-                                    </td>
-                                    <td>@item.Address</td>
-                                    <td class="font-monospace">@item.Phone</td>
-                                    <td class="font-monospace fw-800 text-primary">@item.AvailableBeds</td>
-                                    <td>
-                                        @if (item.IsEmergencyCenter)
-                                        {
-                                            <span class="badge-pill-custom badge-emergency">
-                                                <i class="fas fa-truck-medical"></i> استقبال طوارئ
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge-pill-custom badge-inactive">رعاية عادية</span>
-                                        }
-                                    </td>
-                                    <td>
-                                        <span class="badge-pill-custom @(item.IsActive ? "badge-active" : "badge-inactive")">
-                                            <i class="fas @(item.IsActive ? "fa-circle-check" : "fa-circle-xmark")"></i>
-                                            @(item.IsActive ? "نشط" : "معطل")
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex align-items-center justify-content-center gap-2">
-                                            <a href="/AdminProviders/Edit/@item.Id" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-700">
-                                                <i class="fas fa-edit"></i> تعديل
-                                            </a>
-                                            <form asp-controller="AdminProviders" asp-action="Delete" method="post" onsubmit="return confirm('هل أنت متأكد من حذف هذه المنشأة نهائياً؟');" class="m-0">
-                                                <input type="hidden" name="Id" value="@item.Id" />
-                                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-700">
-                                                    <i class="fas fa-trash-can"></i> حذف
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Pagination -->
-                @if (Model.TotalCount > Model.PageSize)
-                {
-                    var totalPages = (int)Math.Ceiling((double)Model.TotalCount / Model.PageSize);
-                    <div class="d-flex justify-content-between align-items-center mt-4 flex-wrap gap-2">
-                        <div class="small text-muted">
-                            عرض <strong>@Model.Items.Count</strong> من إجمالي <strong>@Model.TotalCount</strong> منشأة
-                        </div>
-                        <nav>
-                            <ul class="pagination pagination-rounded m-0">
-                                @if (Model.PageNumber > 1)
-                                {
-                                    <li class="page-item">
-                                        <a class="page-link" href="/AdminProviders?pageNumber=@(Model.PageNumber - 1)&searchTerm=@ViewBag.SearchTerm&sortBy=@ViewBag.SortBy" aria-label="Previous">
-                                            <i class="fas fa-chevron-right"></i>
-                                        </a>
-                                    </li>
-                                }
-                                @for (int i = 1; i <= totalPages; i++)
-                                {
-                                    <li class="page-item @(Model.PageNumber == i ? "active" : "")">
-                                        <a class="page-link" href="/AdminProviders?pageNumber=@i&searchTerm=@ViewBag.SearchTerm&sortBy=@ViewBag.SortBy">@i</a>
-                                    </li>
-                                }
-                                @if (Model.PageNumber < totalPages)
-                                {
-                                    <li class="page-item">
-                                        <a class="page-link" href="/AdminProviders?pageNumber=@(Model.PageNumber + 1)&searchTerm=@ViewBag.SearchTerm&sortBy=@ViewBag.SortBy" aria-label="Next">
-                                            <i class="fas fa-chevron-left"></i>
-                                        </a>
-                                    </li>
-                                }
-                            </ul>
-                        </nav>
-                    </div>
-                }
-            }
-        </div>
-    </div>
-</div>
+﻿@model Etmen_BLL.Helpers.PaginatedResult<Etmen_BLL.DTOs.Admin.ProviderListItemDto>
+@{
+    ViewData["Title"] = "إدارة مقدمي الخدمات الطبية والمستشفيات";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .triage-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 12px;
+        margin-top: -12px;
+    }
+    .triage-table th {
+        border: none;
+        color: var(--text-muted);
+        font-weight: 800;
+        font-size: 0.85rem;
+        padding: 8px 16px;
+    }
+    .triage-row {
+        background: #FFFFFF;
+        border-radius: 16px;
+        transition: all 0.3s;
+    }
+    .triage-row td {
+        padding: 18px 16px;
+        border-top: 1px solid var(--card-border);
+        border-bottom: 1px solid var(--card-border);
+        background: #FFFFFF;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+    .triage-row td:first-child {
+        border-right: 1px solid var(--card-border);
+        border-top-right-radius: 16px;
+        border-bottom-right-radius: 16px;
+    }
+    .triage-row td:last-child {
+        border-left: 1px solid var(--card-border);
+        border-top-left-radius: 16px;
+        border-bottom-left-radius: 16px;
+    }
+    .triage-row:hover td {
+        background: #F9FBFC;
+        border-color: rgba(26, 111, 191, 0.2);
+    }
+    .triage-row:hover {
+        box-shadow: 0 8px 25px rgba(0,0,0,0.03);
+    }
+
+    .badge-pill-custom {
+        font-size: 0.75rem;
+        font-weight: 800;
+        padding: 4px 12px;
+        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .badge-active { background: #E8F8F5; color: #27AE60; }
+    .badge-inactive { background: #F5F7F8; color: #7F8C8D; }
+    .badge-emergency { background: #FDE8E8; color: #E74C3C; }
+
+    /* Beautiful Pagination shape */
+    .pagination-rounded .page-link {
+        border-radius: 50% !important;
+        margin: 0 4px;
+        border: 1px solid #e2e8f0;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        color: #475569;
+        background-color: #ffffff;
+        transition: all 0.2s ease-in-out;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .pagination-rounded .page-item.active .page-link {
+        background-color: var(--primary) !important;
+        border-color: var(--primary) !important;
+        color: white !important;
+        box-shadow: 0 4px 12px rgba(26, 111, 191, 0.3);
+    }
+    .pagination-rounded .page-link:hover {
+        background-color: #f1f5f9;
+        color: var(--primary);
+        border-color: #cbd5e1;
+        transform: translateY(-1px);
+    }
+    
+    @@media (max-width: 575.98px) {
+        .pagination-rounded .page-link {
+            width: 32px !important;
+            height: 32px !important;
+            margin: 0 2px !important;
+            font-size: 0.8rem !important;
+        }
+    }
+</style>
+
+<div class="row g-4 animate__animated animate__fadeIn">
+    
+    <!-- Top actions header -->
+    <div class="col-12 d-flex align-items-center justify-content-between flex-wrap gap-3 mb-2">
+        <div>
+            <h2 class="fw-900 m-0" style="font-weight: 900;">مقدمي الخدمات الطبية والمستشفيات</h2>
+            <p class="text-muted small mb-0"><i class="fas fa-hospital me-1"></i> مراجعة المستشفيات والعيادات، ومراقبة سعة أسرتهم الاستيعابية.</p>
+        </div>
+        <div>
+            <a href="/AdminProviders/Create" class="btn btn-primary rounded-pill px-4 py-2 fw-800">
+                <i class="fas fa-plus me-1"></i> تسجيل منشأة طبية جديدة
+            </a>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="dashboard-card">
+            <h3 class="card-header-sm">
+                <i class="fas fa-list-check text-primary"></i>
+                قائمة المنشآت الطبية النشطة بالمنصة
+            </h3>
+
+            <!-- Search & Filter Area -->
+            <form method="get" action="/AdminProviders" class="row g-2 mb-4 p-3 border rounded-4 bg-light align-items-end">
+                <div class="col-md-5 col-12">
+                    <label class="form-label small fw-bold text-dark">ابحث عن منشأة</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0 rounded-start-pill"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" name="searchTerm" value="@ViewBag.SearchTerm" class="form-control border-start-0 rounded-end-pill" placeholder="ابحث بالاسم، العنوان، الهاتف..." />
+                    </div>
+                </div>
+                <div class="col-md-4 col-12">
+                    <label class="form-label small fw-bold text-dark">ترتيب حسب</label>
+                    <select name="sortBy" class="form-select rounded-pill">
+                        <option value="" selected="@(string.IsNullOrEmpty(ViewBag.SortBy))">الأحدث تسجيلاً</option>
+                        <option value="name_asc" selected="@(ViewBag.SortBy == "name_asc")">الاسم تصاعدياً (أ-ي)</option>
+                        <option value="name_desc" selected="@(ViewBag.SortBy == "name_desc")">الاسم تنازلياً (ي-أ)</option>
+                        <option value="beds_desc" selected="@(ViewBag.SortBy == "beds_desc")">الأسرة المتاحة (الأكثر أولاً)</option>
+                        <option value="beds_asc" selected="@(ViewBag.SortBy == "beds_asc")">الأسرة المتاحة (الأقل أولاً)</option>
+                        <option value="nearest" selected="@(ViewBag.SortBy == "nearest")">الأقرب جغرافياً</option>
+                        <option value="farthest" selected="@(ViewBag.SortBy == "farthest")">الأبعد جغرافياً</option>
+                    </select>
+                </div>
+                <div class="col-md-3 col-12 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary rounded-pill w-100 fw-bold"><i class="fas fa-filter me-1"></i> تصفية</button>
+                    @if (!string.IsNullOrEmpty(ViewBag.SearchTerm) || !string.IsNullOrEmpty(ViewBag.SortBy))
+                    {
+                        <a href="/AdminProviders" class="btn btn-outline-secondary rounded-pill w-100 fw-bold">إلغاء</a>
+                    }
+                </div>
+            </form>
+
+            @if (Model.Items.Count == 0)
+            {
+                <div class="text-center py-5 text-muted opacity-75">
+                    <i class="fas fa-hospital-user fs-1 text-primary mb-3"></i>
+                    <h5>لا توجد أي منشآت طبية مسجلة حالياً.</h5>
+                    <p class="small mb-0">ابدأ بتسجيل مستشفى أو عيادة استقبال لفرز حالات الطوارئ.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="triage-table">
+                        <thead>
+                            <tr>
+                                <th>اسم المنشأة</th>
+                                <th>نوع المنشأة</th>
+                                <th>العنوان</th>
+                                <th>الهاتف</th>
+                                <th>الأسرة المتاحة</th>
+                                <th>وضع الطوارئ</th>
+                                <th>الحالة</th>
+                                <th class="text-center">الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Items)
+                            {
+                                <tr class="triage-row">
+                                    <td>
+                                        <div class="fw-800 text-dark">@item.Name</div>
+                                        <div class="text-muted small">ID: #@item.Id</div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border p-2 rounded-3">@item.Type</span>
+                                    </td>
+                                    <td>@item.Address</td>
+                                    <td class="font-monospace">@item.Phone</td>
+                                    <td class="font-monospace fw-800 text-primary">@item.AvailableBeds</td>
+                                    <td>
+                                        @if (item.IsEmergencyCenter)
+                                        {
+                                            <span class="badge-pill-custom badge-emergency">
+                                                <i class="fas fa-truck-medical"></i> استقبال طوارئ
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge-pill-custom badge-inactive">رعاية عادية</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="badge-pill-custom @(item.IsActive ? "badge-active" : "badge-inactive")">
+                                            <i class="fas @(item.IsActive ? "fa-circle-check" : "fa-circle-xmark")"></i>
+                                            @(item.IsActive ? "نشط" : "معطل")
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center justify-content-center gap-2">
+                                            <a href="/AdminProviders/Edit/@item.Id" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-700">
+                                                <i class="fas fa-edit"></i> تعديل
+                                            </a>
+                                            <form asp-controller="AdminProviders" asp-action="Delete" method="post" onsubmit="return confirm('هل أنت متأكد من حذف هذه المنشأة نهائياً؟');" class="m-0">
+                                                <input type="hidden" name="Id" value="@item.Id" />
+                                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-700">
+                                                    <i class="fas fa-trash-can"></i> حذف
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                @if (Model.TotalCount > Model.PageSize)
+                {
+                    var totalPages = (int)Math.Ceiling((double)Model.TotalCount / Model.PageSize);
+                    <div class="d-flex justify-content-between align-items-center mt-4 flex-wrap gap-2">
+                        <div class="small text-muted">
+                            عرض <strong>@Model.Items.Count</strong> من إجمالي <strong>@Model.TotalCount</strong> منشأة
+                        </div>
+                        <nav>
+                            <ul class="pagination pagination-rounded m-0">
+                                @if (Model.PageNumber > 1)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" href="/AdminProviders?pageNumber=@(Model.PageNumber - 1)&searchTerm=@ViewBag.SearchTerm&sortBy=@ViewBag.SortBy" aria-label="Previous">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                }
+                                @for (int i = 1; i <= totalPages; i++)
+                                {
+                                    <li class="page-item @(Model.PageNumber == i ? "active" : "")">
+                                        <a class="page-link" href="/AdminProviders?pageNumber=@i&searchTerm=@ViewBag.SearchTerm&sortBy=@ViewBag.SortBy">@i</a>
+                                    </li>
+                                }
+                                @if (Model.PageNumber < totalPages)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" href="/AdminProviders?pageNumber=@(Model.PageNumber + 1)&searchTerm=@ViewBag.SearchTerm&sortBy=@ViewBag.SortBy" aria-label="Next">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+                        </nav>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>

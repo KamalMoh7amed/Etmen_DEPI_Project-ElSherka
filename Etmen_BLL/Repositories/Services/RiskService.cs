@@ -116,7 +116,9 @@ namespace Etmen_BLL.Repositories.Services
                     News2Score = news2.Score,
                     News2Rating = news2.Rating,
                     News2RatingArabic = news2.RatingArabic,
-                    News2Breakdown = news2.Breakdown
+                    News2Breakdown = news2.Breakdown,
+                    Latitude = dto.Latitude,
+                    Longitude = dto.Longitude
                 });
             }
 
@@ -220,7 +222,9 @@ namespace Etmen_BLL.Repositories.Services
                     News2Score = news2.Score,
                     News2Rating = news2.Rating,
                     News2RatingArabic = news2.RatingArabic,
-                    News2Breakdown = news2.Breakdown
+                    News2Breakdown = news2.Breakdown,
+                    Latitude = dto.Latitude,
+                    Longitude = dto.Longitude
                 });
             }
             catch (Exception ex)
@@ -276,7 +280,9 @@ namespace Etmen_BLL.Repositories.Services
 
             var escalationResult = await _criticalCareEscalationService.EscalateIfNeededAsync(patient, assessment, new RiskInputDto
             {
-                Symptoms = assessment.Symptoms
+                Symptoms  = assessment.Symptoms,
+                Latitude  = riskResult.Latitude,
+                Longitude = riskResult.Longitude
             });
 
             // ── Send risk alert emails for High / Emergency levels (queued background task) ─────

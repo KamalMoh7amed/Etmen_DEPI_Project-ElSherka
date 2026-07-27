@@ -1,4 +1,4 @@
-using Etmen_BLL.DTOs.Auth;
+﻿using Etmen_BLL.DTOs.Auth;
 using Etmen_BLL.Repositories.IServices;
 using Etmen_DAL.Repositories.Interfaces;
 using Etmen_Domain.Entities;
@@ -39,9 +39,7 @@ namespace Etmen_PL.Controllers
             _logger = logger;
         }
 
-        // ─────────────────────────────────────────────────────────
-        // STEP 1 — Select Role (entry point for new users)
-        // ─────────────────────────────────────────────────────────
+       
 
         [HttpGet]
         [AllowAnonymous]
@@ -53,9 +51,7 @@ namespace Etmen_PL.Controllers
             return View();
         }
 
-        // ─────────────────────────────────────────────────────────
-        // STEP 2 — Register (with role pre-selected)
-        // ─────────────────────────────────────────────────────────
+        
 
         [HttpGet]
         [AllowAnonymous]
@@ -108,10 +104,6 @@ namespace Etmen_PL.Controllers
 
             return View(dto);
         }
-
-        // ─────────────────────────────────────────────────────────
-        // Registration for Invited Staff via Link
-        // ─────────────────────────────────────────────────────────
 
         [HttpGet]
         [AllowAnonymous]
@@ -241,9 +233,6 @@ namespace Etmen_PL.Controllers
             return await RedirectByRoleAsync("HospitalStaff");
         }
 
-        // ─────────────────────────────────────────────────────────
-        // Force Password Change on First Login
-        // ─────────────────────────────────────────────────────────
 
         [HttpGet]
         [Authorize]
@@ -288,9 +277,7 @@ namespace Etmen_PL.Controllers
             return await RedirectByRoleAsync();
         }
 
-        // ─────────────────────────────────────────────────────────
         // Email Verification
-        // ─────────────────────────────────────────────────────────
 
         [HttpGet]
         [AllowAnonymous]
@@ -345,9 +332,7 @@ namespace Etmen_PL.Controllers
             return RedirectToAction(nameof(VerifyEmailNotice));
         }
 
-        // ─────────────────────────────────────────────────────────
         // Login
-        // ─────────────────────────────────────────────────────────
 
         [HttpGet]
         [AllowAnonymous]
@@ -380,7 +365,6 @@ namespace Etmen_PL.Controllers
                 return await RedirectByRoleAsync(result.Data?.Role);
             }
 
-            // Check lockouts by checking both Errors and ErrorMessage
             bool isLocked = (result.ErrorMessage != null && (result.ErrorMessage.Contains("مقفل") || result.ErrorMessage.Contains("locked"))) ||
                             result.Errors.Any(e => e.Contains("مقفل") || e.Contains("locked"));
 
@@ -397,9 +381,7 @@ namespace Etmen_PL.Controllers
             return View(dto);
         }
 
-        // ─────────────────────────────────────────────────────────
         // Logout
-        // ─────────────────────────────────────────────────────────
 
         [HttpPost]
         [Authorize]
@@ -412,9 +394,7 @@ namespace Etmen_PL.Controllers
             return RedirectToAction(nameof(Login));
         }
 
-        // ─────────────────────────────────────────────────────────
-        // Forgot / Reset Password
-        // ─────────────────────────────────────────────────────────
+        // Reset Password
 
         [HttpGet]
         [AllowAnonymous]
@@ -483,11 +463,8 @@ namespace Etmen_PL.Controllers
         [AllowAnonymous]
         public IActionResult AccessDenied() => View();
 
-        // ─────────────────────────────────────────────────────────
         // Helpers
-        // ─────────────────────────────────────────────────────────
-
-        private async Task<IActionResult> RedirectByRoleAsync(string? role = null)
+         private async Task<IActionResult> RedirectByRoleAsync(string? role = null)
         {
             var userId = _userManager.GetUserId(User);
             if (!string.IsNullOrEmpty(userId))

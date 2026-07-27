@@ -22,5 +22,7 @@ namespace Etmen_BLL.Repositories.IServices
         Task<ServiceResult> LogActivityAsync(int staffProfileId, string action, string? details);
         Task<ServiceResult<List<StaffActivityLogDto>>> GetLogsAsync(int providerId);
         Task<ServiceResult<StaffStatsDto>> GetStatsAsync(int providerId);
+        Task<ServiceResult<List<HospitalStaffQueueItemDto>>> GetAdmittedPatientsAsync(int providerId);
+        Task<ServiceResult<List<StaffActivityLogDto>>> GetPatientJourneyEventsAsync(int requestId);
     }
 }

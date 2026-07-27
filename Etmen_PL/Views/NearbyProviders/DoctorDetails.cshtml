@@ -1,469 +1,469 @@
-@model Etmen_PL.Models.ViewModels.Patient.DoctorDetailsViewModel
-@{
-    ViewData["Title"] = "تفاصيل الطبيب والحجز";
-    Layout = "~/Views/Shared/_PatientLayout.cshtml";
-
-    // Group available slots by date
-    var groupedSlots = Model.AvailableSlots
-        .Where(s => !s.IsBooked)
-        .GroupBy(s => s.Date.Date)
-        .OrderBy(g => g.Key)
-        .ToList();
-}
-
-<style>
-    :root {
-        --primary-gradient: linear-gradient(135deg, #1A6FBF, #3cd5cb);
-        --card-radius: 20px;
-        --border-color: #E2E8F0;
-    }
-
-    .doctor-header-card {
-        background: white;
-        border-radius: var(--card-radius);
-        border: 1px solid var(--border-color);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.02);
-        overflow: hidden;
-    }
-
-    .doctor-avatar-box {
-        width: 110px;
-        height: 110px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #1A6FBF, #00E676);
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 3.5rem;
-        box-shadow: 0 8px 20px rgba(26,111,191,0.15);
-    }
-
-    .tag-badge {
-        font-size: 0.75rem;
-        font-weight: 700;
-        padding: 6px 12px;
-        border-radius: 30px;
-        border: 1px solid;
-    }
-
-    .tag-primary {
-        background-color: rgba(26, 111, 191, 0.08);
-        border-color: rgba(26, 111, 191, 0.2);
-        color: #1A6FBF;
-    }
-
-    .tag-success {
-        background-color: rgba(46, 204, 113, 0.08);
-        border-color: rgba(46, 204, 113, 0.2);
-        color: #2ecc71;
-    }
-
-    .info-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 12px 16px;
-        background-color: #F8FAFC;
-        border-radius: 12px;
-        border: 1px solid #F1F5F9;
-    }
-
-    .info-icon {
-        width: 40px;
-        height: 40px;
-        background: white;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #1A6FBF;
-        border: 1px solid var(--border-color);
-        box-shadow: 0 4px 10px rgba(0,0,0,0.01);
-    }
-
-    /* Vezeeta Booking Slider CSS */
-    .booking-sidebar-card {
-        background: white;
-        border-radius: var(--card-radius);
-        border: 1px solid var(--border-color);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.02);
-        position: sticky;
-        top: 24px;
-    }
-
-    .calendar-container {
-        position: relative;
-        overflow: hidden;
-    }
-
-    .calendar-slider {
-        display: flex;
-        gap: 10px;
-        transition: transform 0.4s ease;
-    }
-
-    .calendar-day-col {
-        flex: 0 0 calc(33.33% - 7px);
-        min-width: calc(33.33% - 7px);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        overflow: hidden;
-        text-align: center;
-        background: white;
-    }
-
-    .calendar-day-header {
-        background-color: #1A6FBF;
-        color: white;
-        padding: 8px 4px;
-        font-size: 0.8rem;
-        font-weight: 700;
-    }
-
-    .calendar-day-header.no-slots {
-        background-color: #7F8C8D;
-    }
-
-    .slots-container {
-        padding: 10px 6px;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        max-height: 250px;
-        overflow-y: auto;
-    }
-
-    .slot-time-btn {
-        width: 100%;
-        padding: 6px 4px;
-        border: 1px solid var(--border-color);
-        background-color: #F8FAFC;
-        border-radius: 6px;
-        font-size: 0.75rem;
-        font-weight: bold;
-        color: #2C3E50;
-        transition: all 0.2s;
-    }
-
-    .slot-time-btn:hover {
-        background-color: #1A6FBF;
-        color: white;
-        border-color: #1A6FBF;
-    }
-
-    .slot-time-btn.active {
-        background-color: #00E676;
-        color: white;
-        border-color: #00E676;
-        box-shadow: 0 4px 10px rgba(0, 230, 118, 0.2);
-    }
-
-    .calendar-nav-btn {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background: white;
-        border: 1px solid var(--border-color);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #1A6FBF;
-        cursor: pointer;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        transition: all 0.2s;
-        z-index: 10;
-    }
-
-    .calendar-nav-btn:hover {
-        background-color: #1A6FBF;
-        color: white;
-    }
-
-    .review-card {
-        padding: 16px;
-        border-radius: 12px;
-        border: 1px solid #F1F5F9;
-        background-color: #F8FAFC;
-        margin-bottom: 12px;
-    }
-
-    .stars-box {
-        color: #F39C12;
-        font-size: 0.85rem;
-    }
-</style>
-
-<div class="container-fluid py-4">
-    <!-- Breadcrumb back -->
-    <div class="mb-4">
-        <a href="/NearbyProviders" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-            <i class="fas fa-arrow-right ms-1"></i> العودة للبحث عن المراكز
-        </a>
-    </div>
-
-    <div class="row g-4">
-        <!-- Right Column: Doctor Profile Info -->
-        <div class="col-lg-8 col-12">
-            <div class="doctor-header-card p-4 mb-4">
-                <div class="d-flex align-items-center gap-4 flex-wrap flex-md-nowrap mb-4">
-                    <!-- Profile image/avatar replacement -->
-                    <div class="doctor-avatar-box flex-shrink-0" style="position: relative; overflow: hidden; border: 3px solid #fff; box-shadow: 0 8px 25px rgba(26,111,191,0.15);">
-                        @if (!string.IsNullOrEmpty(Model.ProfilePicture))
-                        {
-                            <img src="@Model.ProfilePicture" alt="@Model.DoctorName" style="width: 100%; height: 100%; object-fit: cover;" />
-                        }
-                        else
-                        {
-                            <i class="fas fa-user-md"></i>
-                        }
-                    </div>
-
-                    <div class="flex-grow-1">
-                        <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
-                            <h3 class="fw-bold m-0 text-dark">د. @Model.DoctorName</h3>
-                            <span class="tag-badge tag-primary">حجز مؤكد فوري</span>
-                            <span class="tag-badge tag-success">حائز على ثقة المرضى</span>
-                        </div>
-                        <h6 class="text-primary fw-bold mb-3">@Model.Specialization</h6>
-                        
-                        <div class="d-flex align-items-center gap-3 flex-wrap text-muted small">
-                            <span>
-                                <i class="fas fa-star text-warning"></i> 
-                                @(ViewBag.AverageRating != null && (double)ViewBag.AverageRating > 0 ? ((double)ViewBag.AverageRating).ToString("F1") : "لا يوجد تقييم") 
-                                (@(ViewBag.Reviews != null ? ((List<Etmen_BLL.DTOs.Review.ReviewDto>)ViewBag.Reviews).Count : 0) تقييم)
-                            </span>
-                            <span>|</span>
-                            <span><i class="fas fa-user-clock"></i> خبرة @Model.YearsOfExperience سنوات</span>
-                            <span>|</span>
-                            <span><i class="fas fa-hospital-user"></i> @Model.ProviderName</span>
-                            @if (ViewBag.DistanceKm != null)
-                            {
-                                <span>|</span>
-                                <span><i class="fas fa-route text-primary"></i> يبعد عنك @(((double)ViewBag.DistanceKm).ToString("F1")) كم</span>
-                            }
-                        </div>
-                    </div>
-                </div>
-
-                <hr class="opacity-50 my-4" />
-
-                <h5 class="fw-bold text-dark mb-3"><i class="fas fa-address-card text-primary ms-1"></i> نبذة عن الطبيب</h5>
-                <p class="text-muted leading-relaxed" style="font-size: 0.95rem;">@Model.Bio</p>
-
-                <div class="row g-3 mt-4">
-                    <div class="col-md-6">
-                        <div class="info-item">
-                            <div class="info-icon"><i class="fas fa-money-bill-wave"></i></div>
-                            <div>
-                                <small class="text-muted d-block">كشف العيادة</small>
-                                <strong class="text-dark">@Model.ConsultationFee.ToString("F0") ج.م.</strong>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="info-item">
-                            <div class="info-icon"><i class="fas fa-map-marker-alt"></i></div>
-                            <div>
-                                <small class="text-muted d-block">العنوان والفرع</small>
-                                <strong class="text-dark">
-                                    @Model.ProviderAddress
-                                    @if (ViewBag.DistanceKm != null)
-                                    {
-                                        <span class="text-primary fs-7 fw-bold d-block mt-1"><i class="fas fa-route ms-1"></i> يبعد عنك @(((double)ViewBag.DistanceKm).ToString("F1")) كم</span>
-                                    }
-                                </strong>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="info-item">
-                            <div class="info-icon"><i class="fas fa-briefcase-medical"></i></div>
-                            <div>
-                                <small class="text-muted d-block">المنشأة الطبية</small>
-                                <strong class="text-dark">@Model.ProviderName (@(Model.ProviderType == "Hospital" ? "مستشفى" : "عيادة تخصصية"))</strong>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="info-item">
-                            <div class="info-icon"><i class="fas fa-id-card"></i></div>
-                            <div>
-                                <small class="text-muted d-block">رقم الترخيص الطبي</small>
-                                <strong class="text-dark">@(string.IsNullOrEmpty(Model.LicenseNumber) ? "مسجل ومعتمد" : Model.LicenseNumber)</strong>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Reviews Section -->
-            <div class="doctor-header-card p-4">
-                <h5 class="fw-bold text-dark mb-4"><i class="fas fa-comments text-primary ms-1"></i> آراء وتقييمات المرضى</h5>
-                
-                @if (ViewBag.Reviews == null || !((List<Etmen_BLL.DTOs.Review.ReviewDto>)ViewBag.Reviews).Any())
-                {
-                    <div class="alert alert-light border-0 rounded-3 text-center py-4">
-                        <i class="far fa-comment-alt fa-2x mb-2 text-muted"></i>
-                        <p class="mb-0 small text-secondary fw-semibold">لا توجد تقييمات لهذا الطبيب بعد. كن أول من يقيم!</p>
-                    </div>
-                }
-                else
-                {
-                    foreach (var review in (List<Etmen_BLL.DTOs.Review.ReviewDto>)ViewBag.Reviews)
-                    {
-                        <div class="review-card">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <strong class="text-dark" style="font-size: 0.9rem;">@review.PatientName</strong>
-                                <div class="stars-box">
-                                    @for (int i = 1; i <= 5; i++)
-                                    {
-                                        if (i <= review.Rating)
-                                        {
-                                            <i class="fas fa-star text-warning"></i>
-                                        }
-                                        else
-                                        {
-                                            <i class="far fa-star text-muted"></i>
-                                        }
-                                    }
-                                </div>
-                            </div>
-                            <p class="text-muted small mb-0">@review.Comment</p>
-                            <small class="text-muted text-start d-block mt-1" style="font-size: 0.75rem;">@review.CreatedAt.ToString("yyyy-MM-dd")</small>
-                        </div>
-                    }
-                }
-            </div>
-        </div>
-
-        <!-- Left Column: Sticky Booking Box -->
-        <div class="col-lg-4 col-12">
-            <div class="booking-sidebar-card p-4">
-                <h5 class="fw-bold text-dark text-center mb-3">📅 احجز موعد كشف الآن</h5>
-                <p class="text-muted text-center small mb-4">اختر اليوم والوقت المناسبين لحجز موعد الكشف المباشر</p>
-
-                <!-- Sliding Calendar Wrapper -->
-                <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
-                    <div class="calendar-nav-btn" id="prevDayBtn"><i class="fas fa-chevron-right"></i></div>
-                    <h6 class="m-0 fw-bold text-primary">جدول المواعيد المتاحة</h6>
-                    <div class="calendar-nav-btn" id="nextDayBtn"><i class="fas fa-chevron-left"></i></div>
-                </div>
-
-                <div class="calendar-container mb-4">
-                    <div class="calendar-slider" id="calendarSlider">
-                        @if (!groupedSlots.Any())
-                        {
-                            <div class="text-center py-5 text-muted w-100">
-                                <i class="far fa-calendar-times fs-2 mb-3 text-secondary"></i>
-                                <h6 class="small fw-bold">عذراً، لا توجد مواعيد متاحة حالياً</h6>
-                                <p class="small text-muted mb-0">يرجى مراجعة العيادة في وقت لاحق.</p>
-                            </div>
-                        }
-                        else
-                        {
-                            @for (int i = 0; i < Math.Max(3, groupedSlots.Count); i++)
-                            {
-                                var dayHasSlots = i < groupedSlots.Count;
-                                var dateVal = dayHasSlots ? groupedSlots[i].Key : DateTime.Today.AddDays(i);
-                                
-                                string dayName = dateVal.Date == DateTime.Today ? "اليوم" 
-                                               : dateVal.Date == DateTime.Today.AddDays(1) ? "غداً" 
-                                               : dateVal.ToString("dddd", new System.Globalization.CultureInfo("ar-EG"));
-
-                                <div class="calendar-day-col">
-                                    <div class="calendar-day-header @(dayHasSlots ? "" : "no-slots")">
-                                        <div>@dayName</div>
-                                        <div class="small fw-normal">@dateVal.ToString("d/M")</div>
-                                    </div>
-                                    <div class="slots-container">
-                                        @if (dayHasSlots)
-                                        {
-                                            @foreach (var slot in groupedSlots[i])
-                                            {
-                                                var timeStr = slot.StartTime.ToString(@"hh\:mm");
-                                                var period = slot.StartTime.Hours >= 12 ? "م" : "ص";
-                                                var displayTime = $"{(slot.StartTime.Hours > 12 ? slot.StartTime.Hours - 12 : slot.StartTime.Hours == 0 ? 12 : slot.StartTime.Hours)}:{slot.StartTime.Minutes:D2} {period}";
-
-                                                <button type="button" class="slot-time-btn" onclick="selectBookingSlot(this, @slot.Id)">
-                                                    @displayTime
-                                                </button>
-                                            }
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted small py-4 d-block">لا يوجد مواعيد</span>
-                                        }
-                                    </div>
-                                </div>
-                            }
-                        }
-                    </div>
-                </div>
-
-                <!-- Booking Action Form -->
-                <form asp-controller="NearbyProviders" asp-action="Book" method="post" id="detailsBookForm">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="providerId" value="@Model.ProviderId" />
-                    <input type="hidden" name="slotId" id="detailsSlotIdInput" />
-                    @if (Model.DoctorId.HasValue)
-                    {
-                        <input type="hidden" name="doctorId" value="@Model.DoctorId.Value" />
-                    }
-
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-success rounded-pill py-3 fw-bold btn-success-custom" id="detailsConfirmBtn" disabled style="font-size: 0.95rem;">
-                            <i class="fas fa-check-circle me-1"></i> تأكيد الحجز للموعد المختار
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-@section Scripts {
-    <script>
-        let currentSlide = 0;
-
-        function selectBookingSlot(element, slotId) {
-            // Remove active classes
-            $('.slot-time-btn').removeClass('active');
-            
-            // Add active class to clicked button
-            $(element).addClass('active');
-
-            // Set slot input ID
-            $('#detailsSlotIdInput').val(slotId);
-
-            // Enable submit button
-            $('#detailsConfirmBtn').prop('disabled', false);
-        }
-
-        $(document).ready(function() {
-            const $slider = $('#calendarSlider');
-            const totalCols = $('.calendar-day-col').length;
-            const maxSlides = Math.max(0, totalCols - 3);
-
-            $('#nextDayBtn').click(function() {
-                if (currentSlide < maxSlides) {
-                    currentSlide++;
-                    updateSliderPosition();
-                }
-            });
-
-            $('#prevDayBtn').click(function() {
-                if (currentSlide > 0) {
-                    currentSlide--;
-                    updateSliderPosition();
-                }
-            });
-
-            function updateSliderPosition() {
-                // Calculate percentage shift (each column has width 33.33%)
-                const shiftPercent = currentSlide * (100 / 3);
-                $slider.css('transform', `translateX(${shiftPercent}%)`);
-            }
-        });
-    </script>
-}
+﻿@model Etmen_PL.Models.ViewModels.Patient.DoctorDetailsViewModel
+@{
+    ViewData["Title"] = "تفاصيل الطبيب والحجز";
+    Layout = "~/Views/Shared/_PatientLayout.cshtml";
+
+    // Group available slots by date
+    var groupedSlots = Model.AvailableSlots
+        .Where(s => !s.IsBooked)
+        .GroupBy(s => s.Date.Date)
+        .OrderBy(g => g.Key)
+        .ToList();
+}
+
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #1A6FBF, #3cd5cb);
+        --card-radius: 20px;
+        --border-color: #E2E8F0;
+    }
+
+    .doctor-header-card {
+        background: white;
+        border-radius: var(--card-radius);
+        border: 1px solid var(--border-color);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+        overflow: hidden;
+    }
+
+    .doctor-avatar-box {
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #1A6FBF, #00E676);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3.5rem;
+        box-shadow: 0 8px 20px rgba(26,111,191,0.15);
+    }
+
+    .tag-badge {
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 6px 12px;
+        border-radius: 30px;
+        border: 1px solid;
+    }
+
+    .tag-primary {
+        background-color: rgba(26, 111, 191, 0.08);
+        border-color: rgba(26, 111, 191, 0.2);
+        color: #1A6FBF;
+    }
+
+    .tag-success {
+        background-color: rgba(46, 204, 113, 0.08);
+        border-color: rgba(46, 204, 113, 0.2);
+        color: #2ecc71;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        background-color: #F8FAFC;
+        border-radius: 12px;
+        border: 1px solid #F1F5F9;
+    }
+
+    .info-icon {
+        width: 40px;
+        height: 40px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #1A6FBF;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.01);
+    }
+
+    /* Vezeeta Booking Slider CSS */
+    .booking-sidebar-card {
+        background: white;
+        border-radius: var(--card-radius);
+        border: 1px solid var(--border-color);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+        position: sticky;
+        top: 24px;
+    }
+
+    .calendar-container {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .calendar-slider {
+        display: flex;
+        gap: 10px;
+        transition: transform 0.4s ease;
+    }
+
+    .calendar-day-col {
+        flex: 0 0 calc(33.33% - 7px);
+        min-width: calc(33.33% - 7px);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+        text-align: center;
+        background: white;
+    }
+
+    .calendar-day-header {
+        background-color: #1A6FBF;
+        color: white;
+        padding: 8px 4px;
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+
+    .calendar-day-header.no-slots {
+        background-color: #7F8C8D;
+    }
+
+    .slots-container {
+        padding: 10px 6px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-height: 250px;
+        overflow-y: auto;
+    }
+
+    .slot-time-btn {
+        width: 100%;
+        padding: 6px 4px;
+        border: 1px solid var(--border-color);
+        background-color: #F8FAFC;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: bold;
+        color: #2C3E50;
+        transition: all 0.2s;
+    }
+
+    .slot-time-btn:hover {
+        background-color: #1A6FBF;
+        color: white;
+        border-color: #1A6FBF;
+    }
+
+    .slot-time-btn.active {
+        background-color: #00E676;
+        color: white;
+        border-color: #00E676;
+        box-shadow: 0 4px 10px rgba(0, 230, 118, 0.2);
+    }
+
+    .calendar-nav-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: white;
+        border: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #1A6FBF;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        transition: all 0.2s;
+        z-index: 10;
+    }
+
+    .calendar-nav-btn:hover {
+        background-color: #1A6FBF;
+        color: white;
+    }
+
+    .review-card {
+        padding: 16px;
+        border-radius: 12px;
+        border: 1px solid #F1F5F9;
+        background-color: #F8FAFC;
+        margin-bottom: 12px;
+    }
+
+    .stars-box {
+        color: #F39C12;
+        font-size: 0.85rem;
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <!-- Breadcrumb back -->
+    <div class="mb-4">
+        <a href="/NearbyProviders" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+            <i class="fas fa-arrow-right ms-1"></i> العودة للبحث عن المراكز
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <!-- Right Column: Doctor Profile Info -->
+        <div class="col-lg-8 col-12">
+            <div class="doctor-header-card p-4 mb-4">
+                <div class="d-flex align-items-center gap-4 flex-wrap flex-md-nowrap mb-4">
+                    <!-- Profile image/avatar replacement -->
+                    <div class="doctor-avatar-box flex-shrink-0" style="position: relative; overflow: hidden; border: 3px solid #fff; box-shadow: 0 8px 25px rgba(26,111,191,0.15);">
+                        @if (!string.IsNullOrEmpty(Model.ProfilePicture))
+                        {
+                            <img src="@Model.ProfilePicture" alt="@Model.DoctorName" style="width: 100%; height: 100%; object-fit: cover;" />
+                        }
+                        else
+                        {
+                            <i class="fas fa-user-md"></i>
+                        }
+                    </div>
+
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+                            <h3 class="fw-bold m-0 text-dark">د. @Model.DoctorName</h3>
+                            <span class="tag-badge tag-primary">حجز مؤكد فوري</span>
+                            <span class="tag-badge tag-success">حائز على ثقة المرضى</span>
+                        </div>
+                        <h6 class="text-primary fw-bold mb-3">@Model.Specialization</h6>
+                        
+                        <div class="d-flex align-items-center gap-3 flex-wrap text-muted small">
+                            <span>
+                                <i class="fas fa-star text-warning"></i> 
+                                @(ViewBag.AverageRating != null && (double)ViewBag.AverageRating > 0 ? ((double)ViewBag.AverageRating).ToString("F1") : "لا يوجد تقييم") 
+                                (@(ViewBag.Reviews != null ? ((List<Etmen_BLL.DTOs.Review.ReviewDto>)ViewBag.Reviews).Count : 0) تقييم)
+                            </span>
+                            <span>|</span>
+                            <span><i class="fas fa-user-clock"></i> خبرة @Model.YearsOfExperience سنوات</span>
+                            <span>|</span>
+                            <span><i class="fas fa-hospital-user"></i> @Model.ProviderName</span>
+                            @if (ViewBag.DistanceKm != null)
+                            {
+                                <span>|</span>
+                                <span><i class="fas fa-route text-primary"></i> يبعد عنك @(((double)ViewBag.DistanceKm).ToString("F1")) كم</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="opacity-50 my-4" />
+
+                <h5 class="fw-bold text-dark mb-3"><i class="fas fa-address-card text-primary ms-1"></i> نبذة عن الطبيب</h5>
+                <p class="text-muted leading-relaxed" style="font-size: 0.95rem;">@Model.Bio</p>
+
+                <div class="row g-3 mt-4">
+                    <div class="col-md-6">
+                        <div class="info-item">
+                            <div class="info-icon"><i class="fas fa-money-bill-wave"></i></div>
+                            <div>
+                                <small class="text-muted d-block">كشف العيادة</small>
+                                <strong class="text-dark">@Model.ConsultationFee.ToString("F0") ج.م.</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-item">
+                            <div class="info-icon"><i class="fas fa-map-marker-alt"></i></div>
+                            <div>
+                                <small class="text-muted d-block">العنوان والفرع</small>
+                                <strong class="text-dark">
+                                    @Model.ProviderAddress
+                                    @if (ViewBag.DistanceKm != null)
+                                    {
+                                        <span class="text-primary fs-7 fw-bold d-block mt-1"><i class="fas fa-route ms-1"></i> يبعد عنك @(((double)ViewBag.DistanceKm).ToString("F1")) كم</span>
+                                    }
+                                </strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-item">
+                            <div class="info-icon"><i class="fas fa-briefcase-medical"></i></div>
+                            <div>
+                                <small class="text-muted d-block">المنشأة الطبية</small>
+                                <strong class="text-dark">@Model.ProviderName (@(Model.ProviderType == "Hospital" ? "مستشفى" : "عيادة تخصصية"))</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-item">
+                            <div class="info-icon"><i class="fas fa-id-card"></i></div>
+                            <div>
+                                <small class="text-muted d-block">رقم الترخيص الطبي</small>
+                                <strong class="text-dark">@(string.IsNullOrEmpty(Model.LicenseNumber) ? "مسجل ومعتمد" : Model.LicenseNumber)</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reviews Section -->
+            <div class="doctor-header-card p-4">
+                <h5 class="fw-bold text-dark mb-4"><i class="fas fa-comments text-primary ms-1"></i> آراء وتقييمات المرضى</h5>
+                
+                @if (ViewBag.Reviews == null || !((List<Etmen_BLL.DTOs.Review.ReviewDto>)ViewBag.Reviews).Any())
+                {
+                    <div class="alert alert-light border-0 rounded-3 text-center py-4">
+                        <i class="far fa-comment-alt fa-2x mb-2 text-muted"></i>
+                        <p class="mb-0 small text-secondary fw-semibold">لا توجد تقييمات لهذا الطبيب بعد. كن أول من يقيم!</p>
+                    </div>
+                }
+                else
+                {
+                    foreach (var review in (List<Etmen_BLL.DTOs.Review.ReviewDto>)ViewBag.Reviews)
+                    {
+                        <div class="review-card">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <strong class="text-dark" style="font-size: 0.9rem;">@review.PatientName</strong>
+                                <div class="stars-box">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        if (i <= review.Rating)
+                                        {
+                                            <i class="fas fa-star text-warning"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="far fa-star text-muted"></i>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                            <p class="text-muted small mb-0">@review.Comment</p>
+                            <small class="text-muted text-start d-block mt-1" style="font-size: 0.75rem;">@review.CreatedAt.ToString("yyyy-MM-dd")</small>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+        <!-- Left Column: Sticky Booking Box -->
+        <div class="col-lg-4 col-12">
+            <div class="booking-sidebar-card p-4">
+                <h5 class="fw-bold text-dark text-center mb-3">📅 احجز موعد كشف الآن</h5>
+                <p class="text-muted text-center small mb-4">اختر اليوم والوقت المناسبين لحجز موعد الكشف المباشر</p>
+
+                <!-- Sliding Calendar Wrapper -->
+                <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+                    <div class="calendar-nav-btn" id="prevDayBtn"><i class="fas fa-chevron-right"></i></div>
+                    <h6 class="m-0 fw-bold text-primary">جدول المواعيد المتاحة</h6>
+                    <div class="calendar-nav-btn" id="nextDayBtn"><i class="fas fa-chevron-left"></i></div>
+                </div>
+
+                <div class="calendar-container mb-4">
+                    <div class="calendar-slider" id="calendarSlider">
+                        @if (!groupedSlots.Any())
+                        {
+                            <div class="text-center py-5 text-muted w-100">
+                                <i class="far fa-calendar-times fs-2 mb-3 text-secondary"></i>
+                                <h6 class="small fw-bold">عذراً، لا توجد مواعيد متاحة حالياً</h6>
+                                <p class="small text-muted mb-0">يرجى مراجعة العيادة في وقت لاحق.</p>
+                            </div>
+                        }
+                        else
+                        {
+                            @for (int i = 0; i < Math.Max(3, groupedSlots.Count); i++)
+                            {
+                                var dayHasSlots = i < groupedSlots.Count;
+                                var dateVal = dayHasSlots ? groupedSlots[i].Key : DateTime.Today.AddDays(i);
+                                
+                                string dayName = dateVal.Date == DateTime.Today ? "اليوم" 
+                                               : dateVal.Date == DateTime.Today.AddDays(1) ? "غداً" 
+                                               : dateVal.ToString("dddd", new System.Globalization.CultureInfo("ar-EG"));
+
+                                <div class="calendar-day-col">
+                                    <div class="calendar-day-header @(dayHasSlots ? "" : "no-slots")">
+                                        <div>@dayName</div>
+                                        <div class="small fw-normal">@dateVal.ToString("d/M")</div>
+                                    </div>
+                                    <div class="slots-container">
+                                        @if (dayHasSlots)
+                                        {
+                                            @foreach (var slot in groupedSlots[i])
+                                            {
+                                                var timeStr = slot.StartTime.ToString(@"hh\:mm");
+                                                var period = slot.StartTime.Hours >= 12 ? "م" : "ص";
+                                                var displayTime = $"{(slot.StartTime.Hours > 12 ? slot.StartTime.Hours - 12 : slot.StartTime.Hours == 0 ? 12 : slot.StartTime.Hours)}:{slot.StartTime.Minutes:D2} {period}";
+
+                                                <button type="button" class="slot-time-btn" onclick="selectBookingSlot(this, @slot.Id)">
+                                                    @displayTime
+                                                </button>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small py-4 d-block">لا يوجد مواعيد</span>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+
+                <!-- Booking Action Form -->
+                <form asp-controller="NearbyProviders" asp-action="Book" method="post" id="detailsBookForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="providerId" value="@Model.ProviderId" />
+                    <input type="hidden" name="slotId" id="detailsSlotIdInput" />
+                    @if (Model.DoctorId.HasValue)
+                    {
+                        <input type="hidden" name="doctorId" value="@Model.DoctorId.Value" />
+                    }
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success rounded-pill py-3 fw-bold btn-success-custom" id="detailsConfirmBtn" disabled style="font-size: 0.95rem;">
+                            <i class="fas fa-check-circle me-1"></i> تأكيد الحجز للموعد المختار
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let currentSlide = 0;
+
+        function selectBookingSlot(element, slotId) {
+            // Remove active classes
+            $('.slot-time-btn').removeClass('active');
+            
+            // Add active class to clicked button
+            $(element).addClass('active');
+
+            // Set slot input ID
+            $('#detailsSlotIdInput').val(slotId);
+
+            // Enable submit button
+            $('#detailsConfirmBtn').prop('disabled', false);
+        }
+
+        $(document).ready(function() {
+            const $slider = $('#calendarSlider');
+            const totalCols = $('.calendar-day-col').length;
+            const maxSlides = Math.max(0, totalCols - 3);
+
+            $('#nextDayBtn').click(function() {
+                if (currentSlide < maxSlides) {
+                    currentSlide++;
+                    updateSliderPosition();
+                }
+            });
+
+            $('#prevDayBtn').click(function() {
+                if (currentSlide > 0) {
+                    currentSlide--;
+                    updateSliderPosition();
+                }
+            });
+
+            function updateSliderPosition() {
+                // Calculate percentage shift (each column has width 33.33%)
+                const shiftPercent = currentSlide * (100 / 3);
+                $slider.css('transform', `translateX(${shiftPercent}%)`);
+            }
+        });
+    </script>
+}

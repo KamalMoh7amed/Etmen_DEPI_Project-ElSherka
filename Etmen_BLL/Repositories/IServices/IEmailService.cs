@@ -1,4 +1,4 @@
-namespace Etmen_BLL.Repositories.IServices
+﻿namespace Etmen_BLL.Repositories.IServices
 {
     
     public interface IEmailService

@@ -1,4 +1,4 @@
-@model IEnumerable<Etmen_BLL.DTOs.Lab.LabResultDto>
+﻿@model IEnumerable<Etmen_BLL.DTOs.Lab.LabResultDto>
 @{
     ViewData["Title"] = "نتائج التحاليل والتقارير الطبية";
     Layout = "~/Views/Shared/_PatientLayout.cshtml";
@@ -272,32 +272,52 @@
 
                                 @if (!string.IsNullOrEmpty(lab.OcrExtractedData))
                                 {
-                                    bool isMock = (lab.FilePath != null && lab.FilePath.Contains("demo_sample.pdf")) || lab.OcrExtractedData.Contains("افتراضي");
-                                    var cardBg = isMock ? "#EFF6FF" : "#F0FDF4";
-                                    var cardBorder = isMock ? "#BFDBFE" : "#BBF7D0";
-                                    var titleColor = isMock ? "#1D4ED8" : "#16A34A";
+                                    bool isPending = lab.OcrExtractedData == "OCR processing pending.";
+                                    bool isMock = !isPending && ((lab.FilePath != null && lab.FilePath.Contains("demo_sample.pdf")) || lab.OcrExtractedData.Contains("افتراضي"));
+                                    var cardBg = isPending ? "#FFFBEB" : (isMock ? "#EFF6FF" : "#F0FDF4");
+                                    var cardBorder = isPending ? "#FDE68A" : (isMock ? "#BFDBFE" : "#BBF7D0");
+                                    var titleColor = isPending ? "#D97706" : (isMock ? "#1D4ED8" : "#16A34A");
                                     
-                                    <div class="p-3 mb-3 rounded-3 animate__animated animate__fadeIn" style="background:@cardBg; border:1px solid @cardBorder; box-shadow: inset 0 2px 4px rgba(0,0,0,0.01);">
+                                    <div class="p-3 mb-3 rounded-3 animate__animated animate__fadeIn lab-ocr-card-@lab.Id" data-pending="@isPending" data-lab-id="@lab.Id" style="background:@cardBg; border:1px solid @cardBorder; box-shadow: inset 0 2px 4px rgba(0,0,0,0.01);">
                                         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2 pb-2 border-bottom" style="border-color: rgba(0,0,0,0.05) !important;">
-                                            <span class="small fw-bold d-inline-flex align-items-center gap-2" style="color: @titleColor; font-size: 0.82rem;">
+                                            <span class="small fw-bold d-inline-flex align-items-center gap-2 ocr-card-title-@lab.Id" style="color: @titleColor; font-size: 0.82rem;">
                                                 <i class="fas fa-brain animate__animated animate__pulse animate__infinite"></i> 
                                                 البيانات المستخرجة بالتعرف الضوئي OCR:
                                             </span>
-                                            @if (isMock)
-                                            {
-                                                <span class="badge ocr-mock-badge py-1 px-2.5 rounded-pill shadow-sm">
-                                                    <i class="fas fa-magic"></i> وضع المحاكاة للعرض التقديمي
-                                                </span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge ocr-live-badge py-1 px-2.5 rounded-pill shadow-sm">
-                                                    <i class="fas fa-bolt text-warning me-1 animate__animated animate__flash animate__infinite"></i> تحليل حي بالذكاء الاصطناعي (Gemini)
-                                                </span>
-                                            }
+                                            <span class="ocr-badge-container-@lab.Id">
+                                                @if (isPending)
+                                                {
+                                                    <span class="badge bg-warning text-dark py-1 px-2.5 rounded-pill shadow-sm animate__animated animate__flash animate__infinite">
+                                                        <i class="fas fa-spinner fa-spin me-1"></i> جاري التحليل بالذكاء الاصطناعي...
+                                                    </span>
+                                                }
+                                                else if (isMock)
+                                                {
+                                                    <span class="badge ocr-mock-badge py-1 px-2.5 rounded-pill shadow-sm">
+                                                        <i class="fas fa-magic"></i> وضع المحاكاة للعرض التقديمي
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge ocr-live-badge py-1 px-2.5 rounded-pill shadow-sm">
+                                                        <i class="fas fa-bolt text-warning me-1 animate__animated animate__flash animate__infinite"></i> تحليل حي بالذكاء الاصطناعي (Gemini)
+                                                    </span>
+                                                }
+                                            </span>
                                         </div>
                                         
-                                        <div class="ocr-content mb-0 text-dark" data-raw="@lab.OcrExtractedData" style="line-height:1.6; font-size:0.88rem;"></div>
+                                        @if (isPending)
+                                        {
+                                            <div class="ocr-loading-spinner-@lab.Id text-center py-4">
+                                                <div class="spinner-border text-warning mb-2" role="status" style="width: 2rem; height: 2rem;"></div>
+                                                <p class="text-muted mb-0 small">يقوم الذكاء الاصطناعي بقراءة وتفسير نتائج التحليل الطبي من الملف المرفق، يرجى الانتظار قليلاً...</p>
+                                            </div>
+                                            <div class="ocr-content mb-0 text-dark d-none" data-raw="" style="line-height:1.6; font-size:0.88rem;"></div>
+                                        }
+                                        else
+                                        {
+                                            <div class="ocr-content mb-0 text-dark" data-raw="@lab.OcrExtractedData" style="line-height:1.6; font-size:0.88rem;"></div>
+                                        }
                                         
                                         @if (isMock)
                                         {
@@ -311,13 +331,23 @@
                                     </div>
                                 }
 
-                                @if (!string.IsNullOrEmpty(lab.Results))
-                                {
-                                    <div class="p-3 rounded-4 mt-3" style="background:#E8F4FD; border:1px solid #C4DDF2; box-shadow: 0 4px 12px rgba(26,111,191,0.05);">
-                                        <span class="small fw-bold text-primary d-block mb-2" style="font-size:0.95rem;"><i class="fas fa-notes-medical me-1"></i> ملخص النتيجة الطبية (تحليل الذكاء الاصطناعي):</span>
-                                        <div class="results-content mb-0 text-dark" data-raw="@lab.Results" style="line-height:1.6; font-size:0.88rem;"></div>
-                                    </div>
-                                }
+                                <div class="results-container-@lab.Id">
+                                     @if (!string.IsNullOrEmpty(lab.Results))
+                                     {
+                                         <div class="p-3 rounded-4 mt-3" style="background:#E8F4FD; border:1px solid #C4DDF2; box-shadow: 0 4px 12px rgba(26,111,191,0.05);">
+                                             <span class="small fw-bold text-primary d-block mb-2" style="font-size:0.95rem;"><i class="fas fa-notes-medical me-1"></i> ملخص النتيجة الطبية (تحليل الذكاء الاصطناعي):</span>
+                                             <div class="results-content mb-0 text-dark" data-raw="@lab.Results" style="line-height:1.6; font-size:0.88rem;"></div>
+                                             <hr style="border-color: rgba(26,111,191,0.1) !important;" />
+                                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                                  <span class="text-muted small"><i class="fas fa-info-circle text-primary"></i> يمكنك حجز كشف طبي فوري بناءً على التخصص المقترح.</span>
+                                                 <a href="/NearbyProviders" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm d-inline-flex align-items-center gap-1">
+                                                     <i class="fas fa-hospital-user"></i>
+                                                     البحث عن الأطباء والعيادات
+                                                 </a>
+                                             </div>
+                                         </div>
+                                     }
+                                 </div>
                             </div>
                         </div>
                     }
@@ -448,6 +478,94 @@
                     el.innerHTML = parseOcrMarkdown(raw);
                 }
             });
+
+            // Find all pending cards and start polling
+            document.querySelectorAll('[data-pending="True"]').forEach(card => {
+                const labId = card.getAttribute('data-lab-id');
+                if (labId) {
+                    pollOcrStatus(labId);
+                }
+            });
         });
+
+        function pollOcrStatus(labId) {
+            const interval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/LabResults/GetOcrStatus/${labId}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (!data.isPending) {
+                            clearInterval(interval);
+                            updateOcrCardWithResult(labId, data.ocrExtractedData, data.results);
+                        }
+                    }
+                } catch (err) {
+                    console.error("Error polling OCR status for lab " + labId, err);
+                }
+            }, 3000); // Poll every 3 seconds
+        }
+
+        function updateOcrCardWithResult(labId, ocrData, results) {
+            const card = document.querySelector(`.lab-ocr-card-${labId}`);
+            if (card) {
+                // Update theme to success (live OCR completed)
+                card.style.background = "#F0FDF4";
+                card.style.borderColor = "#BBF7D0";
+                
+                // Update title color
+                const title = card.querySelector(`.ocr-card-title-${labId}`);
+                if (title) {
+                    title.style.color = "#16A34A";
+                }
+
+                // Update badge
+                const badgeContainer = card.querySelector(`.ocr-badge-container-${labId}`);
+                if (badgeContainer) {
+                    badgeContainer.innerHTML = `
+                        <span class="badge ocr-live-badge py-1 px-2.5 rounded-pill shadow-sm animate__animated animate__fadeIn">
+                            <i class="fas fa-bolt text-warning me-1 animate__animated animate__flash animate__infinite"></i> تحليل حي بالذكاء الاصطناعي (Gemini)
+                        </span>
+                    `;
+                }
+
+                // Hide spinner and show parsed ocr content
+                const spinner = card.querySelector(`.ocr-loading-spinner-${labId}`);
+                if (spinner) {
+                    spinner.style.display = "none";
+                }
+
+                const ocrContent = card.querySelector(`.ocr-content`);
+                if (ocrContent) {
+                    ocrContent.classList.remove('d-none');
+                    ocrContent.setAttribute('data-raw', ocrData);
+                    ocrContent.innerHTML = parseOcrMarkdown(ocrData);
+                }
+            }
+
+            // Inject the blue results box dynamically
+            const resultsContainer = document.querySelector(`.results-container-${labId}`);
+            if (resultsContainer && results) {
+                resultsContainer.innerHTML = `
+                    <div class="p-3 rounded-4 mt-3 animate__animated animate__fadeInUp" style="background:#E8F4FD; border:1px solid #C4DDF2; box-shadow: 0 4px 12px rgba(26,111,191,0.05);">
+                        <span class="small fw-bold text-primary d-block mb-2" style="font-size:0.95rem;">
+                            <i class="fas fa-notes-medical me-1"></i> ملخص النتيجة الطبية (تحليل الذكاء الاصطناعي):
+                        </span>
+                        <div class="results-content mb-0 text-dark" data-raw="${results}" style="line-height:1.6; font-size:0.88rem;"></div>
+                        <hr style="border-color: rgba(26,111,191,0.1) !important;" />
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <span class="text-muted small"><i class="fas fa-info-circle text-primary"></i> يمكنك حجز كشف طبي فوري بناءً على التخصص المقترح.</span>
+                            <a href="/NearbyProviders" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm d-inline-flex align-items-center gap-1">
+                                <i class="fas fa-hospital-user"></i>
+                                البحث عن الأطباء والعيادات
+                            </a>
+                        </div>
+                    </div>
+                `;
+                const resultsContent = resultsContainer.querySelector('.results-content');
+                if (resultsContent) {
+                    resultsContent.innerHTML = parseOcrMarkdown(results);
+                }
+            }
+        }
     </script>
 }

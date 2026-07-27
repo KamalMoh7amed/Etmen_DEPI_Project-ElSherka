@@ -400,7 +400,7 @@ namespace Etmen_PL.Controllers
 
                 if (familyLink == null || !familyLink.IsAccepted)
                 {
-                    TempData["Error"] = "الالتحاق العائلي غير موجود أو لم يتم قبوله بعد.";
+                    TempData["Error"] = "الارتباط العائلي غير موجود أو لم يتم قبوله بعد.";
                     return RedirectToAction("Index");
                 }
 
@@ -416,6 +416,8 @@ namespace Etmen_PL.Controllers
                     .Include(p => p.EmergencyRequests).ThenInclude(r => r.HealthcareProvider)
                     .Include(p => p.EmergencyRequests).ThenInclude(r => r.AssignedDoctor)
                     .Include(p => p.LabResults)
+                    .Include(p => p.Appointments).ThenInclude(a => a.DoctorProfile).ThenInclude(d => d!.ApplicationUser)
+                    .Include(p => p.Appointments).ThenInclude(a => a.DoctorProfile).ThenInclude(d => d!.DoctorProviders).ThenInclude(dp => dp.HealthcareProvider)
                     .FirstOrDefaultAsync(p => p.Id == targetPatientId);
 
                 if (targetPatient == null)

@@ -7,6 +7,8 @@ namespace Etmen_Domain.Enums
         Rejected = 3,
         Escalated = 4,
         Completed = 5,
-        Cancelled = 6
+        Cancelled = 6,
+        Discharged = 7,
+        Deceased = 8
     }
 }

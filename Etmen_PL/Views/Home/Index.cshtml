@@ -1,3340 +1,7048 @@
 @model Etmen_PL.Models.Home.LandingPageViewModel
+
 @{
+
     ViewData["Title"] = "إطمن — منصة الرعاية الصحية الرقمية المتكاملة";
+
     Layout = null; /* Standalone page — owns its own full HTML */
+
 }
+
 <!DOCTYPE html>
+
 <html lang="ar" dir="rtl">
+
 <head>
 
+
+
     <meta charset="UTF-8" />
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <title>@ViewData["Title"]</title>
+
     <meta name="description" content="إطمن — منصة صحية ذكية تجمع المرضى والأطباء ومقدمي الرعاية في مكان واحد مع نظام متكامل لإدارة الأزمات الصحية والأمراض." />
 
+
+
     <!-- Google Fonts (Tajawal) -->
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
+
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet" />
+
     
+
     <!-- Bootstrap RTL -->
+
     
+
 <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.rtl.min.css" />
 
+
+
     <!-- Font Awesome Icons -->
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
+
+
     <style>
-        /* ═══════════════════════════════════════════════════
-           DESIGN SYSTEM & CSS VARIABLES
-        ═══════════════════════════════════════════════════ */
-        :root {
-            --primary:          #10766e; /* Medical Teal - Altibbi style */
-            --primary-dark:     #0d5c56;
-            --primary-light:    #f0fdfa;
-            --primary-rgb:      16, 118, 110;
-            --secondary:        #0284c7; /* Healing Blue */
-            --secondary-light:  #f0f9ff;
-            --accent:           #06b6d4; /* Cyan Accent */
-            --accent-light:     #ecfeff;
-            --success:          #10b981;
-            --warning:          #f59e0b;
-            --danger:           #ef4444;
-            --crisis:           #ea580c;
-            --dark:             #0f172a; /* Slate 900 */
-            --dark-2:           #1e293b; /* Slate 800 */
- 
-           --text:             #334155; /* Slate 700 */
-            --text-muted:       #64748b; /* Slate 500 */
-            --border:           #e2e8f0; /* Slate 200 */
-            --white:            #ffffff;
-            --shadow-sm:        0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-md:        0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-            --shadow-lg:        0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-            --shadow-xl:        0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
-            --glass:            rgba(255, 255, 255, 0.85);
-            --glass-border:     rgba(255, 255, 255, 0.2);
-        }
 
         /* ═══════════════════════════════════════════════════
-           RESET & BASE STYLES
+
+           DESIGN SYSTEM & CSS VARIABLES
+
         ═══════════════════════════════════════════════════ */
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { scroll-behavior: smooth; }
-        body {
-            
-font-family: 'Tajawal', sans-serif;
-            color: var(--text);
-            background: #fafafb;
-            overflow-x: hidden;
-            line-height: 1.7;
+
+        :root {
+
+            --primary:          #10766e; /* Medical Teal - Altibbi style */
+
+            --primary-dark:     #0d5c56;
+
+            --primary-light:    #f0fdfa;
+
+            --primary-rgb:      16, 118, 110;
+
+            --secondary:        #0284c7; /* Healing Blue */
+
+            --secondary-light:  #f0f9ff;
+
+            --accent:           #06b6d4; /* Cyan Accent */
+
+            --accent-light:     #ecfeff;
+
+            --success:          #10b981;
+
+            --warning:          #f59e0b;
+
+            --danger:           #ef4444;
+
+            --crisis:           #ea580c;
+
+            --dark:             #0f172a; /* Slate 900 */
+
+            --dark-2:           #1e293b; /* Slate 800 */
+
+ 
+
+           --text:             #334155; /* Slate 700 */
+
+            --text-muted:       #64748b; /* Slate 500 */
+
+            --border:           #e2e8f0; /* Slate 200 */
+
+            --white:            #ffffff;
+
+            --shadow-sm:        0 1px 2px 0 rgba(0, 0, 0, 0.05);
+
+            --shadow-md:        0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+
+            --shadow-lg:        0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+
+            --shadow-xl:        0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+
+            --glass:            rgba(255, 255, 255, 0.85);
+
+            --glass-border:     rgba(255, 255, 255, 0.2);
+
         }
+
+
+
+        /* ═══════════════════════════════════════════════════
+
+           RESET & BASE STYLES
+
+        ═══════════════════════════════════════════════════ */
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+
+            
+
+font-family: 'Tajawal', sans-serif;
+
+            color: var(--text);
+
+            background: #fafafb;
+
+            overflow-x: hidden;
+
+            line-height: 1.7;
+
+        }
+
         a { text-decoration: none; transition: all 0.3s; }
+
         .text-primary-color { color: var(--primary); }
 
+
+
         /* Custom Scrollbar */
+
         ::-webkit-scrollbar { width: 8px; }
+
         ::-webkit-scrollbar-track { background: #f1f5f9; }
+
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
+
+
         /* ═══════════════════════════════════════════════════
+
            NAVBAR (HEADER)
+
         ═══════════════════════════════════════════════════ */
+
         .etmen-nav {
+
             position: fixed;
+
             top: 0; right: 0; left: 0;
+
             z-index: 1000;
+
             padding: 0 2rem;
+
             height: 80px;
+
             display: flex;
+
             align-items: center;
+
             justify-content: space-between;
+
             background: rgba(
+
 255, 255, 255, 0.9);
+
             backdrop-filter: blur(12px);
+
             border-bottom: 1px solid var(--border);
+
             transition: all 0.3s ease;
+
         }
+
         .etmen-nav.scrolled {
+
             background: var(--white);
+
             height: 70px;
+
             box-shadow: var(--shadow-md);
+
         }
+
         .nav-logo {
+
             display: flex;
+
             align-items: center;
+
             gap: 12px;
+
         }
+
         .nav-logo-icon {
+
             width: 46px; height: 46px;
+
             background: linear-gradient(135deg, var(--primary), var(--secondary));
+
             border-radius: 12px;
+
             display: flex; align-items: center; justify-content: center;
+
             font-size: 1.4rem;
+
             color: white;
+
             box-shadow: 0 4px 12px rgba(16, 118, 110, 0.2);
+
         }
+
         .nav-logo-text {
+
             font-size: 1.6rem;
+
             font-weight: 900;
+
             color: var(--dark);
+
             letter-spacing: -0.5px;
+
         }
+
         .nav-logo-text span { color: var(--primary); }
 
+
+
         .nav-mobile-actions {
+
             display: none;
+
         }
 
+
+
         .nav-links {
+
             display: flex;
+
             align-items: center;
+
             gap: 2rem;
+
             list-style: none;
+
             margin: 0;
+
             padding: 0;
+
         }
+
         .nav-links a {
+
             color: var(--text);
+
             font-size: 0.95rem;
+
             font-weight: 700;
+
             position: relative;
+
             padding: 6px 0;
+
         }
+
         .nav-links a::after {
+
             content: '';
+
             position: absolute;
+
             bottom: 0; right: 0; left: 0;
+
             height: 3px;
+
             background: var(--primary);
+
             transform: scaleX(0);
+
             transition: transform 0.25s;
+
             transform-origin: right;
+
             border-radius: 2px;
+
         }
+
         .nav-links a:hover { color: var(--primary); }
+
         .nav-links a:hover::after { transform: scaleX(1); }
+
+
 
         .nav-actions { display: flex; gap: 1rem; align-items: center; }
 
+
+
         .btn-nav-login {
+
             padding: 10px 22px;
+
             border: 2px solid var(--primary);
+
          
+
    background: transparent;
+
             color: var(--primary);
+
             border-radius: 10px;
+
             font-size: 0.95rem;
+
             font-weight: 700;
+
             transition: all 0.25s;
+
         }
+
         .btn-nav-login:hover {
+
             background: var(--primary-light);
+
             color: var(--primary-dark);
+
         }
+
         .btn-nav-register {
+
             padding: 10px 24px;
+
             background: linear-gradient(135deg, var(--primary), var(--secondary));
+
             color: white;
+
             border: none;
+
             border-radius: 10px;
+
             font-size: 0.95rem;
+
             font-weight: 800;
+
             box-shadow: 0 4px 12px rgba(16, 118, 110, 0.25);
+
             transition: all 0.25s;
+
         }
+
         .btn-nav-register:hover {
+
             transform: translateY(-2px);
+
             box-shadow: 0 6px 16px rgba(16, 118, 110, 0.35);
+
             color: white;
+
         }
 
+
+
         /* ═══════════════════════════════════════════════════
+
            CRISIS BANNER
+
         ═════════════════════════════
+
 ══════════════════════ */
+
         .crisis-banner {
+
             position: fixed;
+
             top: 80px; right: 0; left: 0;
+
             z-index: 999;
+
             background: linear-gradient(90deg, #ea580c, #ef4444, #ea580c);
+
             background-size: 200% 100%;
+
             animation: crisisBg 3s linear infinite;
+
             color: white;
+
             text-align: center;
+
             padding: 10px 2rem;
+
             font-size: 0.95rem;
+
             font-weight: 700;
+
             display: flex;
+
             align-items: center;
+
             justify-content: center;
+
             gap: 1rem;
+
             box-shadow: var(--shadow-md);
+
             transition: top 0.3s ease;
-        }
-        .etmen-nav.scrolled + .crisis-banner {
-            top: 70px;
-        }
-        
-@@keyframes crisisBg {
-            0%   { background-position: 0% 50%; }
-            50%  { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        .crisis-pulse {
-            display: inline-block;
-            width: 12px; height: 12px;
-            background: white;
-            border-radius: 50%;
-            animation: pulse 1.4s ease-in-out infinite;
-        }
-        
-@@keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50%       { opacity: 0.3; transform: scale(1.6); }
+
         }
 
-        /* ═══════════════════════════════════════════════════
-           HERO SECTION (UPGRADED WITH ANIMATIONS & VISUALS)
-         ═══════════════════════════════════════════════════ */
-        .hero {
-            padding: 160px 0 100px;
-            background: radial-gradient(circle at 10% 20%, rgba(240, 253, 250, 0.65) 0%, rgba(240, 249, 255, 0.45) 90%);
-            position: relative;
-            overflow: hidden;
+        .etmen-nav.scrolled + .crisis-banner {
+
+            top: 70px;
+
         }
-        .hero::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background-image: 
-                radial-gradient(var(--primary-light) 1.5px, transparent 1.5px);
-            background-size: 24px 24px;
-            opacity: 0.4;
-            z-index: 1;
-        }
-        .hero-container {
-            position: relative;
-            z-index: 2;
-        }
+
         
-        /* background decoration */
-        .hero-glow-blob {
-            position: absolute;
-            width: 320px;
-            height: 320px;
-            background: radial-gradient(circle, rgba(16, 118, 110, 0.12) 0%, rgba(2, 132, 199, 0.08) 50%, transparent 100%);
-            filter: blur(40px);
-            border-radius: 50%;
-            z-index: 1;
-            pointer-events: none;
-            animation: pulseBlob 8s infinite alternate ease-in-out;
+
+@@keyframes crisisBg {
+
+            0%   { background-position: 0% 50%; }
+
+            50%  { background-position: 100% 50%; }
+
+            100% { background-position: 0% 50%; }
+
         }
+
+        .crisis-pulse {
+
+            display: inline-block;
+
+            width: 12px; height: 12px;
+
+            background: white;
+
+            border-radius: 50%;
+
+            animation: pulse 1.4s ease-in-out infinite;
+
+        }
+
+        
+
+@@keyframes pulse {
+
+            0%, 100% { opacity: 1; transform: scale(1); }
+
+            50%       { opacity: 0.3; transform: scale(1.6); }
+
+        }
+
+
+
+        /* ═══════════════════════════════════════════════════
+
+           HERO SECTION (UPGRADED WITH ANIMATIONS & VISUALS)
+
+         ═══════════════════════════════════════════════════ */
+
+        .hero {
+
+            padding: 160px 0 100px;
+
+            background: radial-gradient(circle at 10% 20%, rgba(240, 253, 250, 0.65) 0%, rgba(240, 249, 255, 0.45) 90%);
+
+            position: relative;
+
+            overflow: hidden;
+
+        }
+
+        .hero::before {
+
+            content: '';
+
+            position: absolute;
+
+            inset: 0;
+
+            background-image: 
+
+                radial-gradient(var(--primary-light) 1.5px, transparent 1.5px);
+
+            background-size: 24px 24px;
+
+            opacity: 0.4;
+
+            z-index: 1;
+
+        }
+
+        .hero-container {
+
+            position: relative;
+
+            z-index: 2;
+
+        }
+
+        
+
+        /* background decoration */
+
+        .hero-glow-blob {
+
+            position: absolute;
+
+            width: 320px;
+
+            height: 320px;
+
+            background: radial-gradient(circle, rgba(16, 118, 110, 0.12) 0%, rgba(2, 132, 199, 0.08) 50%, transparent 100%);
+
+            filter: blur(40px);
+
+            border-radius: 50%;
+
+            z-index: 1;
+
+            pointer-events: none;
+
+            animation: pulseBlob 8s infinite alternate ease-in-out;
+
+        }
+
         .hero-glow-blob-1 { top: 5%; left: 5%; }
+
         .hero-glow-blob-2 { bottom: 5%; right: 5%; animation-delay: -4s; }
 
+
+
         @@keyframes pulseBlob {
+
             0% { transform: scale(1) translate(0, 0); opacity: 0.8; }
+
             50% { transform: scale(1.15) translate(15px, -15px); opacity: 1; }
+
             100% { transform: scale(0.9) translate(-10px, 10px); opacity: 0.7; }
+
         }
+
+
 
         .hero-tagline {
+
             display: inline-flex;
+
             align-items: center;
+
             gap: 8px;
+
             background: var(--primary-light);
+
             border: 1px solid rgba(16, 118, 110, 0.15);
+
             padding: 6px 18px;
+
             border-radius: 50px;
+
             color: var(--primary);
+
             font-size: 0.9rem;
+
             font-weight: 700;
+
             margin-bottom: 1.5rem;
+
             box-shadow: 0 4px 12px rgba(16, 118, 110, 0.03);
+
             animation: taglineEntrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+
         }
+
         @@keyframes taglineEntrance {
+
             from { opacity: 0; transform: translateY(-10px); }
+
             to { opacity: 1; transform: translateY(0); }
+
         }
+
+
 
         .hero-title-main {
+
             font-size: clamp(2.2rem, 5vw, 3.8rem);
+
             font-weight: 900;
+
             color: var(--dark);
+
             line-height: 1.25;
+
             margin-bottom: 1.5rem;
+
             opacity: 0;
+
             transform: translateY(20px);
+
             animation: fadeUpIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
             animation-delay: 0.15s;
+
         }
+
         .hero-title-main span {
+
             background: linear-gradient(135deg, var(--primary), var(--secondary));
+
             -webkit-background-clip: text;
+
             -webkit-text-fill-color: transparent;
+
         }
+
         .hero-description {
+
             font-size: 1.15rem;
+
             color: var(--text-muted);
+
             margin-bottom: 2.5rem;
+
             max-width: 650px;
+
             opacity: 0;
+
             transform: translateY(20px);
+
             animation: fadeUpIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
             animation-delay: 0.3s;
+
         }
+
         @@keyframes fadeUpIn {
+
             to { opacity: 1; transform: translateY(0); }
+
         }
+
+
 
         /* Interactive Mode Badges */
+
         .mode-badge-card {
+
             background: var(--white);
+
             border: 1px solid rgba(226, 232, 240, 0.8);
+
             border-radius: 18px;
+
             padding: 16px;
+
             display: flex;
+
             align-items: flex-start;
+
             gap: 12px;
+
             height: 100%;
+
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
             box-shadow: var(--shadow-sm);
+
             position: relative;
+
             overflow: hidden;
+
         }
+
         .mode-badge-card::before {
+
             content: '';
+
             position: absolute;
+
             bottom: 0; right: 0; left: 0;
+
             height: 3px;
+
             background: var(--primary);
+
             transform: scaleX(0);
+
             transition: transform 0.3s ease;
+
             transform-origin: right;
+
             border-radius: 2px;
+
         }
+
         .mode-badge-card:hover::before {
+
             transform: scaleX(1);
+
         }
+
         .mode-badge-card:hover {
+
             transform: translateY(-4px);
+
             box-shadow: var(--shadow-md);
+
             border-color: rgba(var(--primary-rgb), 0.25);
+
         }
+
         .mode-badge-card i {
+
             font-size: 1.8rem;
+
             margin-top: 2px;
+
             flex-shrink: 0;
+
             transition: transform 0.3s ease;
+
         }
+
         .mode-badge-card:hover i {
+
             transform: scale(1.15) rotate(5deg);
+
         }
+
         .mode-badge-card h5 {
+
             font-size: 1rem;
+
             font-weight: 800;
+
             color: var(--dark);
+
             margin: 0 0 4px 0;
+
         }
+
         .mode-badge-card p {
+
             font-size: 0.8rem;
+
             color: var(--text-muted);
+
             margin: 0;
+
             line-height: 1.45;
+
         }
+
+
 
         /* Upgraded Visual Mockups Container */
+
         .hero-visual-wrapper {
+
             position: relative;
+
             width: 100%;
+
             height: 440px;
+
             display: flex;
+
             align-items: center;
+
             justify-content: center;
+
             margin-right: auto;
+
         }
+
+
 
         /* Glassmorphism Panel */
+
         .dashboard-main-card {
+
             background: rgba(255, 255, 255, 0.8);
+
             backdrop-filter: blur(20px);
+
             -webkit-backdrop-filter: blur(20px);
+
             border: 1px solid rgba(255, 255, 255, 0.6);
+
             border-radius: 24px;
+
             width: 320px;
+
             padding: 24px;
+
             box-shadow: 0 20px 40px rgba(15, 23, 42, 0.06), 
+
                         inset 0 1px 0 rgba(255, 255, 255, 0.8);
+
             position: relative;
+
             z-index: 3;
+
             transition: all 0.3s ease;
+
         }
+
         .dashboard-main-card:hover {
+
             transform: translateY(-2px);
+
             box-shadow: 0 25px 50px rgba(15, 23, 42, 0.1);
+
         }
+
         .dashboard-header {
+
             display: flex;
+
             align-items: center;
+
             justify-content: space-between;
+
             margin-bottom: 20px;
+
             border-bottom: 1px dashed var(--border);
+
             padding-bottom: 15px;
+
         }
+
         .dashboard-user {
+
             display: flex;
+
             align-items: center;
+
             gap: 12px;
+
         }
+
         .dashboard-avatar {
+
             width: 42px;
+
             height: 42px;
+
             border-radius: 12px;
+
             background: linear-gradient(135deg, var(--primary-light), #ccfbf1);
+
             color: var(--primary);
+
             display: flex;
+
             align-items: center;
+
             justify-content: center;
+
             font-weight: 800;
+
             font-size: 1.05rem;
+
             border: 2px solid var(--white);
+
             box-shadow: var(--shadow-sm);
+
         }
+
         .dashboard-user-info h6 {
+
             font-size: 0.95rem;
+
             font-weight: 800;
+
             color: var(--dark);
+
             margin: 0;
+
         }
+
         .dashboard-user-info span {
+
             font-size: 0.75rem;
+
             color: var(--text-muted);
+
             display: flex;
+
             align-items: center;
+
             gap: 4px;
+
         }
+
         .status-dot {
+
             width: 8px;
+
             height: 8px;
+
             background: var(--success);
+
             border-radius: 50%;
+
             display: inline-block;
+
             box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+
             animation: statusPulse 2s infinite;
+
         }
+
         @@keyframes statusPulse {
+
             0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+
             70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+
             100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+
         }
+
+
 
         .vital-grid {
+
             display: grid;
+
             grid-template-columns: 1fr 1fr;
+
             gap: 12px;
+
         }
+
         .vital-item {
+
             background: var(--white);
+
             border: 1px solid rgba(226, 232, 240, 0.7);
+
             border-radius: 14px;
+
             padding: 12px 14px;
+
             transition: all 0.25s ease;
+
         }
+
         .vital-item:hover {
+
             border-color: rgba(16, 118, 110, 0.2);
+
             transform: translateY(-2px);
+
         }
+
         .vital-title {
+
             font-size: 0.75rem;
+
             font-weight: 700;
+
             color: var(--text-muted);
+
             margin-bottom: 6px;
+
             display: flex;
+
             align-items: center;
+
             gap: 6px;
+
         }
+
         .vital-value {
+
             font-size: 1.2rem;
+
             font-weight: 900;
+
             color: var(--dark);
+
             line-height: 1.1;
+
         }
+
         .vital-value span {
+
             font-size: 0.72rem;
+
             font-weight: 500;
+
             color: var(--text-muted);
+
             margin-right: 2px;
+
         }
+
+
 
         /* Floating Widgets */
+
         .floating-card {
+
             position: absolute;
+
             background: var(--white);
+
             border-radius: 18px;
+
             padding: 14px;
+
             box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+
             border: 1px solid rgba(226, 232, 240, 0.8);
+
             z-index: 4;
+
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
         }
+
         .floating-card:hover {
+
             transform: scale(1.05) translateY(-5px) !important;
+
             box-shadow: 0 18px 32px rgba(15, 23, 42, 0.12);
+
         }
+
         .float-1 {
+
             top: 15%;
+
             left: -8%;
+
             width: 175px;
+
             animation: floatSlow 6s infinite ease-in-out;
+
         }
+
         .float-2 {
+
             bottom: 8%;
+
             right: -8%;
+
             width: 215px;
+
             animation: floatMedium 5.5s infinite ease-in-out;
+
             animation-delay: -1.5s;
+
         }
+
         .float-3 {
+
             bottom: 68%;
+
             right: -2%;
+
             animation: floatFast 5s infinite ease-in-out;
+
             animation-delay: -3s;
+
         }
+
+
 
         @@keyframes floatSlow {
+
             0%, 100% { transform: translateY(0); }
+
             50% { transform: translateY(-12px); }
+
         }
+
         @@keyframes floatMedium {
+
             0%, 100% { transform: translateY(0); }
+
             50% { transform: translateY(12px); }
+
         }
+
         @@keyframes floatFast {
+
             0%, 100% { transform: translateY(0); }
+
             50% { transform: translateY(-8px); }
+
         }
+
+
 
         /* Float 1 details: ECG Pulse Graph */
+
         .ecg-card {
+
             display: flex;
+
             flex-direction: column;
+
             gap: 4px;
+
         }
+
         .ecg-header {
+
             display: flex;
+
             align-items: center;
+
             justify-content: space-between;
+
         }
+
         .ecg-header span {
+
             font-size: 0.72rem;
+
             font-weight: 700;
+
             color: var(--text-muted);
+
         }
+
         .ecg-icon {
+
             color: var(--danger);
+
             animation: heartBeat 1.2s infinite;
+
         }
+
         @@keyframes heartBeat {
+
             0%, 100% { transform: scale(1); }
+
             25% { transform: scale(1.18); }
+
             40% { transform: scale(1.05); }
+
             55% { transform: scale(1.22); }
+
         }
+
         .ecg-value {
+
             font-size: 1.35rem;
+
             font-weight: 900;
+
             color: var(--dark);
+
         }
+
         .ecg-value span {
+
             font-size: 0.72rem;
+
             font-weight: 600;
+
         }
+
         .ecg-svg-container {
+
             width: 100%;
+
             height: 32px;
+
             margin-top: 5px;
+
             overflow: hidden;
+
         }
+
         .ecg-path {
+
             stroke-dasharray: 400;
+
             stroke-dashoffset: 400;
+
             animation: drawLine 3.5s linear infinite;
+
         }
+
         @@keyframes drawLine {
+
             to { stroke-dashoffset: 0; }
+
         }
+
+
 
         /* Float 2 details: Bot/Doctor Chat Bubble */
+
         .chat-bubble-widget {
+
             display: flex;
+
             gap: 8px;
+
         }
+
         .chat-bubble-avatar {
+
             width: 32px;
+
             height: 32px;
+
             border-radius: 50%;
+
             background: linear-gradient(135deg, var(--secondary), var(--accent));
+
             color: var(--white);
+
             display: flex; align-items: center; justify-content: center;
+
             font-size: 0.8rem;
+
             flex-shrink: 0;
+
             box-shadow: 0 4px 8px rgba(2, 132, 199, 0.15);
+
         }
+
         .chat-bubble-content {
+
             display: flex;
+
             flex-direction: column;
+
             gap: 3px;
+
         }
+
         .chat-bubble-name {
+
             font-size: 0.72rem;
+
             font-weight: 800;
+
             color: var(--secondary);
+
         }
+
         .chat-bubble-text {
+
             font-size: 0.75rem;
+
             color: var(--dark-2);
+
             background: var(--secondary-light);
+
             border-radius: 12px 0 12px 12px;
+
             padding: 6px 10px;
+
             line-height: 1.4;
+
             border: 1px solid rgba(2, 132, 199, 0.05);
+
         }
+
+
 
         /* Float 3 details: Active Crisis Monitor badge */
+
         .crisis-badge-widget {
+
             display: flex;
+
             align-items: center;
+
             gap: 8px;
+
             background: #fff8f6;
+
             border: 1px solid rgba(234, 88, 12, 0.12);
+
             padding: 8px 14px;
+
             border-radius: 50px;
+
         }
+
         .crisis-badge-widget i {
+
             color: var(--crisis);
+
             font-size: 1rem;
+
             animation: crisisRotate 2.5s infinite ease-in-out;
+
         }
+
         @@keyframes crisisRotate {
+
             0%, 100% { transform: rotate(0); }
+
             50% { transform: rotate(15deg); }
+
         }
+
         .crisis-badge-widget div h7 {
+
             font-size: 0.75rem;
+
             font-weight: 800;
+
             color: var(--crisis);
+
             display: block;
+
             margin: 0;
+
             line-height: 1.1;
+
         }
+
         .crisis-badge-widget div span {
+
             font-size: 0.65rem;
+
             color: var(--text-muted);
+
             display: block;
+
         }
+
+
 
         /* Split Cards Layout */
+
         .hero-cards-row {
+
             display: flex;
+
             gap: 2rem;
+
             margin-top: 2rem;
+
         }
+
         .hero-promo-card {
+
             flex: 1;
+
             border-radius: 24px;
+
             padding: 40px;
+
             position: relative;
+
             overflow: hidden;
+
             display: flex;
+
             flex-direction: column;
+
             justify-content: space-between;
+
             min-height: 290px;
+
             border: 1px solid rgba(255, 255, 255, 0.15);
+
             background-size: 200% 200%;
+
             animation: gradientShift 6s ease infinite alternate;
+
             box-shadow: var(--shadow-lg);
+
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
         }
+
         .hero-promo-card:hover {
+
             transform: translateY(-6px);
+
             box-shadow: var(--shadow-xl);
+
         }
+
         .hero-promo-card-1 {
+
             background-image: linear-gradient(135deg, var(--primary) 0%, #0d5c56 60%, #115e59 100%);
+
         }
+
         .hero-promo-card-2 {
+
             background-image: linear-gradient(135deg, var(--secondary) 0%, #0369a1 60%, #075985 100%);
+
         }
+
         @@keyframes gradientShift {
+
             0% { background-position: 0% 50%; }
+
             100% { background-position: 100% 50%; }
+
         }
+
         .hero-promo-icon {
+
             position: absolute;
+
             left: -10px;
+
             bottom: -20px;
+
             font-size: 10rem;
+
             opacity: 0.12;
+
             transform: rotate(-15deg);
+
         }
+
         .hero-promo-badge {
+
             align-self: flex-start;
+
             background: rgba(255, 255, 255, 0.2);
+
             backdrop-filter: blur(8px);
+
             padding: 6px 16px;
+
             border-radius: 50px;
+
             font-size: 0.82rem;
+
             font-weight: 800;
+
             text-transform: uppercase;
+
             letter-spacing: 0.5px;
+
             margin-bottom: 1.5rem;
+
             border: 1px solid rgba(255, 255, 255, 0.25);
+
         }
+
         .hero-promo-title {
+
             font-size: 2.2rem;
+
             font-weight: 900;
+
             margin-bottom: 0.8rem;
+
             letter-spacing: -0.5px;
+
         }
+
         .hero-promo-desc {
+
             font-size: 1.05rem;
+
             opacity: 0.9;
+
             max-width: 340px;
+
             margin-bottom: 2rem;
+
             line-height: 1.65;
+
         }
+
         .hero-promo-actions {
+
             display: flex;
+
             gap: 1rem;
+
             align-items: center;
+
             position: relative;
+
             z-index: 2;
+
         }
+
         .btn-promo {
+
             padding: 12px 28px;
+
             border-radius: 12px;
+
             font-size: 1rem;
+
             font-weight: 800;
+
             display: inline-flex;
+
             align-items: center;
+
             gap: 10px;
+
             transition: all 0.25s;
+
         }
+
         .btn-promo-white {
+
             background: white;
+
             color: var(--primary);
+
             box-shadow: 0 4px 15px rgba(255, 255, 255, 0.25);
+
         }
+
         .btn-promo-white:hover {
+
             background: rgba(255, 255, 255, 0.9);
+
             transform: translateY(-2px);
+
             color: var(--primary-dark);
+
             box-shadow: 0 6px 20px rgba(255, 255, 255, 0.4);
+
         }
+
         .btn-promo-outline {
+
             background: transparent;
+
             color: white;
+
             border: 2px solid rgba(255, 255, 255, 0.4);
+
         }
+
         .btn-promo-outline:hover {
 
+
+
             border-color: white;
+
             background: rgba(255, 255, 255, 0.1);
+
             transform: translateY(-2px);
+
             color: white;
+
         }
 
+
+
         
+
 @@media (max-width: 991px) {
+
             .hero {
+
                 padding-top: 110px;
+
             }
+
             .hero-cards-row {
+
                 flex-direction: column;
+
                 gap: 1.5rem;
+
             }
+
         }
 
+
+
         /* ═══════════════════════════════════════════════════
+
            HOW IT WORKS SECTION (Altibbi 4 Steps)
+
         ═══════════════════════════════════════════════════ */
+
         .steps-section {
+
             padding: 90px 0;
+
             background: white;
+
             border-bottom: 1px solid var(--border);
+
         }
+
         .section-header {
+
             text-align: center;
+
             margin-bottom: 4rem;
+
         }
+
         .section-tag {
+
             font-size: 0.85rem;
+
             font-weight: 800;
+
             color: var(--primary);
+
             text-transform: uppercase;
+
             letter-spacing: 1.5px;
+
             display: inline-block;
+
             margin-bottom: 0.8rem;
+
         }
+
         .section-main-title {
+
             font-size: 2.2rem;
+
             font-weight: 800;
+
             c
+
 olor: var(--dark);
+
         }
+
         .section-sub-title {
+
             color: var(--text-muted);
+
             font-size: 1.05rem;
+
             max-width: 600px;
+
             margin: 0.8rem auto 0;
+
         }
+
         .steps-container {
+
             display: flex;
+
             justify-content: space-between;
+
             position: relative;
+
             flex-wrap: wrap;
+
             gap: 2rem;
+
         }
+
         .steps-container::before {
+
             content: '';
+
             position: absolute;
+
             top: 45px;
+
             right: 12%;
+
             left: 12%;
+
             height: 3px;
+
             background: linear-gradient(90deg, var(--primary-light), var(--secondary-light), var(--primary-light));
+
             z-index: 1;
+
         }
+
         .step-block {
+
             flex: 1;
+
             min-width: 200px;
+
             text-align: center;
+
             position: relative;
+
             z-index: 2;
+
         }
+
         .step-icon-wrapper {
+
             width: 90px; height: 90px;
+
             background: var(--white);
+
             bor
+
 der: 3px solid var(--border);
+
             border-radius: 50%;
+
             display: flex; align-items: center; justify-content: center;
+
             font-size: 1.8rem;
+
             color: var(--primary);
+
             margin: 0 auto 1.5rem;
+
             transition: all 0.3s ease;
+
             box-shadow: var(--shadow-md);
+
             position: relative;
+
         }
+
         .step-badge-num {
+
             position: absolute;
+
             top: -2px;
+
             right: -2px;
+
             width: 28px; height: 28px;
+
             background: var(--primary);
+
             color: white;
+
             font-size: 0.85rem;
+
             font-weight: 800;
+
             border-radius: 50%;
+
             display: flex; align-items: center; justify-content: center;
+
             border: 2px solid white;
+
         }
+
         .step-block:hover .step-icon-wrapper {
+
             border-color: var(--primary);
+
             color: white;
+
             background: var(--primary);
+
             transform: scale(1.08);
+
             box-shadow: 0 8px 24px rgba(16, 118, 
+
 110, 0.25);
+
         }
+
         .step-block:nth-child(even):hover .step-icon-wrapper {
+
             background: var(--secondary);
+
             border-color: var(--secondary);
+
             box-shadow: 0 8px 24px rgba(2, 132, 199, 0.25);
+
         }
+
         .step-block:nth-child(even) .step-badge-num {
+
             background: var(--secondary);
+
         }
+
         .step-title {
+
             font-size: 1.15rem;
+
             font-weight: 800;
+
             color: var(--dark);
+
             margin-bottom: 0.5rem;
+
         }
+
         .step-desc {
+
             font-size: 0.9rem;
+
             color: var(--text-muted);
+
             line-height: 1.6;
+
         }
 
+
+
         /* ═══════════════════════════════════════════════════
+
            APP SHOWCASE SECTION (Smartphone mockup)
+
         ═══════════════════════════════════════════════════ */
+
         .showcase-section {
+
             padding: 100px 0;
+
             background: linear-gradient(135deg, var(--dark), var(--dark-2));
+
             color: white;
+
             position: relative;
+
             ov
+
 erflow: hidden;
-        }
-        .showcase-section::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle at 80% 30%, rgba(16, 118, 110, 0.15) 0%, transparent 60%);
-        }
-        .showcase-content {
-            position: relative;
-            z-index: 2;
-            display: flex;
-            align-items: center;
-            gap: 4rem;
-        }
-        .showcase-text {
-            flex: 1.2;
-        }
-        .showcase-text h2 {
-            font-size: 2.8rem;
-            font-weight: 900;
-            margin-bottom: 1.5rem;
-            line-height: 1.3;
-        }
-        .showcase-text h2 span {
-            color: var(--accent);
-        }
-        .showcase-text p {
-            color: rgba(255, 255, 255, 0.75);
-            font-size: 1.1rem;
-            line-height: 1.8;
-            margin-bottom: 2.5rem;
-        }
-        /* Coming-soon app notice */
-        .coming-soon-app-notice {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            background: rgba(255,255,255,0.06);
-            border: 1px dashed rgba(94,234,212,0.4);
-            border-radius: 16px;
-            padding: 16px 20px;
-            margin-top: 0.5rem;
-        }
-        .coming-soon-app-icon {
-            width: 48px; height: 48px;
-            border-radius: 12px;
-            background: rgba(16,118,110,0.25);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.4rem;
-            color: #5eead4;
-            flex-shrink: 0;
-        }
-        .coming-soon-app-text { display: flex; flex-direction: column; gap: 4px; }
-        .coming-soon-app-label {
-            font-size: 0.82rem;
-            font-weight: 800;
-            color: #5eead4;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-        .coming-soon-app-text p {
-            font-size: 0.9rem;
-            color: rgba(255,255,255,0.65);
-            margin-bottom: 0;
-        }
-        .coming-soon-app-text p strong { color: rgba(255,255,255,0.9); }
-        .showcase-visual {
-            flex: 0.8;
-            display: flex;
-            justify-content: center
-;
-            align-items: center;
-        }
-        
-        /* CSS smartphone mockup */
-        .smartphone-mockup {
-            width: 290px;
-            height: 580px;
-            background: #1e293b;
-            border: 10px solid #475569;
-            border-radius: 40px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
-            position: relative;
-            overflow: hidden;
-        }
-        .smartphone-mockup::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 50%;
-            transform: translateX(-50%);
-            width: 140px;
-            height: 24px;
-            background: #475569;
-            border-bottom-left-radius: 16px;
-            border-bottom-right-radius: 16px;
-            z-index: 10;
-        }
-        .phone-screen {
-            width: 100%;
-            height: 100%;
-            background: #ffffff;
-            padding: 24px 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-         
-   color: var(--dark);
-            overflow-y: auto;
-        }
-        .phone-screen::-webkit-scrollbar { display: none; }
-        .phone-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 10px;
-            margin-top: 10px;
-        }
-        .phone-logo {
-            font-weight: 900;
-            color: var(--primary);
-            font-size: 1.1rem;
-        }
-        .phone-card {
-            background: var(--primary-light);
-            border-radius: 14px;
-            padding: 14px;
-            border: 1px solid rgba(16, 118, 110, 0.1);
-        }
-        .phone-card-title {
-            font-size: 0.82rem;
-            font-weight: 800;
-            color: var(--primary);
-            margin-bottom: 4px;
-        }
-        .phone-card-body {
-            font-size: 0.75rem;
-            color: var(--text);
-            line-height: 1.5;
-        }
-        .phone-btn {
-       
-     background: var(--primary);
-            color: white;
-            font-size: 0.8rem;
-            font-weight: 800;
-            text-align: center;
-            padding: 10px;
-            border-radius: 10px;
-            margin-top: auto;
+
         }
 
-        /* ═══════════════════════════════════════════════════
-           VIDEO SHOWCASE SECTION
-        ═══════════════════════════════════════════════════ */
-        .video-section {
-            padding: 100px 0 110px;
-            background: linear-gradient(160deg, #0f172a 0%, #0d2038 50%, #0f2a24 100%);
-            position: relative;
-            overflow: hidden;
-        }
-        .video-section__bg-glow {
+        .showcase-section::before {
+
+            content: '';
+
             position: absolute;
+
             inset: 0;
-            background:
-                radial-gradient(ellipse 70% 60% at 20% 40%, rgba(16,118,110,0.18) 0%, transparent 65%),
-                radial-gradient(ellipse 60% 50% at 80% 60%, rgba(2,132,199,0.15) 0%, transparent 65%);
-            pointer-events: none;
+
+            background: radial-gradient(circle at 80% 30%, rgba(16, 118, 110, 0.15) 0%, transparent 60%);
+
         }
-        .video-section .section-header { position: relative; z-index: 2; }
-        .video-section .section-tag {
+
+        .showcase-content {
+
+            position: relative;
+
+            z-index: 2;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 4rem;
+
+        }
+
+        .showcase-text {
+
+            flex: 1.2;
+
+        }
+
+        .showcase-text h2 {
+
+            font-size: 2.8rem;
+
+            font-weight: 900;
+
+            margin-bottom: 1.5rem;
+
+            line-height: 1.3;
+
+        }
+
+        .showcase-text h2 span {
+
+            color: var(--accent);
+
+        }
+
+        .showcase-text p {
+
+            color: rgba(255, 255, 255, 0.75);
+
+            font-size: 1.1rem;
+
+            line-height: 1.8;
+
+            margin-bottom: 2.5rem;
+
+        }
+
+        /* Coming-soon app notice */
+
+        .coming-soon-app-notice {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 16px;
+
+            background: rgba(255,255,255,0.06);
+
+            border: 1px dashed rgba(94,234,212,0.4);
+
+            border-radius: 16px;
+
+            padding: 16px 20px;
+
+            margin-top: 0.5rem;
+
+        }
+
+        .coming-soon-app-icon {
+
+            width: 48px; height: 48px;
+
+            border-radius: 12px;
+
             background: rgba(16,118,110,0.25);
-            border: 1px solid rgba(16,118,110,0.5);
+
+            display: flex; align-items: center; justify-content: center;
+
+            font-size: 1.4rem;
+
             color: #5eead4;
+
+            flex-shrink: 0;
+
+        }
+
+        .coming-soon-app-text { display: flex; flex-direction: column; gap: 4px; }
+
+        .coming-soon-app-label {
+
             font-size: 0.82rem;
-            font-weight: 700;
-            letter-spacing: 1px;
-            padding: 6px 18px;
-            border-radius: 50px;
-            display: inline-block;
-            margin-bottom: 16px;
-            text-transform: uppercase;
-        }
-        .video-section .section-main-title {
-            color: #f1f5f9;
-            font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+
             font-weight: 800;
+
+            color: #5eead4;
+
+            letter-spacing: 0.5px;
+
+            text-transform: uppercase;
+
         }
+
+        .coming-soon-app-text p {
+
+            font-size: 0.9rem;
+
+            color: rgba(255,255,255,0.65);
+
+            margin-bottom: 0;
+
+        }
+
+        .coming-soon-app-text p strong { color: rgba(255,255,255,0.9); }
+
+        .showcase-visual {
+
+            flex: 0.8;
+
+            display: flex;
+
+            justify-content: center
+
+;
+
+            align-items: center;
+
+        }
+
+        
+
+        /* CSS smartphone mockup */
+
+        .smartphone-mockup {
+
+            width: 290px;
+
+            height: 580px;
+
+            background: #1e293b;
+
+            border: 10px solid #475569;
+
+            border-radius: 40px;
+
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+
+            position: relative;
+
+            overflow: hidden;
+
+        }
+
+        .smartphone-mockup::before {
+
+            content: '';
+
+            position: absolute;
+
+            top: 0; left: 50%;
+
+            transform: translateX(-50%);
+
+            width: 140px;
+
+            height: 24px;
+
+            background: #475569;
+
+            border-bottom-left-radius: 16px;
+
+            border-bottom-right-radius: 16px;
+
+            z-index: 10;
+
+        }
+
+        .phone-screen {
+
+            width: 100%;
+
+            height: 100%;
+
+            background: #ffffff;
+
+            padding: 24px 16px;
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 16px;
+
+         
+
+   color: var(--dark);
+
+            overflow-y: auto;
+
+        }
+
+        .phone-screen::-webkit-scrollbar { display: none; }
+
+        .phone-header {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            border-bottom: 1px solid var(--border);
+
+            padding-bottom: 10px;
+
+            margin-top: 10px;
+
+        }
+
+        .phone-logo {
+
+            font-weight: 900;
+
+            color: var(--primary);
+
+            font-size: 1.1rem;
+
+        }
+
+        .phone-card {
+
+            background: var(--primary-light);
+
+            border-radius: 14px;
+
+            padding: 14px;
+
+            border: 1px solid rgba(16, 118, 110, 0.1);
+
+        }
+
+        .phone-card-title {
+
+            font-size: 0.82rem;
+
+            font-weight: 800;
+
+            color: var(--primary);
+
+            margin-bottom: 4px;
+
+        }
+
+        .phone-card-body {
+
+            font-size: 0.75rem;
+
+            color: var(--text);
+
+            line-height: 1.5;
+
+        }
+
+        .phone-btn {
+
+       
+
+     background: var(--primary);
+
+            color: white;
+
+            font-size: 0.8rem;
+
+            font-weight: 800;
+
+            text-align: center;
+
+            padding: 10px;
+
+            border-radius: 10px;
+
+            margin-top: auto;
+
+        }
+
+
+
+        /* ═══════════════════════════════════════════════════
+
+           VIDEO SHOWCASE SECTION
+
+        ═══════════════════════════════════════════════════ */
+
+        .video-section {
+
+            padding: 100px 0 110px;
+
+            background: linear-gradient(160deg, #0f172a 0%, #0d2038 50%, #0f2a24 100%);
+
+            position: relative;
+
+            overflow: hidden;
+
+        }
+
+        .video-section__bg-glow {
+
+            position: absolute;
+
+            inset: 0;
+
+            background:
+
+                radial-gradient(ellipse 70% 60% at 20% 40%, rgba(16,118,110,0.18) 0%, transparent 65%),
+
+                radial-gradient(ellipse 60% 50% at 80% 60%, rgba(2,132,199,0.15) 0%, transparent 65%);
+
+            pointer-events: none;
+
+        }
+
+        .video-section .section-header { position: relative; z-index: 2; }
+
+        .video-section .section-tag {
+
+            background: rgba(16,118,110,0.25);
+
+            border: 1px solid rgba(16,118,110,0.5);
+
+            color: #5eead4;
+
+            font-size: 0.82rem;
+
+            font-weight: 700;
+
+            letter-spacing: 1px;
+
+            padding: 6px 18px;
+
+            border-radius: 50px;
+
+            display: inline-block;
+
+            margin-bottom: 16px;
+
+            text-transform: uppercase;
+
+        }
+
+        .video-section .section-main-title {
+
+            color: #f1f5f9;
+
+            font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+
+            font-weight: 800;
+
+        }
+
         .video-section .section-main-title span { color: #5eead4; }
+
         .video-section .section-sub-title { color: #94a3b8; max-width: 600px; margin: 0 auto; }
 
+
+
         /* Wrapper */
+
         .video-wrapper {
+
             position: relative;
+
             z-index: 2;
+
             max-width: 900px;
+
             margin: 0 auto;
+
         }
+
+
 
         /* Card */
+
         .video-card {
+
             position: relative;
+
             border-radius: 24px;
+
             padding: 3px;                          /* glow border thickness */
+
             background: linear-gradient(135deg, #10766e, #0284c7, #10766e);
+
             background-size: 200% 200%;
+
             animation: borderFlow 4s linear infinite;
+
             box-shadow:
+
                 0 0 60px rgba(16,118,110,0.35),
+
                 0 0 120px rgba(2,132,199,0.18);
+
         }
+
         @@keyframes borderFlow {
+
             0%   { background-position: 0% 50%; }
+
             50%  { background-position: 100% 50%; }
+
             100% { background-position: 0% 50%; }
+
         }
+
+
 
         /* Ambient glow pulse behind card */
+
         .video-card__glow {
+
             position: absolute;
+
             inset: -30px;
+
             background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(16,118,110,0.25), transparent 70%);
+
             border-radius: 50%;
+
             animation: glowPulse 3s ease-in-out infinite;
+
             pointer-events: none;
+
             z-index: -1;
+
         }
+
         @@keyframes glowPulse {
+
             0%, 100% { opacity: 0.6; transform: scale(1); }
+
             50%       { opacity: 1;   transform: scale(1.06); }
+
         }
+
+
 
         /* Inner dark glass surface */
+
         .video-card__inner {
+
             background: #0f172a;
+
             border-radius: 22px;
+
             overflow: hidden;
+
             position: relative;
+
         }
+
+
 
         /* Corner accent decorations */
+
         .vid-corner {
+
             position: absolute;
+
             width: 20px; height: 20px;
+
             z-index: 5;
+
             pointer-events: none;
+
         }
+
         .vid-corner--tl { top: 10px; right: 10px;  border-top: 2px solid #5eead4;   border-right: 2px solid #5eead4; }
+
         .vid-corner--tr { top: 10px; left: 10px;   border-top: 2px solid #38bdf8;   border-left: 2px solid #38bdf8; }
+
         .vid-corner--bl { bottom: 10px; right: 10px; border-bottom: 2px solid #5eead4; border-right: 2px solid #5eead4; }
+
         .vid-corner--br { bottom: 10px; left: 10px;  border-bottom: 2px solid #38bdf8; border-left: 2px solid #38bdf8; }
 
+
+
         /* 16:9 responsive iframe */
+
         .video-embed-box {
+
             position: relative;
+
             width: 100%;
+
             padding-bottom: 56.25%;
+
             height: 0;
+
         }
+
         .video-embed-box iframe {
+
             position: absolute;
+
             inset: 0;
+
             width: 100%;
+
             height: 100%;
+
             border: none;
+
             display: block;
+
         }
+
+
 
         /* Meta strip below video */
+
         .video-meta {
+
             display: flex;
+
             align-items: center;
+
             justify-content: space-between;
+
             gap: 16px;
+
             flex-wrap: wrap;
+
             margin-top: 20px;
+
             padding: 16px 20px;
+
             background: rgba(255,255,255,0.04);
+
             border: 1px solid rgba(255,255,255,0.08);
+
             border-radius: 14px;
+
             backdrop-filter: blur(8px);
+
         }
+
         .video-meta__info { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
         .video-meta__badge {
+
             background: rgba(16,118,110,0.25);
+
             border: 1px solid rgba(94,234,212,0.3);
+
             color: #5eead4;
+
             font-size: 0.78rem;
+
             font-weight: 700;
+
             padding: 4px 14px;
+
             border-radius: 50px;
+
             white-space: nowrap;
+
         }
+
         .video-meta__title { color: #94a3b8; font-size: 0.9rem; }
+
         .video-meta__btn {
+
             display: inline-flex;
+
             align-items: center;
+
             gap: 8px;
+
             background: #ff0000;
+
             color: #fff !important;
+
             font-size: 0.85rem;
+
             font-weight: 700;
+
             padding: 8px 20px;
+
             border-radius: 50px;
+
             transition: all 0.3s;
+
             white-space: nowrap;
+
         }
+
         .video-meta__btn:hover {
+
             background: #cc0000;
+
             transform: translateY(-2px);
+
             box-shadow: 0 6px 20px rgba(255,0,0,0.3);
+
         }
+
+
 
         @@media (max-width: 576px) {
+
             .video-meta { flex-direction: column; align-items: flex-start; }
+
         }
 
+
+
         /* ═══════════════════════════════════════════════════
+
            SERVICES GRID SECTION
+
         ═══════════════════════════════════════════════════ */
+
         .services-section {
+
             padding: 100px 0;
+
             background: #f8fafc;
+
         }
+
+
 
         .service-card {
+
             background: var(--white);
+
             border: 1px solid var(--border);
+
             border-radius: 20px;
+
             padding: 30px;
+
             height: 100%;
+
             transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+
             position: relative;
+
             overflow: hidden;
+
             display: flex;
+
             flex-direction: column;
+
         }
+
         .service-card::before {
+
             content: '';
+
             position: absolute;
+
             top: 0; right: 0; 
+
 left: 0;
+
             height: 4px;
+
             background: linear-gradient(90deg, var(--primary), var(--secondary));
+
             transform: scaleX(0);
+
             transition: transform 0.35s;
+
             transform-origin: right;
+
         }
+
         .service-card:hover {
+
             transform: translateY(-8px);
+
             box-shadow: var(--shadow-xl);
+
             border-color: rgba(16, 118, 110, 0.2);
+
         }
+
         .service-card:hover::before { transform: scaleX(1); }
+
         .service-icon-box {
+
             width: 60px; height: 60px;
+
             border-radius: 14px;
+
             display: flex; align-items: center; justify-content: center;
+
             font-size: 1.5rem;
+
             margin-bottom: 1.5rem;
+
         }
+
         .service-title {
+
             font-size: 1.2rem;
+
             font-weight: 800;
+
             color: var(--dark);
+
             margin-bottom: 0.8rem;
+
         }
+
         .service-desc {
+
             font-size: 0.92rem;
+
             color: var(--text-muted);
+
             line-height: 1.6;
+
             ma
+
 rgin-bottom: 1.5rem;
+
             flex-grow: 1;
+
         }
+
         .service-btn {
+
             font-size: 0.88rem;
+
             font-weight: 700;
+
             color: var(--primary);
+
             display: inline-flex;
+
             align-items: center;
+
             gap: 8px;
+
         }
+
         .service-btn:hover {
+
             color: var(--primary-dark);
+
             gap: 12px;
+
         }
 
+
+
         /* ═══════════════════════════════════════════════════
+
            STATISTICS SECTION
+
         ═══════════════════════════════════════════════════ */
+
         .stats-section {
+
             padding: 70px 0;
+
             background: var(--white);
+
             border-top: 1px solid var(--border);
+
             border-bottom: 1px solid var(--border);
-        }
-        .stat-block {
-            text-align: center;
-        }
-        .stat-number {
-            font-size: 2.8rem;
-            font-weight: 900;
-            color: var(--primary);
-            line-height: 1;
-            margin-bottom: 0.5rem;
-        }
-        .stat-number span {
-  
-          color: var(--secondary);
-        }
-        .stat-title {
-            font-size: 1rem;
-            color: var(--text-muted);
-            font-weight: 700;
+
         }
 
-        /* ═══════════════════════════════════════════════════
-           PRICING / PACKAGES SECTION
-        ═══════════════════════════════════════════════════ */
-        .pricing-section {
-            padding: 100px 0;
-            background: var(--white);
+        .stat-block {
+
+            text-align: center;
+
         }
-        /* Free first-year banner */
-        .pricing-free-banner {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            flex-wrap: wrap;
-            margin-top: 28px;
-            padding: 18px 24px;
-            background: linear-gradient(135deg, #ecfdf5, #f0f9ff);
-            border: 2px solid #10b981;
-            border-radius: 18px;
-            animation: bannerPulse 3s ease-in-out infinite;
-        }
-        @@keyframes bannerPulse {
-            0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
-            50%      { box-shadow: 0 0 0 6px rgba(16,185,129,0.12); }
-        }
-        .pricing-free-banner__icon {
-            font-size: 2rem;
+
+        .stat-number {
+
+            font-size: 2.8rem;
+
+            font-weight: 900;
+
+            color: var(--primary);
+
             line-height: 1;
+
+            margin-bottom: 0.5rem;
+
         }
-        .pricing-free-banner__body {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            text-align: right;
+
+        .stat-number span {
+
+  
+
+          color: var(--secondary);
+
         }
-        .pricing-free-banner__body strong {
-            font-size: 1.05rem;
-            color: #065f46;
-            font-weight: 800;
-        }
-        .pricing-free-banner__body span {
-            font-size: 0.88rem;
-            color: #047857;
-        }
-        .pricing-free-banner__badge {
-            background: #10b981;
-            color: #fff;
-            font-size: 0.75rem;
+
+        .stat-title {
+
+            font-size: 1rem;
+
+            color: var(--text-muted);
+
             font-weight: 700;
-            padding: 5px 14px;
-            border-radius: 50px;
-            white-space: nowrap;
-            letter-spacing: 0.5px;
+
         }
-        @@media (max-width: 576px) {
-            .pricing-free-banner { flex-direction: column; text-align: center; }
-            .pricing-free-banner__body { text-align: center; }
-        }
-        .pricing-card {
+
+
+
+        /* ═══════════════════════════════════════════════════
+
+           PRICING / PACKAGES SECTION
+
+        ═══════════════════════════════════════════════════ */
+
+        .pricing-section {
+
+            padding: 100px 0;
+
             background: var(--white);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 40px 30px;
-            height: 100%;
+
+        }
+
+        /* Free first-year banner */
+
+        .pricing-free-banner {
+
             display: flex;
+
+            align-items: center;
+
+            gap: 16px;
+
+            flex-wrap: wrap;
+
+            margin-top: 28px;
+
+            padding: 18px 24px;
+
+            background: linear-gradient(135deg, #ecfdf5, #f0f9ff);
+
+            border: 2px solid #10b981;
+
+            border-radius: 18px;
+
+            animation: bannerPulse 3s ease-in-out infinite;
+
+        }
+
+        @@keyframes bannerPulse {
+
+            0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+
+            50%      { box-shadow: 0 0 0 6px rgba(16,185,129,0.12); }
+
+        }
+
+        .pricing-free-banner__icon {
+
+            font-size: 2rem;
+
+            line-height: 1;
+
+        }
+
+        .pricing-free-banner__body {
+
+            flex: 1;
+
+            display: flex;
+
             flex-direction: column;
+
+            gap: 4px;
+
+            text-align: right;
+
+        }
+
+        .pricing-free-banner__body strong {
+
+            font-size: 1.05rem;
+
+            color: #065f46;
+
+            font-weight: 800;
+
+        }
+
+        .pricing-free-banner__body span {
+
+            font-size: 0.88rem;
+
+            color: #047857;
+
+        }
+
+        .pricing-free-banner__badge {
+
+            background: #10b981;
+
+            color: #fff;
+
+            font-size: 0.75rem;
+
+            font-weight: 700;
+
+            padding: 5px 14px;
+
+            border-radius: 50px;
+
+            white-space: nowrap;
+
+            letter-spacing: 0.5px;
+
+        }
+
+        @@media (max-width: 576px) {
+
+            .pricing-free-banner { flex-direction: column; text-align: center; }
+
+            .pricing-free-banner__body { text-align: center; }
+
+        }
+
+        .pricing-card {
+
+            background: var(--white);
+
+            border: 1px solid var(--border);
+
+            border-radius: 24px;
+
+            padding: 40px 30px;
+
+            height: 100%;
+
+            display: flex;
+
+            flex-direction: column;
+
             position: relative;
+
             transition: all 0.35s ease;
+
         }
+
         .pricing-card.recommended {
+
             border-color: var(--primary);
+
             box-shadow: var(--shadow-xl);
+
             transform: scale(1.03);
+
             background: var(--primary-light);
+
         }
+
         .pricing-badge {
 
+
+
             position: absolute;
+
             top: 20px;
+
             left: 20px;
+
             background: var(--primary);
+
             color: white;
+
             padding: 4px 14px;
+
             border-radius: 50px;
+
             font-size: 0.78rem;
+
             font-weight: 800;
+
         }
+
         .pricing-name {
+
             font-size: 1.4rem;
+
             font-weight: 800;
+
             color: var(--dark);
+
             margin-bottom: 1rem;
+
         }
+
         .pricing-price {
+
             font-size: 2.4rem;
+
             font-weight: 900;
+
             color: var(--dark);
+
             margin-bottom: 1.5rem;
+
             display: flex;
+
             align-items: baseline;
+
             gap: 6px;
+
         }
+
         .pricing-price span {
+
             font-size: 0.95rem;
+
             color: var(--text-muted);
+
             font-weight: 700;
+
         }
+
         .pricing-features-list {
+
             list-style: none;
+
             padding: 0;
+
             margin: 0 0 2rem 0;
+
             flex-grow: 1;
+
         }
+
         .pricing-features-list li {
+
      
+
        padding: 10px 0;
+
             font-size: 0.95rem;
+
             color: var(--text);
+
             display: flex;
+
             align-items: flex-start;
+
             gap: 12px;
+
             border-bottom: 1px solid rgba(0,0,0,0.04);
+
         }
+
         .pricing-features-list li:last-child { border-bottom: none; }
+
         .pricing-features-list li i {
+
             color: var(--success);
+
             margin-top: 4px;
+
             font-size: 1rem;
+
         }
+
         .pricing-btn {
+
             width: 100%;
+
             padding: 12px 24px;
+
             border-radius: 12px;
+
             font-weight: 800;
+
             text-align: center;
+
             transition: all 0.25s;
+
         }
+
         .pricing-btn-primary {
+
             background: var(--primary);
+
             color: white;
+
         }
+
         .pricing-btn-primary:hover {
+
             background: var(--primary-dark);
+
             transform: translateY(-2px);
+
         }
+
         .pricing-btn-outline {
+
             border: 2px solid var(--primary);
+
             color: var(--primary);
+
             background: transparen
+
 t;
+
         }
+
         .pricing-btn-outline:hover {
+
             background: var(--primary);
+
             color: white;
+
             transform: translateY(-2px);
+
         }
 
+
+
         /* ═══════════════════════════════════════════════════
+
            TESTIMONIALS SECTION
+
         ═══════════════════════════════════════════════════ */
+
         .testimonials-section {
+
             padding: 100px 0;
+
             background: #f8fafc;
+
         }
+
         .testimonial-card {
+
             background: var(--white);
+
             border: 1px solid var(--border);
+
             border-radius: 20px;
+
             padding: 30px;
+
             height: 100%;
+
             box-shadow: var(--shadow-sm);
+
             transition: transform 0.3s;
+
         }
+
         .testimonial-card:hover {
+
             transform: translateY(-5px);
+
         }
+
         .testimonial-stars {
+
             color: var(--warning);
+
             font-size: 0.9rem;
+
             margin-bottom: 1rem;
+
         }
+
         .testimonial-text {
+
             font-size: 0.95rem;
+
             color: va
+
 r(--text);
+
             line-height: 1.7;
+
             font-style: italic;
+
             margin-bottom: 1.5rem;
+
         }
+
         .testimonial-user {
+
             display: flex;
+
             align-items: flex-start;
+
             gap: 12px;
+
         }
+
         .testimonial-avatar {
+
             width: 46px; height: 46px;
+
             border-radius: 50%;
+
             background: var(--primary-light);
+
             display: flex; align-items: center; justify-content: center;
+
             font-weight: 800;
+
             color: var(--primary);
+
         }
+
         .testimonial-user-name {
+
             font-weight: 800;
+
             font-size: 0.92rem;
+
             color: var(--dark);
+
         }
+
         .testimonial-user-title {
+
             font-size: 0.8rem;
+
             color: var(--text-muted);
+
         }
 
+
+
         /* ═══════════════════════════════════════════════════
+
            MEDICAL ARTICLES SECTION
+
         ═══════════════════════════════════════════════════ */
+
         .articles-section {
+
             padding: 100px 0;
+
             background: var(--white);
+
         }
+
         .article-card {
+
             border: 1px solid var(--border);
+
             border-radius: 20px;
+
             background: var(--white);
+
             overflow: hidden;
+
             height: 100%;
+
             transition: all 0.3s ease;
+
             display: flex;
+
             flex-direction: column;
+
         }
+
         .article-card:hover {
+
             transform: translateY(-6px);
+
             box-shadow: var(--shadow-lg);
+
         }
+
         .article-img-fallback {
+
             height: 180px;
+
             background: linear-gradient(135deg, var(--primary-light), var(--secondary-light));
+
             display: flex; align-items: center; justify-content: center;
+
             font-size: 3.5rem;
+
             color: rgba(16, 118, 110, 0.25);
+
         }
+
         .article-body {
+
             padding: 24px;
+
             display: flex;
+
             flex-direction: column;
+
             flex-grow: 1;
+
         }
+
         .article-category {
+
             font-size: 0.8rem;
+
             font-weight: 800;
+
             
+
 color: var(--primary);
+
             margin-bottom: 0.6rem;
+
             text-transform: uppercase;
+
         }
+
         .article-title {
+
             font-size: 1.15rem;
+
             font-weight: 800;
+
             color: var(--dark);
+
             line-height: 1.5;
+
             margin-bottom: 0.8rem;
+
         }
+
         .article-desc {
+
             font-size: 0.9rem;
+
             color: var(--text-muted);
+
             line-height: 1.6;
+
             margin-bottom: 1.5rem;
+
             flex-grow: 1;
+
         }
+
         .article-btn {
+
             font-size: 0.88rem;
+
             font-weight: 700;
+
             color: var(--secondary);
+
             display: inline-flex;
+
             align-items: center;
+
             gap: 6px;
+
         }
 
+
+
         /* ═══════════════════════════════════════════════════
+
            FAQ ACCORDIONS
+
         ═══════════════════════════════════════════════════ */
+
         .faq-section {
+
             padding: 100px 0;
+
             background: #f8fafc;
+
         }
+
         .faq-accordion-item {
+
             background: var(--white);
+
             border: 1px solid var(--border);
+
             border-radius: 16px;
+
             margin-bottom: 1rem;
+
             overflow: hidden;
+
             box-shadow: var(--shadow-sm);
+
         }
+
         .faq-accordion-header {
+
             padding: 20px 24px;
+
             font-weight: 800;
+
             font-size: 1.05rem;
+
             color: var(--dark);
+
             cursor: pointer;
+
             display: flex;
+
             justify-content: space-between;
+
             align-items: center;
+
             user-select: none;
+
             transition: background 0.2s;
+
         }
+
         .faq-accordion-header:hover {
+
             background: #f1f5f9;
+
         }
+
         .faq-accordion-body {
+
             padding: 0 24px;
+
             max-height: 0;
+
             overflow: hidden;
+
             transition: all 0.3s cubic-bezier(0, 1, 0, 1);
+
             color: var(--text-muted);
+
             font-size: 0.95rem;
+
             line-height: 1.7;
+
         }
+
         .faq-accordion-item.active .faq-accordion-body {
+
             padding: 0 24px 24px;
+
             max-height: 300px;
+
         }
+
         .faq-accordion-icon {
+
             transition: transform 0.3s;
+
             font-size: 0.9rem;
+
         }
+
         .faq-accordion-item.active .faq-accordion-icon {
+
             transform: rotate(180deg);
+
         }
 
+
+
         /* ═══════════════════════════════════════════════════
+
            DOCTOR & PATIENT ONBOARDING CTA BANNER
+
         ═══════════════════════════════════════════════════ */
+
         .doctor-cta-section {
+
             padding: 90px 0;
+
             background: linear-gradient(135deg, var(--primary), var(--secondary));
+
             color: white;
+
             position: relative;
+
             overflow: hidden;
-        }
-        .doctor-cta-section::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background-image: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.12) 0%, transparent 70%);
-        }
-        .doctor-cta-content {
-            position: relative;
-            z-index: 2;
-        }
-     
-   .cta-box {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.16);
-            backdrop-filter: blur(10px);
-            border-radius: 24px;
-            padding: 40px 30px;
-            height: 100%;
-            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-        .cta-box:hover {
-            transform: translateY(-8px);
-            background: rgba(255, 255, 255, 0.14);
-            border-color: rgba(255, 255, 255, 0.3);
-            box-shadow: var(--shadow-xl);
-        }
-        .cta-box-icon {
-            font-size: 3rem;
-            margin-bottom: 1.5rem;
-            color: rgba(255, 255, 255, 0.95);
-        }
-        .cta-box h3 {
-            font-size: 1.7rem;
-            font-weight: 800;
-            margin-bottom: 1rem;
-        }
-        .cta-box p {
-            font-size: 1rem;
-            opac
-ity: 0.88;
-            margin-bottom: 2rem;
-            line-height: 1.7;
-            flex-grow: 1;
-        }
-        .btn-cta-register {
-            background: white;
-            color: var(--primary-dark);
-            padding: 14px 30px;
-            border-radius: 12px;
-            font-weight: 800;
-            font-size: 1rem;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            box-shadow: var(--shadow-md);
-            transition: all 0.25s;
-            text-decoration: none;
-            width: fit-content;
-            margin: 0 auto;
-        }
-        .btn-cta-register-patient {
-            color: var(--secondary);
-        }
-        .btn-cta-register:hover {
-            background: rgba(255,255,255,0.95);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-            color: inherit;
+
         }
 
-        /* ═══════════════════════════════════════════════════
-           FOOTER
-        ══════
-═════════════════════════════════════════════ */
-        footer {
-            background: var(--dark);
-            color: rgba(255,255,255,0.6);
-            padding: 80px 0 40px;
-            border-top: 1px solid rgba(255,255,255,0.05);
+        .doctor-cta-section::before {
+
+            content: '';
+
+            position: absolute;
+
+            inset: 0;
+
+            background-image: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.12) 0%, transparent 70%);
+
         }
-        .footer-desc {
-            font-size: 0.95rem;
-            line-height: 1.8;
-            margin-top: 1.2rem;
-            max-width: 320px;
+
+        .doctor-cta-content {
+
+            position: relative;
+
+            z-index: 2;
+
         }
-        .footer-heading {
-            color: white;
-            font-size: 1.05rem;
-            font-weight: 800;
-            margin-bottom: 1.5rem;
-        }
-        .footer-links { list-style: none; padding: 0; margin: 0; }
-        .footer-links li { margin-bottom: 0.8rem; }
-        .footer-links a {
-            color: rgba(255,255,255,0.55);
-            font-size: 0.95rem;
-            transition: color 0.2s;
-        }
-        .footer-links a:hover { color: white; }
-        
-        .footer-download-btn {
-            background: var(--dark-2);
-            border: 1px solid rgba(255,255,255,0.1);
-            pad
-ding: 10px 18px;
-            border-radius: 10px;
+
+     
+
+   .cta-box {
+
+            background: rgba(255, 255, 255, 0.08);
+
+            border: 1px solid rgba(255, 255, 255, 0.16);
+
+            backdrop-filter: blur(10px);
+
+            border-radius: 24px;
+
+            padding: 40px 30px;
+
+            height: 100%;
+
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+
+            text-align: center;
+
             display: flex;
-            align-items: center;
-            gap: 10px;
-            color: white;
+
+            flex-direction: column;
+
+            justify-content: space-between;
+
+        }
+
+        .cta-box:hover {
+
+            transform: translateY(-8px);
+
+            background: rgba(255, 255, 255, 0.14);
+
+            border-color: rgba(255, 255, 255, 0.3);
+
+            box-shadow: var(--shadow-xl);
+
+        }
+
+        .cta-box-icon {
+
+            font-size: 3rem;
+
+            margin-bottom: 1.5rem;
+
+            color: rgba(255, 255, 255, 0.95);
+
+        }
+
+        .cta-box h3 {
+
+            font-size: 1.7rem;
+
+            font-weight: 800;
+
             margin-bottom: 1rem;
+
+        }
+
+        .cta-box p {
+
+            font-size: 1rem;
+
+            opac
+
+ity: 0.88;
+
+            margin-bottom: 2rem;
+
+            line-height: 1.7;
+
+            flex-grow: 1;
+
+        }
+
+        .btn-cta-register {
+
+            background: white;
+
+            color: var(--primary-dark);
+
+            padding: 14px 30px;
+
+            border-radius: 12px;
+
+            font-weight: 800;
+
+            font-size: 1rem;
+
+            display: inline-flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            gap: 10px;
+
+            box-shadow: var(--shadow-md);
+
             transition: all 0.25s;
+
+            text-decoration: none;
+
+            width: fit-content;
+
+            margin: 0 auto;
+
         }
+
+        .btn-cta-register-patient {
+
+            color: var(--secondary);
+
+        }
+
+        .btn-cta-register:hover {
+
+            background: rgba(255,255,255,0.95);
+
+            transform: translateY(-2px);
+
+            box-shadow: var(--shadow-lg);
+
+            color: inherit;
+
+        }
+
+
+
+        /* ═══════════════════════════════════════════════════
+
+           FOOTER
+
+        ══════
+
+═════════════════════════════════════════════ */
+
+        footer {
+
+            background: var(--dark);
+
+            color: rgba(255,255,255,0.6);
+
+            padding: 80px 0 40px;
+
+            border-top: 1px solid rgba(255,255,255,0.05);
+
+        }
+
+        .footer-desc {
+
+            font-size: 0.95rem;
+
+            line-height: 1.8;
+
+            margin-top: 1.2rem;
+
+            max-width: 320px;
+
+        }
+
+        .footer-heading {
+
+            color: white;
+
+            font-size: 1.05rem;
+
+            font-weight: 800;
+
+            margin-bottom: 1.5rem;
+
+        }
+
+        .footer-links { list-style: none; padding: 0; margin: 0; }
+
+        .footer-links li { margin-bottom: 0.8rem; }
+
+        .footer-links a {
+
+            color: rgba(255,255,255,0.55);
+
+            font-size: 0.95rem;
+
+            transition: color 0.2s;
+
+        }
+
+        .footer-links a:hover { color: white; }
+
+        
+
+        .footer-download-btn {
+
+            background: var(--dark-2);
+
+            border: 1px solid rgba(255,255,255,0.1);
+
+            pad
+
+ding: 10px 18px;
+
+            border-radius: 10px;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 10px;
+
+            color: white;
+
+            margin-bottom: 1rem;
+
+            transition: all 0.25s;
+
+        }
+
         .footer-download-btn:hover {
+
             background: rgba(255,255,255,0.05);
+
             border-color: rgba(255,255,255,0.25);
+
         }
+
         .footer-download-btn i {
+
             font-size: 1.5rem;
+
         }
+
         .footer-download-text {
+
             text-align: right;
+
         }
+
         .footer-download-text span {
+
             display: block;
+
             font-size: 0.7rem;
+
             opacity: 0.6;
+
         }
+
         .footer-download-text strong {
+
             font-size: 0.88rem;
+
             font-weight: 700;
+
         }
+
+
 
         .footer-divider {
+
             border-color: rgba(255,255,255,0.08);
+
             margin: 3rem 0 2rem;
+
         }
+
         .footer-bottom {
+
             display: flex;
+
             justify-content: space-between;
+
             align-items: center;
+
    
+
          flex-wrap: wrap;
+
             gap: 1.5rem;
+
             font-size: 0.9rem;
+
         }
+
         .social-links { display: flex; gap: 0.8rem; }
+
         .social-link {
+
             width: 40px; height: 40px;
+
             border-radius: 10px;
+
             background: rgba(255,255,255,0.05);
+
             display: flex; align-items: center; justify-content: center;
+
             color: rgba(255,255,255,0.6);
+
             transition: all 0.2s;
+
             font-size: 1rem;
+
         }
+
         .social-link:hover {
+
             background: var(--primary);
+
             color: white;
+
             transform: translateY(-2px);
+
         }
 
+
+
         /* ═══════════════════════════════════════════════════
+
            CHATBOT FLOATING PANEL Preserved & styled
+
         ═══════════════════════════════════════════════════ */
+
         .etmen-chatbot {
+
             position: fixed;
+
             left: 30px;
+
             bottom: 30px;
+
             z-index: 99999;
-        }
-        .chatbot-toggle {
-            width: 60px;
-            height: 60px;
-  
-          border: 0;
-            border-radius: 50%;
-            background: var(--primary);
-            color: #fff;
-            font-size: 24px;
-            box-shadow: 0 8px 30px rgba(16, 118, 110, 0.3);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            transition: all .25s ease;
-            cursor: pointer;
-        }
-        .chatbot-toggle:hover {
-            transform: translateY(-3px);
-            background: var(--primary-dark);
-            box-shadow: 0 12px 35px rgba(16, 118, 110, 0.4);
-        }
-        .chatbot-panel {
-            width: 370px;
-            height: 500px;
-            background: #fff;
-            border-radius: 20px;
-            overflow: hidden;
-            display: none;
-            flex-direction: column;
-            position: absolute;
-            left: 0;
-            bottom: 75px;
-            box-shadow: var(--shadow-xl);
-            border: 1px solid var(--border);
-        }
-        .chatbot-panel.show {
-      
-      display: flex;
-        }
-        .chatbot-header {
-            background: var(--primary);
-            color: #fff;
-            padding: 16px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .chatbot-header h4 {
-            margin: 0;
-            font-size: 1.05rem;
-            font-weight: 800;
-        }
-        .chatbot-header p {
-            margin: 2px 0 0;
-            font-size: .78rem;
-            opacity: .85;
-        }
-        .chatbot-header button {
-            width: 32px;
-            height: 32px;
-            border: 0;
-            border-radius: 8px;
-            background: rgba(255,255,255,.18);
-            color: #fff;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.9rem;
-        }
-        .chatbot-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px;
-            background: 
-#f8fafc;
-        }
-        .chat-msg {
-            display: flex;
-            margin-bottom: 12px;
-        }
-        .chat-msg.user {
-            justify-content: flex-end;
-        }
-        .chat-bubble {
-            max-width: 82%;
-            padding: 12px 14px;
-            border-radius: 16px;
-            font-size: .92rem;
-            line-height: 1.6;
-            word-break: break-word;
-        }
-        .chat-msg.bot .chat-bubble {
-            background: #fff;
-            color: var(--dark);
-            border: 1px solid var(--border);
-            border-top-right-radius: 4px;
-            box-shadow: var(--shadow-sm);
-        }
-        .chat-msg.user .chat-bubble {
-            background: var(--primary);
-            color: #fff;
-            border-top-left-radius: 4px;
-        }
-        .chat-msg.loading .chat-bubble {
-            font-style: italic;
-            color: var(--text-muted);
-        }
-        .chat-bubble.arabic {
-            text-align: right;
-        }
-        .chatbot-form {
-          
-  display: flex;
-            gap: 10px;
-            padding: 14px;
-            border-top: 1px solid var(--border);
-            background: #fff;
-        }
-        .chatbot-form input {
-            flex: 1;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 12px 14px;
-            outline: none;
-            font-size: .9rem;
-        }
-        .chatbot-form input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(16, 118, 110, 0.1);
-        }
-        .chatbot-form button {
-            width: 46px;
-            border: 0;
-            border-radius: 12px;
-            background: var(--primary);
-            color: #fff;
-            cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1rem;
-        }
-        .chatbot-form button:hover {
-            background: var(--primary-dark);
+
         }
 
+        .chatbot-toggle {
+
+            width: 60px;
+
+            height: 60px;
+
+  
+
+          border: 0;
+
+            border-radius: 50%;
+
+            background: var(--primary);
+
+            color: #fff;
+
+            font-size: 24px;
+
+            box-shadow: 0 8px 30px rgba(16, 118, 110, 0.3);
+
+            display: inline-flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            transition: all .25s ease;
+
+            cursor: pointer;
+
+        }
+
+        .chatbot-toggle:hover {
+
+            transform: translateY(-3px);
+
+            background: var(--primary-dark);
+
+            box-shadow: 0 12px 35px rgba(16, 118, 110, 0.4);
+
+        }
+
+        .chatbot-panel {
+
+            width: 370px;
+
+            height: 500px;
+
+            background: #fff;
+
+            border-radius: 20px;
+
+            overflow: hidden;
+
+            display: none;
+
+            flex-direction: column;
+
+            position: absolute;
+
+            left: 0;
+
+            bottom: 75px;
+
+            box-shadow: var(--shadow-xl);
+
+            border: 1px solid var(--border);
+
+        }
+
+        .chatbot-panel.show {
+
+      
+
+      display: flex;
+
+        }
+
+        .chatbot-header {
+
+            background: var(--primary);
+
+            color: #fff;
+
+            padding: 16px 20px;
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+        }
+
+        .chatbot-header h4 {
+
+            margin: 0;
+
+            font-size: 1.05rem;
+
+            font-weight: 800;
+
+        }
+
+        .chatbot-header p {
+
+            margin: 2px 0 0;
+
+            font-size: .78rem;
+
+            opacity: .85;
+
+        }
+
+        .chatbot-header button {
+
+            width: 32px;
+
+            height: 32px;
+
+            border: 0;
+
+            border-radius: 8px;
+
+            background: rgba(255,255,255,.18);
+
+            color: #fff;
+
+            cursor: pointer;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            font-size: 0.9rem;
+
+        }
+
+        .chatbot-messages {
+
+            flex: 1;
+
+            overflow-y: auto;
+
+            padding: 16px;
+
+            background: 
+
+#f8fafc;
+
+        }
+
+        .chat-msg {
+
+            display: flex;
+
+            margin-bottom: 12px;
+
+        }
+
+        .chat-msg.user {
+
+            justify-content: flex-end;
+
+        }
+
+        .chat-bubble {
+
+            max-width: 82%;
+
+            padding: 12px 14px;
+
+            border-radius: 16px;
+
+            font-size: .92rem;
+
+            line-height: 1.6;
+
+            word-break: break-word;
+
+        }
+
+        .chat-msg.bot .chat-bubble {
+
+            background: #fff;
+
+            color: var(--dark);
+
+            border: 1px solid var(--border);
+
+            border-top-right-radius: 4px;
+
+            box-shadow: var(--shadow-sm);
+
+        }
+
+        .chat-msg.user .chat-bubble {
+
+            background: var(--primary);
+
+            color: #fff;
+
+            border-top-left-radius: 4px;
+
+        }
+
+        .chat-msg.loading .chat-bubble {
+
+            font-style: italic;
+
+            color: var(--text-muted);
+
+        }
+
+        .chat-bubble.arabic {
+
+            text-align: right;
+
+        }
+
+        .chatbot-form {
+
+          
+
+  display: flex;
+
+            gap: 10px;
+
+            padding: 14px;
+
+            border-top: 1px solid var(--border);
+
+            background: #fff;
+
+        }
+
+        .chatbot-form input {
+
+            flex: 1;
+
+            border: 1px solid var(--border);
+
+            border-radius: 12px;
+
+            padding: 12px 14px;
+
+            outline: none;
+
+            font-size: .9rem;
+
+        }
+
+        .chatbot-form input:focus {
+
+            border-color: var(--primary);
+
+            box-shadow: 0 0 0 3px rgba(16, 118, 110, 0.1);
+
+        }
+
+        .chatbot-form button {
+
+            width: 46px;
+
+            border: 0;
+
+            border-radius: 12px;
+
+            background: var(--primary);
+
+            color: #fff;
+
+            cursor: pointer;
+
+            display: flex; align-items: center; justify-content: center;
+
+            font-size: 1rem;
+
+        }
+
+        .chatbot-form button:hover {
+
+            background: var(--primary-dark);
+
+        }
+
+
+
         /* ═══════════════════════════════════════════════════
+
            SCROLL A
+
 NIMATIONS & RESPONSIVE
+
         ═══════════════════════════════════════════════════ */
+
         [data-animate] {
+
             opacity: 0;
+
             transform: translateY(30px);
+
             transition: opacity 0.7s ease, transform 0.7s ease;
+
         }
+
         [data-animate].in-view {
+
             opacity: 1;
+
             transform: none;
+
         }
+
         [data-animate-delay="1"] { transition-delay: 0.1s; }
+
         [data-animate-delay="2"] { transition-delay: 0.2s; }
+
         [data-animate-delay="3"] { transition-delay: 0.3s; }
 
+
+
         
+
 @@media (max-width: 991px) {
+
             .etmen-nav { padding: 0 1.5rem; }
+
             .etmen-nav .btn-nav-login, 
+
             .etmen-nav .btn-nav-register { 
+
                 display: none !important; 
-            }
-            .nav-links { 
-                display: none; 
-                flex-direction: column;
-                position: absolute;
-                top: 80px;
-                left: 0;
-                right: 0;
-                background: var(--white);
-                border-top: 1px solid var(--border);
-                padding: 0.5rem 0;
-                gap: 0;
-                list-style: none;
-                margin: 0;
-                box-shadow: var(--shadow-lg);
-                z-index: 1001;
-            }
-            .etmen-nav.scrolled .nav-links {
-                top: 70px;
-            }
-            .nav-links.mobile-open { display: flex; }
-            .nav-links li a {
-                display: block;
-                padding: 1rem 1.5rem;
-                color: var(--text);
-                text-decoration: none;
-                font-weight: 700;
-                border-bottom: 1px solid var(--border);
-                transition: all 0.2s ease;
-            }
-            .nav-links li a:hover {
-                background: var(--primary-light);
-                color: var(--primary);
-                padding-right: 2rem;
-            }
-            .nav-links li:last-child a { border-bottom: none; }
-            
-            .nav-mobile-actions {
-                display: flex;
-                flex-direction: column;
-                gap: 0.75rem;
-                padding: 1.5rem;
-                background: #fafafb;
-                border-top: 1px solid var(--border);
-            }
-            .btn-nav-login-mobile {
-                display: block;
-                text-align: center;
-                padding: 12px;
-                border: 2px solid var(--primary);
-                background: transparent;
-                color: var(--primary) !important;
-                border-radius: 10px;
-                font-weight: 700;
-                font-size: 0.95rem;
-                transition: all 0.25s;
-            }
-            .btn-nav-login-mobile:hover {
-                background: var(--primary-light);
-            }
-            .btn-nav-register-mobile {
-                display: block;
-                text-align: center;
-                padding: 12px;
-                background: linear-gradient(135deg, var(--primary), var(--secondary));
-                color: white !important;
-                border: none;
-                border-radius: 10px;
-                font-weight: 800;
-                font-size: 0.95rem;
-                box-shadow: 0 4px 12px rgba(16, 118, 110, 0.2);
-                transition: all 0.25s;
-            }
-            .btn-nav-register-mobile:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 6px 16px rgba(16, 118, 110, 0.3);
+
             }
 
-            .nav-hamburger {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                background: none;
-                border: 1px solid var(--border);
-                border-radius: 8px;
-                width: 40px; height: 40px;
-                cursor: pointer;
+            .nav-links { 
+
+                display: none; 
+
+                flex-direction: column;
+
+                position: absolute;
+
+                top: 80px;
+
+                left: 0;
+
+                right: 0;
+
+                background: var(--white);
+
+                border-top: 1px solid var(--border);
+
+                padding: 0.5rem 0;
+
+                gap: 0;
+
+                list-style: none;
+
+                margin: 0;
+
+                box-shadow: var(--shadow-lg);
+
+                z-index: 1001;
+
+            }
+
+            .etmen-nav.scrolled .nav-links {
+
+                top: 70px;
+
+            }
+
+            .nav-links.mobile-open { display: flex; }
+
+            .nav-links li a {
+
+                display: block;
+
+                padding: 1rem 1.5rem;
+
                 color: var(--text);
+
+                text-decoration: none;
+
+                font-weight: 700;
+
+                border-bottom: 1px solid var(--border);
+
+                transition: all 0.2s ease;
+
+            }
+
+            .nav-links li a:hover {
+
+                background: var(--primary-light);
+
+                color: var(--primary);
+
+                padding-right: 2rem;
+
+            }
+
+            .nav-links li:last-child a { border-bottom: none; }
+
+            
+
+            .nav-mobile-actions {
+
+                display: flex;
+
+                flex-direction: column;
+
+                gap: 0.75rem;
+
+                padding: 1.5rem;
+
+                background: #fafafb;
+
+                border-top: 1px solid var(--border);
+
+            }
+
+            .btn-nav-login-mobile {
+
+                display: block;
+
+                text-align: center;
+
+                padding: 12px;
+
+                border: 2px solid var(--primary);
+
+                background: transparent;
+
+                color: var(--primary) !important;
+
+                border-radius: 10px;
+
+                font-weight: 700;
+
+                font-size: 0.95rem;
+
+                transition: all 0.25s;
+
+            }
+
+            .btn-nav-login-mobile:hover {
+
+                background: var(--primary-light);
+
+            }
+
+            .btn-nav-register-mobile {
+
+                display: block;
+
+                text-align: center;
+
+                padding: 12px;
+
+                background: linear-gradient(135deg, var(--primary), var(--secondary));
+
+                color: white !important;
+
+                border: none;
+
+                border-radius: 10px;
+
+                font-weight: 800;
+
+                font-size: 0.95rem;
+
+                box-shadow: 0 4px 12px rgba(16, 118, 110, 0.2);
+
+                transition: all 0.25s;
+
+            }
+
+            .btn-nav-register-mobile:hover {
+
+                transform: translateY(-2px);
+
+                box-shadow: 0 6px 16px rgba(16, 118, 110, 0.3);
+
+            }
+
+
+
+            .nav-hamburger {
+
+                display: flex;
+
+                align-items: center;
+
+                justify-content: center;
+
+                background: none;
+
+                border: 1px solid var(--border);
+
+                border-radius: 8px;
+
+                width: 40px; height: 40px;
+
+                cursor: pointer;
+
+                color: var(--text);
+
                 font-size: 1.1rem;
+
                 transition: all 0.2s;
+
             }
+
             .nav-hamburger:hover { background: var(--primary-light); color: var(--primary); }
+
             .nav-actions { order: 3; }
+
             
+
             .crisis-banner {
+
                 padding: 8px 1rem;
+
                 font-size: 0.85rem;
+
                 gap: 0.5rem;
+
             }
+
             .crisis-pulse {
+
                 width: 10px; height: 10px;
+
             }
+
             
+
             .hero-cards-row { flex-direction: column; }
+
             .showcase-content { flex-direction: column; text-align: center; }
+
             .showcase-visual { margin-top: 2rem; }
+
             .steps-container::before { display: none; }
+
             .steps-container { flex-direction: column; gap: 3rem; }
+
         }
+
         @@media (min-width: 992px) {
+
             .nav-hamburger { display: none; }
+
         }
+
         
+
 @@media (max-width: 576px) {
+
             .chatbot-panel {
+
                 width: calc(100vw - 32px);
+
                 height: 440px;
+
                 left: -10px;
+
             }
+
             .hero-promo-title { font-size: 1.8rem; }
+
             .hero { padding-top: 140px; }
+
             .section-main-title { font-size: 1.8rem; }
+
         }
+
     </style>
 
 
+
+
+
 </head>
+
 <body>
 
 
+
+
+
     <!-- ═══ HEADER & NAVBAR ════════════════════════════════ -->
+
     <nav class="etmen-nav" id="mainNav">
+
         <a href="/" class="nav-logo">
+
             <div class="nav-logo-icon">
+
                 <i class="fas fa-heartbeat"></i>
+
             </div>
+
             <span class="nav-logo-text">إط<span>من</span></span>
+
         </a>
 
+
+
         <ul class="nav-links" id="mobileNavLinks">
+
             <li><a href="#services" onclick="closeMobileNav()">خدماتنا</a></li>
+
             <li><a href="#how" onclick="closeMobileNav()">كيف تعمل المنصة؟</a></li>
+
             <li><a href="#pricing" onclick="closeMobileNav()">الباقات والاشتراكات</a></li>
+
             <li><a href="#articles" onclick="closeMobileNav()">النصائح والمقالات</a></li>
+
             <li><a href="#faqs" onclick="closeMobileNav()">الأسئلة الشائعة</a></li>
+
             <li class="nav-mobile-actions">
+
                 <a href="/Account/Login" class="btn-nav-login-mobile">تسجيل الدخول</a>
+
                 <a href="/Account/Register" class="btn-nav-register-mobile">
+
                     <i class="fas fa-user-plus me-1"></i> انضم الآن
+
                 </a>
+
             </li>
+
         </ul>
 
+
+
         <div class="nav-actions">
+
             <button class="nav-hamburger" id="navHamburger" onclick="toggleMobileNav()" aria-label="فتح القائمة">
+
                 <i class="fas fa-bars" id="hamburgerIcon"></i>
+
             </button>
+
             <a href="/Account/Login" class="btn-nav-login">تسجيل الدخول</a>
+
             <a href="/Account/Register" class="btn-nav-register">
+
                 <i class="fas fa-user-plus me-1"></i> انضم الآن
+
             </a>
+
         </div>
+
     </nav>
 
+
+
     @if (TempData["Error"] != null)
+
     {
+
         <div class="alert alert-danger" style="margin: 100px auto 20px auto; max-width: 1200px; border-radius: 12px; font-family: 'Tajawal', sans-serif; direction: rtl; text-align: right; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; padding: 15px; box-shadow: 0 4px 15px rgba(220, 53, 69, 0.1);">
+
             <i class="fas fa-exclamation-circle me-2"></i> @TempData["Error"]
+
         </div>
+
     }
+
     @if (TempData["Success"] != null)
+
     {
+
         <div class="alert alert-success" style="margin: 100px auto 20px auto; max-width: 1200px; border-radius: 12px; font-family: 'Tajawal', sans-serif; direction: rtl; text-align: right; background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; padding: 15px; box-shadow: 0 4px 15px rgba(40, 167, 69, 0.1);">
+
             <i class="fas fa-check-circle me-2"></i> @TempData["Success"]
+
         </div>
+
     }
+
+
 
     <!-- ═══ ACTIVE CRISIS BANNER ════════════════════════════ -->
 
 
+
+
+
         @if (Model.HasActiveCrisis)
+
     {
+
         <div class="crisis-banner">
+
             <span class="crisis-pulse"></span>
+
             <i class="fas fa-exclamation-triangle"></i>
+
             <strong>وضع الأزمة نشط ومفعّل:</strong>
+
             <span>@Model.ActiveCrisisName</span>
+
             <span class="d-none d-md-inline" style="opacity:0.7;">—</span>
+
             <span class="d-none d-md-inline">اتبع الإرشادات الوقائية الواردة من المسؤولين</span>
+
         </div>
+
     }
 
 
+
+
+
     <!-- ═══ HERO SECTION (ALTIBBI STYLE) ════════════════════ -->
+
     <section class="hero">
+
         <!-- Glowing background blobs for ambient lighting -->
+
         <div class="hero-glow-blob hero-glow-blob-1"></div>
+
         <div class="hero-glow-blob hero-glow-blob-2"></div>
 
+
+
         <div class="container hero-container">
+
             <div class="row align-items-center mb-5">
+
                 <div class="col-lg-7">
+
                     <div class="hero-tagline">
+
                         <i class="fas fa-shield-halved"></i> صحتك في أمان مع إطمن
+
                     </div>
+
                     <h1 class="hero-title-main">
+
                         طبيبك اليومي.. وسندك في الطوارئ..<br />ودرعك في <span>الأزمات الصحية</span>
+
                     </h1>
+
                     <p class="hero-description">
+
                         إطمن ليست مجرد منصة استشارات؛ بل هي منظومة صحية ذكية متكاملة تتكيف معك في ثلاثة مستويات رئيسية: تنظيم رعايتك اليومية، التدخل الفوري لإنقاذ الطوارئ، وتأمين المجتمع عند تفشي الأوبئة والأزمات الكبرى.
+
                     </p>
+
+
 
                     <!-- شريط الأنماط التفاعلي المبتكر -->
+
                     <div class="row g-3 mb-4 mt-2">
+
                         <div class="col-md-4">
+
                             <div class="mode-badge-card" data-animate>
+
                                 <i class="fas fa-heartbeat text-success"></i>
+
                                 <div>
+
                                     <h5>الرعاية اليومية</h5>
+
                                     <p>ملف موحد وحجز عيادات وتتبع حيوي</p>
+
                                 </div>
+
                             </div>
+
                         </div>
+
                         <div class="col-md-4">
+
                             <div class="mode-badge-card" data-animate data-animate-delay="1">
+
                                 <i class="fas fa-truck-medical text-primary-color"></i>
+
                                 <div>
+
                                     <h5>طوارئ فورية</h5>
+
                                     <p>طلب إسعاف وتتبع وحجز عناية مركزة</p>
+
                                 </div>
+
                             </div>
+
                         </div>
+
                         <div class="col-md-4">
+
                             <div class="mode-badge-card" data-animate data-animate-delay="2">
+
                                 <i class="fas fa-shield-virus text-warning"></i>
+
                                 <div>
+
                                     <h5>رصد الأزمات والأوبئة</h5>
+
                                     <p>خرائط حرارية ونظام فرز ذكي للأوبئة</p>
+
                                 </div>
+
                             </div>
+
                         </div>
+
                     </div>
+
                 </div>
+
+
 
                 <div class="col-lg-5 col-12 position-relative">
+
                     <div class="hero-visual-wrapper">
+
                         <!-- Main Patient Vitals Panel -->
+
                         <div class="dashboard-main-card" data-animate>
+
                             <div class="dashboard-header">
+
                                 <div class="dashboard-user">
-                                    <div class="dashboard-avatar">أ م</div>
+
+                                    <div class="dashboard-avatar">م</div>
+
                                     <div class="dashboard-user-info">
-                                        <h6>أحمد محمد</h6>
+
+                                        <h6>مريض</h6>
+
                                         <span><span class="status-dot"></span> ملف طبي نشط</span>
+
                                     </div>
+
                                 </div>
+
                                 <i class="fas fa-ellipsis-v text-muted" style="font-size: 0.8rem; cursor: pointer;"></i>
+
                             </div>
+
                             
+
                             <div class="vital-grid">
+
                                 <div class="vital-item">
+
                                     <div class="vital-title">
+
                                         <i class="fas fa-droplet text-danger"></i>
+
                                         <span>ضغط الدم</span>
+
                                     </div>
+
                                     <div class="vital-value">120/80 <span>mmHg</span></div>
+
                                 </div>
+
                                 <div class="vital-item">
+
                                     <div class="vital-title">
+
                                         <i class="fas fa-lungs text-primary"></i>
+
                                         <span>الأكسجين</span>
+
                                     </div>
+
                                     <div class="vital-value">98%</div>
+
                                 </div>
+
                                 <div class="vital-item">
+
                                     <div class="vital-title">
+
                                         <i class="fas fa-temperature-half text-warning"></i>
+
                                         <span>الحرارة</span>
+
                                     </div>
+
                                     <div class="vital-value">36.7 <span>°C</span></div>
+
                                 </div>
+
                                 <div class="vital-item">
+
                                     <div class="vital-title">
+
                                         <i class="fas fa-weight-scale text-success"></i>
+
                                         <span>الوزن</span>
+
                                     </div>
+
                                     <div class="vital-value">76 <span>كجم</span></div>
+
                                 </div>
+
                             </div>
+
                             
+
                             <div class="mt-3 pt-2 border-top text-center" style="font-size: 0.75rem; color: var(--text-muted);">
+
                                 <i class="fas fa-circle-check text-success me-1"></i> قياس المؤشرات: مستقر ومؤمن
+
                             </div>
+
                         </div>
+
                         
+
                         <!-- Floating Widget 1: Animated ECG Pulse -->
+
                         <div class="floating-card float-1 ecg-card" data-animate data-animate-delay="1">
+
                             <div class="ecg-header">
+
                                 <span>معدل النبض</span>
+
                                 <i class="fas fa-heart ecg-icon"></i>
+
                             </div>
+
                             <div class="ecg-value">72 <span>نبضة/د</span></div>
+
                             <div class="ecg-svg-container">
+
                                 <svg viewBox="0 0 100 30" width="100%" height="100%" preserveAspectRatio="none">
+
                                     <path class="ecg-path" d="M 0,15 L 15,15 L 20,15 L 25,5 L 30,25 L 35,15 L 50,15 L 55,15 L 58,10 L 61,20 L 64,15 L 75,15 L 80,5 L 85,25 L 90,15 L 100,15" 
+
                                           fill="none" stroke="url(#ecgGradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
                                     <defs>
+
                                         <linearGradient id="ecgGradient" x1="0" y1="0" x2="1" y2="0">
+
                                             <stop offset="0%" stop-color="#ef4444" />
+
                                             <stop offset="100%" stop-color="#f87171" />
+
                                         </linearGradient>
+
                                     </defs>
+
                                 </svg>
+
                             </div>
+
                         </div>
+
                         
+
                         <!-- Floating Widget 2: AI Doctor Chat Response -->
+
                         <div class="floating-card float-2 chat-bubble-widget" data-animate data-animate-delay="2">
+
                             <div class="chat-bubble-avatar">
+
                                 <i class="fas fa-robot"></i>
+
                             </div>
+
                             <div class="chat-bubble-content">
+
                                 <span class="chat-bubble-name">مساعد إطمن الذكي</span>
+
                                 <p class="chat-bubble-text">مؤشراتك اليوم مستقرة جداً. هل تريد تتبع الأعراض؟</p>
+
                             </div>
+
                         </div>
+
                         
+
                         <!-- Floating Widget 3: Epidemic Crisis Status Tracker -->
+
                         <div class="floating-card float-3 crisis-badge-widget" data-animate data-animate-delay="3">
+
                             <i class="fas fa-triangle-exclamation"></i>
+
                             <div>
+
                                 <h7>نظام رصد الأزمات</h7>
+
                                 <span>آمن ومستقر حالياً</span>
+
                             </div>
+
                         </div>
+
                     </div>
+
                 </div>
+
             </div>
+
+
 
             <!-- Double Promo Cards -->
+
             <div class="hero-cards-row">
+
                 <!-- Promo Card 1: Patients & Booking -->
+
                 <div class="hero-promo-card hero-promo-card-1" data-animate>
+
                     <i class="fas fa-user-md hero-promo-icon"></i>
+
                     <div>
+
                         <span class="hero-promo-badge">للمرضى والرعاية اليومية</span>
+
                         <h2 class="hero-promo-title">طبيبك معك</h2>
+
                         <p class="hero-promo-desc">
+
                             احجز موعدك، تابع ملفك الطبي وعائلتك، واحصل على تشخيصات وملاحظات فورية من عيادة طبيبك المعتمدة.
+
                         </p>
+
                     </div>
+
                     <div class="hero-promo-actions">
+
                         <a href="/Account/Register" class="btn-promo btn-promo-white">
+
                             <i class="fas fa-calendar-alt"></i> احجز موعداً الآن
+
                         </a>
+
                         <a href="#how" class="btn-promo btn-promo-outline">كيف يعمل؟</a>
+
                     </div>
+
                 </div>
+
+
 
                 <!-- Promo Card 2: AI consultation & Instant Chat -->
+
                 <div class="hero-promo-card hero-promo-card-2" data-animate data-animate-delay="1">
+
                     <i class="fas fa-comment-medical hero-promo-icon"></i>
+
                     <div>
+
                         <span class="hero-promo-badge">الاستشارات الفورية والذكاء الاصطناعي</span>
+
                         <h2 class="hero-promo-title">تواصل مع طبيب</h2>
+
                         <p class="hero-promo-desc">
+
                             اطرح استفساراتك على مساعد إطمن الذكي أو ابدأ دردشة فورية للحصول على نصائح وتوجيهات صحية موثوقة.
+
                         </p>
+
                     </div>
+
                     <div class="hero-promo-actions">
+
                         <a href="javascript:void(0)" onclick="document.getElementById('chatbotToggle').click()" class="btn-promo btn-promo-white">
+
                             <i class="fas fa-robot"></i> استشِر الذكاء الاصطناعي
+
                         </a>
+
                         <a href="/Account/Login" class="btn-promo btn-promo-outline">دردش مع طبيب</a>
+
                     </div>
+
                 </div>
+
             </div>
+
         </div>
+
     </section>
+
+
 
     <!-- ═══ VIDEO SHOWCASE SECTION ══════════════════════════ -->
+
     <section class="video-section" id="video-showcase">
+
         <div class="video-section__bg-glow"></div>
+
         <div class="container">
+
             <div class="section-header" data-animate>
+
                 <span class="section-tag">🎬 شاهد المشروع</span>
+
                 <h2 class="section-main-title">فيديو الشرح التفصيلي لمنصة <span>إطمن</span></h2>
+
                 <p class="section-sub-title">
+
                     تعرّف على كيفية عمل النظام بالكامل — من استغاثة المريض حتى وصول الإسعاف والتتبع الجغرافي الحي.
+
                 </p>
+
             </div>
+
+
 
             <div class="video-wrapper" data-animate>
+
                 <div class="video-card">
+
                     <div class="video-card__glow"></div>
+
                     <div class="video-card__inner">
+
                         <!-- Corner accents -->
+
                         <span class="vid-corner vid-corner--tl"></span>
+
                         <span class="vid-corner vid-corner--tr"></span>
+
                         <span class="vid-corner vid-corner--bl"></span>
+
                         <span class="vid-corner vid-corner--br"></span>
 
+
+
                         <!-- YouTube embed -->
+
                         <div class="video-embed-box">
+
                             <iframe
+
                                 id="etmen-promo-video"
+
                                 src="https://www.youtube.com/embed/mMyOvQonlpo?rel=0&modestbranding=1&color=white"
+
                                 title="فيديو شرح مشروع إطمن"
+
                                 frameborder="0"
+
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+
                                 allowfullscreen
+
                                 loading="lazy">
+
                             </iframe>
+
                         </div>
+
                     </div>
+
+
 
                     <!-- Video meta strip -->
+
                     <div class="video-meta">
+
                         <div class="video-meta__info">
+
                             <span class="video-meta__badge"><i class="fas fa-play-circle"></i> عرض المشروع</span>
+
                             <span class="video-meta__title">Etmen Platform — Demo &amp; Walkthrough</span>
+
                         </div>
+
                         <a href="https://youtu.be/mMyOvQonlpo"
+
                            target="_blank" rel="noopener"
+
                            class="video-meta__btn">
+
                             <i class="fab fa-youtube"></i> شاهد على يوتيوب
+
                         </a>
+
                     </div>
+
                 </div>
+
             </div>
+
         </div>
+
     </section>
+
+
 
     <!-- ═══ HOW IT WORKS SECTION (4 STEPS) ══════════════════ -->
+
     <section class="steps-section" id="how">
+
         <div class="container">
+
             <div class="section-header" data-animate>
+
                 <span class="section-tag">بساطة الاستخدام</span>
+
                 <h2 class="section-main-title">احصل على الرعاية الصحية بـ 4 خطوات بسيطة
+
 </h2>
+
                 <p class="section-sub-title">منظومة إطمن مصممة لتجربة مستخدم سهلة وسريعة تناسب جميع الفئات العمرية.</p>
+
             </div>
+
+
 
             <div class="steps-container" data-animate>
+
                 <!-- Step 1 -->
+
                 <div class="step-block">
+
                     <div class="step-icon-wrapper">
+
                         <i class="fas fa-user-plus"></i>
+
                         <span class="step-badge-num">1</span>
+
                     </div>
+
                     <h3 class="step-title">أنشئ حسابك</h3>
+
                     <p class="step-desc">سجل حساباً مجانياً بخطوات بسيطة لفتح ملفك الطبي الرقمي الآمن.</p>
+
                 </div>
+
                 <!-- Step 2 -->
+
                 <div class="step-block">
+
                     <div class="step-icon-wrapper">
+
                         <i class="fas fa-notes-medical"></i>
+
                         <span class="step-badge-num">2</span>
+
                     </div>
+
                     <h3 class="step-title">أدخل الأعراض أو ابحث</h3>
+
                    
+
  <p class="step-desc">اكتب أعراضك لمساعد إطمن الذكي أو ابحث عن طبيب بالتخصص المطلوب.</p>
+
                 </div>
+
                 <!-- Step 3 -->
+
                 <div class="step-block">
+
                     <div class="step-icon-wrapper">
+
                         <i class="fas fa-calendar-check"></i>
+
                         <span class="step-badge-num">3</span>
+
                     </div>
+
                     <h3 class="step-title">احجز أو استشِر فوراً</h3>
+
                     <p class="step-desc">اختر الموعد المناسب لزيارة العيادة أو ابدأ دردشة فورية مع طبيبك.</p>
+
                 </div>
+
                 <!-- Step 4 -->
+
                 <div class="step-block">
+
                     <div class="step-icon-wrapper">
+
                         <i class="fas fa-shield-heart"></i>
+
                         <span class="step-badge-num">4</span>
+
                     </div>
+
                     <h3 class="step-title">تابع صحتك بأمان</h3>
+
                     <p class="step-desc">احصل على الوصفة الطبية، نتائج تحاليلك وتوجيهات دورية لل
+
 حفاظ على عافيتك.</p>
+
                 </div>
+
             </div>
+
         </div>
+
     </section>
 
+
+
     <!-- ═══ APP SHOWCASE SECTION ════════════════════════════ -->
+
     <section class="showcase-section">
+
         <div class="container">
+
             <div class="showcase-content">
+
                 <!-- Text -->
+
                 <div class="showcase-text" data-animate>
+
                     <h2>تأكد من صحة معلوماتك <span>الطبية وسجلاتك</span></h2>
+
                     <p>
+
                         يوفر لك تطبيق إطمن واجهة متكاملة تتيح لك قراءة نتائج تحاليل المختبر ورفعها تلقائياً بتقنية OCR، 
+
                         وتتبع قياسات مؤشراتك الحيوية كالسكر وضغط الدم يومياً بمؤشرات بيانية دقيقة، لضمان البقاء تحت إشراف طبي آمن.
+
                     </p>
+
                     <div class="coming-soon-app-notice">
+
                         <div class="coming-soon-app-icon">
+
                             <i class="fas fa-mobile-screen-button"></i>
+
                         </div>
+
                         <div class="coming-soon-app-text">
+
                             <span class="coming-soon-app-label">📲 قريباً على الهواتف الذكية</span>
+
                             <p>سيتم إطلاق تطبيق إطمن على <strong>App Store</strong> و<strong>Google Play</strong> قريباً — ترقّب!</p>
+
                         </div>
+
                     </div>
+
                 </div>
+
                 <!-- Graphic Smartphone -->
+
                 <div class="showcase-visual" data-animate>
+
                     <div class="smartphone-mockup">
+
                         <div class="phone-screen">
+
                             <div class="phone-header">
+
                                 <span class="phone-logo"><i class="fas fa-heartbeat"></i> إطمن</span>
+
                                 <i class="fas fa-bars text-muted"></i>
+
             
+
                 </div>
+
                             <div class="phone-card">
+
                                 <div class="phone-card-title">معدل نبضات القلب</div>
+
                                 <div class="phone-card-body"><strong>72 نبضة/دقيقة</strong><br/><span class="text-success">حالة ممتازة وطبيعية</span></div>
+
                             </div>
+
                             <div class="phone-card" style="background:#f0f9ff; border-color: rgba(2, 132, 199, 0.1);">
+
                                 <div class="phone-card-title" style="color:var(--secondary);">سجل ضغط الدم</div>
+
                                 <div class="phone-card-body"><strong>120 / 80 mmHg</strong><br/>آخر فحص: اليوم 9:00 ص</div>
+
                             </div>
+
                             <div class="phone-card" style="background:#fef3c7; border-color: rgba(245, 158, 11, 0.1);">
+
                                 <div class="phone-card-title" style="color:var(--warning);">درجة الحرارة</div>
+
                                 <div class="phone-
+
 card-body"><strong>37.2 °C</strong><br/>تاريخ الفحص: أمس 6:00 م</div>
+
                             </div>
+
                             <div class="phone-btn">تحديث المؤشرات الحيوية</div>
+
                         </div>
+
                     </div>
+
                 </div>
+
             </div>
+
         </div>
+
     </section>
+
+
+
 
 
     <!-- ═══ SERVICES SECTION (8 CORE FEATURES) ══════════════ -->
+
     <section class="services-section" id="services">
 
+
+
         <div class="container">
+
             <div class="section-header" data-animate>
+
                 <span class="section-tag">خدماتنا الطبية المبتكرة</span>
+
                 <h2 class="section-main-title">رعاية صحية ذكية ومتكاملة في منصة واحدة</h2>
+
                 <p class="section-sub-title">اكتشف باقة الخدمات الرقمية التي تقدمها إطمن لضمان سلامتك وسلامة عائلتك.</p>
+
             </div>
 
+
+
             <div class="row g-4">
+
                 <!-- Feature 1 -->
+
                 <div class="col-md-6 col-lg-3" data-animate>
+
                     <div class="service-card">
+
                     
+
     <div class="service-icon-box" style="background:var(--primary-light); color:var(--primary);">
+
                             <i class="fas fa-brain"></i>
+
                         </div>
+
                         <h3 class="service-title">تقييم المخاطر الذكي</h3>
+
                         <p class="service-desc">محرك طبي ذكي يحلل علاماتك الحيوية وأعراضك لحساب مستوى المخاطر الصحية فورياً بمعايير طبية معتمدة.</p>
+
                         <a href="/Account/Login" class="service-btn">ابدأ الفحص <i class="fas fa-arrow-left"></i></a>
+
                     </div>
+
                 </div>
+
                 <!-- Feature 2 -->
+
                 <div class="col-md-6 col-lg-3" data-animate data-animate-delay="1">
+
                     <div class="service-card">
+
                         <div class="service-icon-box" style="background:var(--secondary-light); color:var(--secondary);">
+
                             <i class="fas fa-calendar-alt"></i>
+
                         </div>
+
                         <h3 class="service-title">حجز المواعيد 
+
 والعيادات</h3>
+
                         <p class="service-desc">تصفح قوائم الأطباء المعتمدين وتخصصاتهم واحجز موعدك فورياً مع تذكير تلقائي عبر النظام.</p>
+
                         <a href="/Account/Login" class="service-btn">احجز الآن <i class="fas fa-arrow-left"></i></a>
+
                     </div>
+
                 </div>
+
                 <!-- Feature 3 -->
+
                 <div class="col-md-6 col-lg-3" data-animate data-animate-delay="2">
+
                     <div class="service-card">
+
                         <div class="service-icon-box" style="background:var(--accent-light); color:var(--accent);">
+
                             <i class="fas fa-file-medical"></i>
+
                         </div>
+
                         <h3 class="service-title">سجل طبي موحد</h3>
+
                         <p class="service-desc">سجل إلكتروني يحفظ تاريخك المرضي وتشخيصاتك والوصفات الطبية بشكل آمن ومتاح لطبيبك عند الحاجة.</p>
+
                         <a href="/Account/Login" class="service-btn">عرض السجل <i class="fas fa-arrow-left"></i></a
+
 >
+
                     </div>
+
                 </div>
+
                 <!-- Feature 4 -->
+
                 <div class="col-md-6 col-lg-3" data-animate data-animate-delay="3">
+
                     <div class="service-card">
+
                         <div class="service-icon-box" style="background:#fef2f2; color:#ef4444;">
+
                             <i class="fas fa-flask"></i>
+
                         </div>
+
                         <h3 class="service-title">قراءة التحاليل بالـ OCR</h3>
+
                         <p class="service-desc">ارفع صور التحاليل الطبية والتقارير وسيقوم نظام التعرف البصري بقراءتها وتنظيمها في ملفك فورياً.</p>
+
                         <a href="/Account/Login" class="service-btn">رفع تحليل <i class="fas fa-arrow-left"></i></a>
+
                     </div>
+
                 </div>
+
                 </div><div class="row g-4 mt-2"><!-- Feature 5 -->
+
                 <div class="col-md-6 col-lg-3" data-animate>
+
                     <div class="service-card">
+
                         <div class="service-icon-box" style="background:#faf5ff; color:#a855f7;">
+
                             <i class="fas fa-users-cog"></i>
+
                         </div>
+
                         <h3 class="service-title">ربط ومتابعة العائلة</h3>
+
                         <p class="service-desc">أضف حسابات أطفالك أو والديك لمتابعة حالتهم الصحية وعلاماتهم الحيوية ومشاركة ملفاتهم الطبية.</p>
+
                         <a href="/Account/Login" class="service-btn">إدارة العائلة <i class="fas fa-arrow-left"></i></a>
+
                     </div>
+
                 </div>
+
                 <!-- Feature 6 -->
+
                 <div class="col-md-6 col-lg-3" data-animate data-animate-delay="1">
+
                     <div class="service-card">
+
                         <div class="service-icon-box" style="background:#fff7ed; color:#f97316;">
+
                             <i class="fas fa-ambulance"></i>
+
                         </div>
+
                         <h3 class="service-title">طلب وتتبع الإسعاف</h3>
+
                         <p class="service-desc">في حالات الطوارئ اطلب سيارة إسعاف فوراً مع مشاركة م
+
 وقعك الجغرافي بالـ GPS وتحديثات لحظية.</p>
+
                         <a href="/Account/Login" class="service-btn">طلب طوارئ <i class="fas fa-arrow-left"></i></a>
+
                     </div>
+
                 </div>
+
                 <!-- Feature 7 -->
+
                 <div class="col-md-6 col-lg-3" data-animate data-animate-delay="2">
+
                     <div class="service-card">
+
                         <div class="service-icon-box" style="background:#f0fdf4; color:#22c55e;">
+
                             <i class="fas fa-bed"></i>
+
                         </div>
+
                         <h3 class="service-title">حجز أسرة المستشفيات</h3>
+
                         <p class="service-desc">يتكامل النظام مع المستشفيات لحجز أسرة العناية المركزة (ICU) والغرف الشاغرة للحالات الحرجة.</p>
+
                         <a href="/Account/Login" class="service-btn">بحث المستشفيات <i class="fas fa-arrow-left"></i></a>
+
                     </div>
+
                 </div>
+
                 <!-- Feature 8 -->
+
                 <div class="col-md-6 col-lg-3" data-animate data-animate-delay="3">
+
                     <div class="service-card">
+
                         <div class="service-icon-box" style="background:#fff1f2; color:#f43f5e;">
+
                             <i class="fas fa-map-marked-alt"></i>
+
                         </div>
+
                         <h3 class="service-title">خرائط الأزمات والأوبئة</h3>
+
                         <p class="service-desc">خرائط حرارية تفاعلية لرصد تفشي الأمراض الوبائية وإرسال إشعارات تحذيرية لسكان مناطق الخطر.</p>
+
                         <a href="/Account/Login" class="service-btn">عرض الخريطة <i class="fas fa-arrow-left"></i></a>
+
                     </div>
+
                 </div>
+
             </div>
+
         </div>
+
     </section>
+
+
 
     <!-- ═══ STATISTICS SECTION ══════════════════════════════ -->
+
     <section class="stats-section">
+
         <div class="container">
+
             <div class="row g-4">
+
                 <div class="col-6 col-md-3">
+
                     <div class="stat-block">
+
                         <div class="stat-number"><span class="count-up" data-target="50000">0</span>+</div>
+
                         <div class="stat-title">مريض يثق بنا</div>
+
                     </div>
+
                 </div>
+
                 <div class="col-6 col-md-3">
+
                     <div class="stat-block">
+
                         <div class="stat-number"><span class="count-up" data-target="1200">0</span>+</div>
+
                         <div class="stat-title">طبيب مسجل ومعتمد</div>
+
                     </div>
+
                 </div>
+
                 <div class="col-6 col-md-3">
+
                     <div class="stat-block">
+
                         <div class="stat-number"><span class="count-up" data-target="12000">0</span>+</div>
+
                         <div class="stat-title">استشارة طبية ناجحة</div>
+
                     </div>
+
                 </div>
+
                 <div class="col-6 col-md-3">
+
                     <div class="stat-block">
+
                         <div class="stat-number"><span class="count-up" data-target="24">0</span>/7</div>
+
    
+
                      <div class="stat-title">تتبع واستجابة طوارئ</div>
+
                     </div>
+
                 </div>
+
             </div>
+
         </div>
+
     </section>
 
+
+
     <!-- ═══ PRICING / SUBSCRIPTION PACKAGES ═════════════════ -->
+
     <section class="pricing-section" id="pricing">
+
         <div class="container">
+
             <div class="section-header" data-animate>
+
                 <span class="section-tag">اشتراكات إطمن</span>
+
                 <h2 class="section-main-title">اختر الباقة الصحية الأنسب لك ولعائلتك</h2>
+
                 <p class="section-sub-title">أسعار مناسبة توفر لك رعاية طبية متكاملة على مدار الساعة بدون عوائق.</p>
+
                 <div class="pricing-free-banner" data-animate>
+
                     <span class="pricing-free-banner__icon">🎉</span>
+
                     <div class="pricing-free-banner__body">
+
                         <strong>التطبيق مجاناً السنة الأولى!</strong>
+
                         <span>استمتع بكامل مزايا منصة إطمن بدون أي رسوم خلال السنة الأولى.</span>
+
                     </div>
+
                     <span class="pricing-free-banner__badge">عرض محدود</span>
+
                 </div>
+
             </div>
 
+
+
             <div class="row g-4 align-items-stretch">
+
                 <!-- Tier 1: Free -->
+
                 <div class="col-lg-4" data-animate>
+
                     <div class="pricing-card">
+
                         <div class="pricing-name">الباقة الأساسية</div>
+
                         <div class="pricing-price">0 ج.م <span>/ شهرياً</span></div>
+
            
+
              <ul class="pricing-features-list">
+
                             <li><i class="fas fa-check"></i> استشارات الذكاء الاصطناعي الأساسية</li>
+
                             <li><i class="fas fa-check"></i> حجز مواعيد العيادات الخارجية</li>
+
                             <li><i class="fas fa-check"></i> ملف صحي رقمي أساسي</li>
+
                             <li><i class="fas fa-check"></i> ربط فرد عائلي واحد</li>
+
                             <li class="text-muted"><i class="fas fa-times text-danger"></i> تتبع فوري لسيارات الإسعاف</li>
+
                             <li class="text-muted"><i class="fas fa-times text-danger"></i> قراءة OCR للتحاليل المخبرية</li>
+
                         </ul>
-                        <a href="/Account/Register" class="pricing-btn pricing-btn-outline">سجل مجاناً</a>
+
+                        <button type="button" onclick="openSubscriptionModal('الباقة الأساسية')" class="pricing-btn pricing-btn-outline">سجل مجاناً</button>
+
                     </div>
+
                 </div>
 
                 <!-- Tier 2: Recommended -->
+
                 <div class="col-lg-4" data-animate data-animate-delay="1">
+
                     <div class="pricing-card recommended">
+
                         <span class="pricing-badge">الأكثر شعبية</span>
+
                         <div class="pricing-name">باقة العائلة</div>
+
                         <div class="pricing-price">99 ج.م <span>/ شهرياً</span></div>
+
                         <ul class="pricing-features-list">
+
                             <li><i class="fas fa-check"></i> جميع مميزات الباقة الأساسية</li>
+
                             <li><i class="fas fa-check"></i> ربط حتى 5 أفراد من العائلة</li>
+
                             <li><i class="fas fa-check"></i> تتبع واستدعاء إسعاف طوارئ فوري</li>
+
                             <li><i class="fas fa-check"></i> قراءة OCR متقدمة للتحاليل والأشعة</li>
+
                             <li><i class="fas fa-check"></i> تقارير علامات حيوية بيانية أسبوعية</li>
+
                             <li class="text-muted"><i class="fas fa-times text-danger"></i> أولوية حجز أسرة العناية المركزة</li>
+
                         </ul>
-                        <a href="/Account/Register" class="pricing-btn pricing-btn-primary">اشترك الآن</a>
+
+                        <button type="button" onclick="openSubscriptionModal('باقة العائلة')" class="pricing-btn pricing-btn-primary">اشترك الآن</button>
+
                     </div>
+
                 </div>
 
                 <!-- Tier 3: Premium -->
+
                 <div class="col-lg-4" data-animate data-animate-delay="2">
+
                     <div class="pricing-card">
+
                         <div class="pricing-name">إطمن بلس (الشاملة)</div>
+
                         <div class="pricing-price">149 ج.م <span>/ شهرياً</span></div>
+
                         <ul class="pricing-features-list">
+
                             <li><i class="fas fa-check"></i> جميع مميزات باقة العائلة</li>
+
                             <li><i class="fas fa-check"></i> ربط عدد غير محدود من أفراد العائلة</li>
+
                             <li><i class="fas fa-check"></i> استشارات غير محدودة شات وصوت</li>
+
                             <li><i class="fas fa-check"></i> أولوية قصوى لحجز الأسرة وغرف الطوارئ</li>
+
                             <li><i class="fas fa-check"></i> إشعارات وتحذيرات أوبئة جغرافية خاصة</li>
+
                             <li><i class="fas fa-check"></i> دعم فني طبي مخصص 2
+
 4/7</li>
+
                         </ul>
-                        <a href="/Account/Register" class="pricing-btn pricing-btn-outline">اشترك في الباقة</a>
+
+                        <button type="button" onclick="openSubscriptionModal('إطمن بلس (الشاملة)')" class="pricing-btn pricing-btn-outline">اشترك في الباقة</button>
+
                     </div>
+
                 </div>
+
             </div>
+
         </div>
+
     </section>
+
+
 
     <!-- ═══ TESTIMONIALS SECTION ════════════════════════════ -->
+
     <section class="testimonials-section">
+
         <div class="container">
+
             <div class="section-header" data-animate>
+
                 <span class="section-tag">آراء المستخدمين</span>
+
                 <h2 class="section-main-title">ماذا يقول عملاؤنا عن تجربة إطمن؟</h2>
+
                 <p class="section-sub-title">قصص نجاح حقيقية لمرضى وأطباء تغيرت تجربتهم للرعاية الصحية بفضل المنصة.</p>
+
             </div>
 
+
+
             <div class="row g-4">
+
                 <!-- Testimonial 1 -->
+
                 <div class="col-md-4" data-animate>
+
                     <div class="testimonial-card">
+
                         <div class="testimonial-stars">
+
                             <i class="fas fa-star"></i>
+
 <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+
                         </div>
+
                         <p class="testimonial-text">
+
                             "ساعدني تطبيق إطمن كثيراً في تتبع مرض السكر الخاص بوالدي، ميزة ربط حساب العائلة جعلتني أراقب مؤشراته الحيوية عن بعد وأطمئن عليه يومياً."
+
                         </p>
+
                         <div class="testimonial-user">
+
                             <div class="testimonial-avatar">مح</div>
+
                             <div>
+
                                 <div class="testimonial-user-name">محمد حسام</div>
+
                                 <div class="testimonial-user-title">ابن مريض - القاهرة</div>
+
                             </div>
+
                         </div>
+
                     </div>
+
                 </div>
+
                 <!-- Testimonial 2 -->
+
                 <div class="col-md-4" data-animate data-animate-delay="1">
+
                     <div class="testimonial-card">
+
                       
+
   <div class="testimonial-stars">
+
                             <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+
                         </div>
+
                         <p class="testimonial-text">
+
                             "ميزة قراءة التحاليل بالـ OCR مذهلة للغاية! بمجرد رفع نتيجة فحص الدم تم إدخال الأرقام في ملفي وتنبيه طبيبي بارتفاع طفيف في نسبة الكوليسترول."
+
                         </p>
+
                         <div class="testimonial-user">
+
                             <div class="testimonial-avatar">أه</div>
+
                             <div>
+
                                 <div class="testimonial-user-name">أحمد هشام</div>
+
                                 <div class="testimonial-user-title">مستخدم - الجيزة</div>
+
                             </div>
+
                         </div>
+
                     </div>
+
                 </div>
+
                 <!-- Testimonial 3 -->
+
                 <div class="col-md-4" data-animate data-a
+
 nimate-delay="2">
+
                     <div class="testimonial-card">
+
                         <div class="testimonial-stars">
+
                             <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+
                         </div>
+
                         <p class="testimonial-text">
+
                             "بصفتي طبيباً، وفّرت لي إطمن لوحة تحكم متكاملة لمتابعة جداول عملي وحالات المرضى وسجلاتهم الطبية بكل سلاسة وتجنب تداخل المواعيد."
+
                         </p>
+
                         <div class="testimonial-user">
+
                             <div class="testimonial-avatar">د.أ</div>
+
                             <div>
+
                                 <div class="testimonial-user-name">د. أحمد عبد العزيز</div>
+
                                 <div class="testimonial-user-title">استشاري باطنة - الإسكندرية</div>
+
                             </div>
+
                         </div>
+
                     </div>
+
                 </di
+
 v>
+
             </div>
+
         </div>
+
     </section>
+
+
 
     <!-- ═══ MEDICAL ARTICLES SECTION ════════════════════════ -->
+
     <section class="articles-section" id="articles">
+
         <div class="container">
+
             <div class="section-header" data-animate>
+
                 <span class="section-tag">النصائح والمقالات الطبية</span>
+
                 <h2 class="section-main-title">كن على دراية بنصائح وإرشادات أطباء إطمن</h2>
+
                 <p class="section-sub-title">تصفح أحدث المقالات والنصائح المعتمدة طبياً للوقاية والمحافظة على الصحة العامة.</p>
+
             </div>
+
+
 
             <div class="row g-4">
+
                 <!-- Article 1 -->
+
                 <div class="col-md-4" data-animate>
+
                     <div class="article-card">
+
                         <div class="article-img-fallback"><i class="fas fa-shield-virus"></i></div>
+
                         <div class="article-body">
+
                             <span class="article-category">الصحة العامة والأوبئة</span>
+
                             <h3 class="artic
+
 le-title">كيف تحميك منصة إطمن في مواجهة الأزمات الوبائية؟</h3>
+
                             <p class="article-desc">تعرف على نظام إطمن لرصد الأوبئة وتحديد مناطق التفشي الجغرافية وكيف تسهم إشعارات النظام في وقايتك.</p>
-                            <a href="#" class="article-btn">اقرأ المقال <i class="fas fa-arrow-left"></i></a>
+
+                            <button type="button" onclick="openArticleModal(1)" class="article-btn">اقرأ المقال <i class="fas fa-arrow-left"></i></button>
+
                         </div>
+
                     </div>
+
                 </div>
+
                 <!-- Article 2 -->
+
                 <div class="col-md-4" data-animate data-animate-delay="1">
+
                     <div class="article-card">
+
                         <div class="article-img-fallback"><i class="fas fa-heartbeat"></i></div>
+
                         <div class="article-body">
+
                             <span class="article-category">التوعية الطبية</span>
+
                             <h3 class="article-title">أهمية تتبع العلامات الحيوية لكبار السن بشكل دوري</h3>
+
                             <p class="article-desc">نصائح من أطبائنا حول تتبع الضغط ونبضات القلب والسكري يومياً ودور الملف
+
  الطبي الرقمي في إنقاذ الحياة.</p>
-                            <a href="#" class="article-btn">اقرأ المقال <i class="fas fa-arrow-left"></i></a>
+
+                            <button type="button" onclick="openArticleModal(2)" class="article-btn">اقرأ المقال <i class="fas fa-arrow-left"></i></button>
+
                         </div>
+
                     </div>
+
                 </div>
+
                 <!-- Article 3 -->
+
                 <div class="col-md-4" data-animate data-animate-delay="2">
+
                     <div class="article-card">
+
                         <div class="article-img-fallback"><i class="fas fa-microscope"></i></div>
+
                         <div class="article-body">
+
                             <span class="article-category">التكنولوجيا الصحية</span>
+
                             <h3 class="article-title">دليلك لفهم قراءة تحاليل المختبر عبر تقنية الـ OCR</h3>
+
                             <p class="article-desc">كيف تعمل تقنية التعرف الضوئي على الحروف داخل إطمن لقراءة تحاليلك وتفسير المعدلات الطبيعية تلقائياً.</p>
-                            <a href="#" class="article-btn">اقرأ المقال <i class="fas fa-arrow-left"></i></a>
+
+                            <button type="button" onclick="openArticleModal(3)" class="article-btn">اقرأ المقال <i class="fas fa-arrow-left"></i></button>
+
                         </div>
+
  
+
                    </div>
+
                 </div>
+
             </div>
+
         </div>
+
     </section>
+
+
 
     <!-- ═══ FAQ SECTION ════════════════════════════════════ -->
+
     <section class="faq-section" id="faqs">
+
         <div class="container" style="max-width: 850px;">
+
             <div class="section-header" data-animate>
+
                 <span class="section-tag">الأسئلة الشائعة</span>
+
                 <h2 class="section-main-title">هل لديك أي استفسار؟</h2>
+
                 <p class="section-sub-title">إليك إجابات لأبرز الأسئلة التي يطرحها مستخدمو إطمن.</p>
+
             </div>
+
+
 
             <div class="faq-accordion" data-animate>
+
                 <!-- Q1 -->
+
                 <div class="faq-accordion-item">
+
                     <div class="faq-accordion-header">
+
                         <span>ما هو محرك تقييم المخاطر الذكي؟</span>
+
                         <i class="fas fa-chevron-down faq-accordion-icon"></i>
+
                     </div>
+
                     <div class="faq-accordion-body">
+
                         هو نظام 
+
 مدمج يعتمد على إدخالات مؤشراتك الحيوية وأعراضك لحساب مستوى الخطورة وتنبيهك إذا كانت المؤشرات غير مستقرة، وتوجيهك فورياً لحجز موعد عاجل أو استدعاء طوارئ.
+
                     </div>
-                </div>
-                <!-- Q2 -->
-                <div class="faq-accordion-item">
-                    <div class="faq-accordion-header">
-                        <span>كيف يمكنني طلب سيارة إسعاف وتتبعها؟</span>
-                        <i class="fas fa-chevron-down faq-accordion-icon"></i>
-                    </div>
-                    <div class="faq-accordion-body">
-                        عبر بوابة الطوارئ بحسابك، يمكنك بضغطة واحدة إرسال إشارة استغاثة بموقعك الجغرافي، وسيقوم النظام بتوجيه أقرب سيارة إسعاف إليك وتتبعها على الخريطة مباشرة حتى وصولها.
-                    </div>
-                </div>
-                <!-- Q3 -->
-                <div class="faq-accordion-item">
-                    <div class="faq-accordion-header">
-                        <span>هل بياناتي الطبية وسجلاتي آمنة؟</span>
-                   
-     <i class="fas fa-chevron-down faq-accordion-icon"></i>
-                    </div>
-                    <div class="faq-accordion-body">
-                        نعم بكل تأكيد. نطبق في إطمن أعلى معايير تشفير البيانات الطبية وسجلات المرضى، ولا يتم مشاركة أي سجل طبي إلا بصلاحيات يحددها المريض بنفسه وللأطباء المعالجين فقط.
-                    </div>
-                </div>
-                <!-- Q4 -->
-                <div class="faq-accordion-item">
-                    <div class="faq-accordion-header">
-                        <span>كيف يمكنني ربط حسابات عائلتي؟</span>
-                        <i class="fas fa-chevron-down faq-accordion-icon"></i>
-                    </div>
-                    <div class="faq-accordion-body">
-                        من لوحة التحكم الخاصة بك كـ مريض، توجه إلى قسم "الربط العائلي" وأرسل دعوة ربط بالبريد الإلكتروني للطرف الآخر، وبمجرد قبوله الدعوة ستتمكن من متابعة علاماته الحيوية وسجلاته الطبية.
-                    </div>
-                </div>
-                <!-- Q5 (Normal vs Cris
-is Mode) -->
-                <div class="faq-accordion-item">
-                    <div class="faq-accordion-header">
-                        <span>ما الفرق بين "الوضع الطبيعي" و "وضع الأوبئة والأزمات الكبرى" في المنصة؟</span>
-                        <i class="fas fa-chevron-down faq-accordion-icon"></i>
-                    </div>
-                    <div class="faq-accordion-body">
-                        في الوضع الطبيعي، تعمل إطمن كمنصة رعاية صحية تقليدية (حجز عيادات، تتبع مؤشرات حيوية وسجلات طبية). ولكن عند تفعيل وضع الأزمات (مثل الأوبئة أو الكوارث الكيميائية والبيولوجية)، يتحول النظام فوراً إلى "وضع الأزمة"؛ حيث تتغير أوزان حساب المخاطر تلقائياً بناءً على نوع الأزمة، وتنشط الخرائط الحرارية لرصد التفشي الجغرافي، مع حجز مباشر لأسرة العناية المركزة (ICU Beds) للحالات الحرجة المصابة.
-                    </div>
-                </div>
-                <!-- Q6 (Immediate Emergency Intervention) -->
-                <div class="faq-accordion-item">
-                    <div class="faq-accordion-header">
-            
-            <span>كيف يعمل نظام "تدخل الطوارئ الفوري"؟</span>
-                        <i class="fas fa-chevron-down faq-accordion-icon"></i>
-                    </div>
-                    <div class="faq-accordion-body">
-                        عند إرسال طلب طوارئ (بضغطة زر الاستغاثة Panic Button)، يقوم النظام بمشاركة موقعك الجغرافي لحظياً بالـ GPS مع أقرب مسعف أو سيارة إسعاف مجهزة. كما يقوم النظام تلقائياً بتحديد أقرب مستشفى به أسرة شاغرة متوافقة مع حالتك وحجز مكانك في طابور الطوارئ الخاص بالمستشفى لضمان سرعة استقبالك وعلاجك دون تأخير.
-                    </div>
-                </div>
-                <!-- Q7 (OCR Lab Analysis) -->
-                <div class="faq-accordion-item">
-                    <div class="faq-accordion-header">
-                        <span>كيف تتم قراءة تحاليل المختبر الطبية تلقائياً (OCR)؟</span>
-                        <i class="fas fa-chevron-down faq-accordion-icon"></i>
-                    </div>
-                    <div class="faq-accordion-body">
-                        ببساطة، 
-تقوم برفع صورة التحليل الطبي أو التقرير من هاتفك، فيقوم نظام التعرف الضوئي على الرموز (OCR) المطور باستخراج النصوص وتحديد القياسات والأرقام بدقة، ثم تحليلها ومقارنتها بالمدى الطبيعي المسجل في النظام، وتحديث ملفك الطبي وقاعدة بياناتك مباشرة لتظهر لطبيبك المعالج.
-                    </div>
-                </div>
-                <!-- Q8 (AI Chatbot) -->
-                <div class="faq-accordion-item">
-                    <div class="faq-accordion-header">
-                        <span>ما الذي يقدمه لي "المساعد الصحي الذكي" بالمنصة؟</span>
-                        <i class="fas fa-chevron-down faq-accordion-icon"></i>
-                    </div>
-                    <div class="faq-accordion-body">
-                        المساعد الذكي (AI Chatbot) هو مستشارك الصحي المتاح 24/7. يمكنه تقديم إجابات فورية موثوقة حول مواضيع التغذية، العادات الصحية، اللياقة البدنية، شرب المياه، وتحليل الأعراض البسيطة لتوجيهك عما إذا كنت تحتاج لزيارة طبيب متخصص أو اتباع نصائح وقائية فورية.
-                    </div>
+
                 </div>
 
+                <!-- Q2 -->
+
+                <div class="faq-accordion-item">
+
+                    <div class="faq-accordion-header">
+
+                        <span>كيف يمكنني طلب سيارة إسعاف وتتبعها؟</span>
+
+                        <i class="fas fa-chevron-down faq-accordion-icon"></i>
+
+                    </div>
+
+                    <div class="faq-accordion-body">
+
+                        عبر بوابة الطوارئ بحسابك، يمكنك بضغطة واحدة إرسال إشارة استغاثة بموقعك الجغرافي، وسيقوم النظام بتوجيه أقرب سيارة إسعاف إليك وتتبعها على الخريطة مباشرة حتى وصولها.
+
+                    </div>
+
+                </div>
+
+                <!-- Q3 -->
+
+                <div class="faq-accordion-item">
+
+                    <div class="faq-accordion-header">
+
+                        <span>هل بياناتي الطبية وسجلاتي آمنة؟</span>
+
+                   
+
+     <i class="fas fa-chevron-down faq-accordion-icon"></i>
+
+                    </div>
+
+                    <div class="faq-accordion-body">
+
+                        نعم بكل تأكيد. نطبق في إطمن أعلى معايير تشفير البيانات الطبية وسجلات المرضى، ولا يتم مشاركة أي سجل طبي إلا بصلاحيات يحددها المريض بنفسه وللأطباء المعالجين فقط.
+
+                    </div>
+
+                </div>
+
+                <!-- Q4 -->
+
+                <div class="faq-accordion-item">
+
+                    <div class="faq-accordion-header">
+
+                        <span>كيف يمكنني ربط حسابات عائلتي؟</span>
+
+                        <i class="fas fa-chevron-down faq-accordion-icon"></i>
+
+                    </div>
+
+                    <div class="faq-accordion-body">
+
+                        من لوحة التحكم الخاصة بك كـ مريض، توجه إلى قسم "الربط العائلي" وأرسل دعوة ربط بالبريد الإلكتروني للطرف الآخر، وبمجرد قبوله الدعوة ستتمكن من متابعة علاماته الحيوية وسجلاته الطبية.
+
+                    </div>
+
+                </div>
+
+                <!-- Q5 (Normal vs Cris
+
+is Mode) -->
+
+                <div class="faq-accordion-item">
+
+                    <div class="faq-accordion-header">
+
+                        <span>ما الفرق بين "الوضع الطبيعي" و "وضع الأوبئة والأزمات الكبرى" في المنصة؟</span>
+
+                        <i class="fas fa-chevron-down faq-accordion-icon"></i>
+
+                    </div>
+
+                    <div class="faq-accordion-body">
+
+                        في الوضع الطبيعي، تعمل إطمن كمنصة رعاية صحية تقليدية (حجز عيادات، تتبع مؤشرات حيوية وسجلات طبية). ولكن عند تفعيل وضع الأزمات (مثل الأوبئة أو الكوارث الكيميائية والبيولوجية)، يتحول النظام فوراً إلى "وضع الأزمة"؛ حيث تتغير أوزان حساب المخاطر تلقائياً بناءً على نوع الأزمة، وتنشط الخرائط الحرارية لرصد التفشي الجغرافي، مع حجز مباشر لأسرة العناية المركزة (ICU Beds) للحالات الحرجة المصابة.
+
+                    </div>
+
+                </div>
+
+                <!-- Q6 (Immediate Emergency Intervention) -->
+
+                <div class="faq-accordion-item">
+
+                    <div class="faq-accordion-header">
+
+            
+
+            <span>كيف يعمل نظام "تدخل الطوارئ الفوري"؟</span>
+
+                        <i class="fas fa-chevron-down faq-accordion-icon"></i>
+
+                    </div>
+
+                    <div class="faq-accordion-body">
+
+                        عند إرسال طلب طوارئ (بضغطة زر الاستغاثة Panic Button)، يقوم النظام بمشاركة موقعك الجغرافي لحظياً بالـ GPS مع أقرب مسعف أو سيارة إسعاف مجهزة. كما يقوم النظام تلقائياً بتحديد أقرب مستشفى به أسرة شاغرة متوافقة مع حالتك وحجز مكانك في طابور الطوارئ الخاص بالمستشفى لضمان سرعة استقبالك وعلاجك دون تأخير.
+
+                    </div>
+
+                </div>
+
+                <!-- Q7 (OCR Lab Analysis) -->
+
+                <div class="faq-accordion-item">
+
+                    <div class="faq-accordion-header">
+
+                        <span>كيف تتم قراءة تحاليل المختبر الطبية تلقائياً (OCR)؟</span>
+
+                        <i class="fas fa-chevron-down faq-accordion-icon"></i>
+
+                    </div>
+
+                    <div class="faq-accordion-body">
+
+                        ببساطة، 
+
+تقوم برفع صورة التحليل الطبي أو التقرير من هاتفك، فيقوم نظام التعرف الضوئي على الرموز (OCR) المطور باستخراج النصوص وتحديد القياسات والأرقام بدقة، ثم تحليلها ومقارنتها بالمدى الطبيعي المسجل في النظام، وتحديث ملفك الطبي وقاعدة بياناتك مباشرة لتظهر لطبيبك المعالج.
+
+                    </div>
+
+                </div>
+
+                <!-- Q8 (AI Chatbot) -->
+
+                <div class="faq-accordion-item">
+
+                    <div class="faq-accordion-header">
+
+                        <span>ما الذي يقدمه لي "المساعد الصحي الذكي" بالمنصة؟</span>
+
+                        <i class="fas fa-chevron-down faq-accordion-icon"></i>
+
+                    </div>
+
+                    <div class="faq-accordion-body">
+
+                        المساعد الذكي (AI Chatbot) هو مستشارك الصحي المتاح 24/7. يمكنه تقديم إجابات فورية موثوقة حول مواضيع التغذية، العادات الصحية، اللياقة البدنية، شرب المياه، وتحليل الأعراض البسيطة لتوجيهك عما إذا كنت تحتاج لزيارة طبيب متخصص أو اتباع نصائح وقائية فورية.
+
+                    </div>
+
+                </div>
+
+
+
             </div>
+
         </div>
+
     </section>
+
+
 
     <!-- ═══ DOCTOR & PATIENT ONBOARDING CTA BANNER ═════════ -->
+
     <section class="doctor-cta-section">
+
         <div class="container doctor-cta-content">
+
             <div class="row g-4" data-animate>
+
                 <!-- Patient Column -->
+
                 <div class="col-md-6">
+
                     <div class="cta-box">
+
                         <div>
+
                             <div class="cta-box-icon"><i class="fas fa-user-injured"></i></div>
+
                             <h3>هل تبحث عن رعاية صحية ذكية؟</h3>
+
                             <p>سجّل الآن كـ مريض في منصة إطمن لتتمكن من حجز الأطباء، ومتابعة مؤشراتك وعائلتك الصحية، والحصول على الدعم الفوري وتنبيهات الأزمات.</p>
+
                         </div>
+
                         <a href="/Account/Register" class="btn-cta-register btn-cta-register-patient">
+
                             <i class="fas fa-user-plus"></i> سجّل كمريض الآن
+
                         </a>
+
                     </div>
+
                 </div>
+
+
 
  
+
                <!-- Doctor Column -->
+
                 <div class="col-md-6">
+
                     <div class="cta-box">
+
                         <div>
+
                             <div class="cta-box-icon"><i class="fas fa-user-md"></i></div>
+
                             <h3>هل أنت ممارس طبي معتمد؟</h3>
+
                             <p>انضم إلى شبكة أطباء إطمن لتتمكن من إدارة عيادتك وجداول عملك، ومتابعة السجلات الطبية لمرضاك بخصوصية وسهولة تامة.</p>
+
                         </div>
+
                         <a href="/Account/Register" class="btn-cta-register">
+
                             <i class="fas fa-stethoscope"></i> سجّل كطبيب بالمنصة الآن
+
                         </a>
+
                     </div>
+
                 </div>
+
             </div>
+
         </div>
+
     </section>
 
+
+
     <!-- ═══ FOOTER ═════════════════════════════════════════ -->
+
     <footer>
+
         <div class="container">
+
             <div class="row g-5">
+
                 <div class="col-lg-4">
+
                     <a href="/" class="nav-logo mb-3">
+
             
+
             <div class="nav-logo-icon"><i class="fas fa-heartbeat"></i></div>
+
                         <span class="nav-logo-text" style="color:white;">إط<span>من</span></span>
+
                     </a>
+
                     <p class="footer-desc">
+
                         منصة رعاية صحية ذكية ومتكاملة مصممة لتسهيل حجز مواعيد الأطباء، ومتابعة المؤشرات الحيوية للمرضى، وإدارة الطوارئ والأزمات الصحية بكفاءة وسرعة.
+
                     </p>
+
                 </div>
+
                 <div class="col-6 col-sm-3 col-lg-2 offset-lg-1">
+
                     <div class="footer-heading">الخدمات</div>
+
                     <ul class="footer-links">
+
                         <li><a href="#services">حجز العيادات</a></li>
+
                         <li><a href="#services">المساعد الذكي (AI)</a></li>
+
                         <li><a href="#services">تتبع العلامات الحيوية</a></li>
+
                         <li><a href="#services">قارئ التحاليل OCR</a></li>
+
                         <li><a href="#services">طوارئ الإسعاف</a></li>
+
                     <
+
 /ul>
+
                 </div>
+
                 <div class="col-6 col-sm-3 col-lg-2">
+
                     <div class="footer-heading">المنصة</div>
+
                     <ul class="footer-links">
+
                         <li><a href="#">من نحن؟</a></li>
+
                         <li><a href="#pricing">الباقات والأسعار</a></li>
+
                         <li><a href="#">الشروط والأحكام</a></li>
+
                         <li><a href="#">سياسة الخصوصية</a></li>
+
                         <li><a href="#">تواصل معنا</a></li>
+
                     </ul>
+
                 </div>
+
                 <div class="col-sm-6 col-lg-3">
+
                     <div class="footer-heading">تطبيقات الهواتف الذكية</div>
+
                     <p class="mb-3 text-white-50" style="font-size:0.88rem;">حمل تطبيق إطمن للحصول على رعاية صحية مستمرة من هاتفك.</p>
+
                     <a href="#" class="footer-download-btn">
+
                         <i class="fab fa-apple"></i>
+
                         <div class="footer-download-text">
+
                             <span>
+
 تحميل التطبيق من</span>
+
                             <strong>App Store</strong>
+
                         </div>
+
                     </a>
+
                     <a href="#" class="footer-download-btn">
+
                         <i class="fab fa-google-play"></i>
+
                         <div class="footer-download-text">
+
                             <span>تحميل التطبيق من</span>
+
                             <strong>Google Play</strong>
+
                         </div>
+
                     </a>
+
                 </div>
+
             </div>
+
+
 
             <hr class="footer-divider" />
 
+
+
             <div class="footer-bottom">
+
                 <span>© 2025 إطمن — جميع الحقوق محفوظة | مشروع تخرج DEPI</span>
+
                 <div class="social-links">
+
                     <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+
                     <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+
                     <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+
                 </div>
 
+
+
             </div>
+
         </div>
+
     </footer>
 
+
+
     <!-- ═══ CHATBOT WIDGET Preserved & Integrations ════════ -->
+
     <div class="etmen-chatbot">
+
         <button type="button" class="chatbot-toggle" id="chatbotToggle" title="مساعد إطمن الصحي">
+
             <i class="fas fa-heart-pulse"></i>
+
         </button>
 
+
+
         <div class="chatbot-panel" id="chatbotPanel">
+
             <div class="chatbot-header">
+
                 <div>
+
                     <h4>مساعد إطمن</h4>
+
                     <p>مساعد الصحة والعافية</p>
+
                 </div>
+
                 <button type="button" id="chatbotClose" title="إغلاق">
+
                     <i class="fas fa-xmark"></i>
+
                 </button>
+
             </div>
+
+
 
             <div class="chatbot-messages" id="chatbotMessages">
+
                 <div class="chat-msg bot">
+
                     <div class="chat-bubble" dir="rtl">
+
                         أهلاً 👋 اسألني عن التغذية، اللياقة البدنية، النوم، شرب المياه، العادات الصحية، أو نصائح للصحة النفسية.
+
                     </div>
 
+
+
                 </div>
+
             </div>
 
+
+
             
+
 <form id="chatbotForm" class="chatbot-input-area">
+
                 @Html.AntiForgeryToken()
+
                 <input id="chatbotInput" type="text" maxlength="500" placeholder="اكتب سؤالك الصحي..." autocomplete="off" />
+
                 <button type="submit" title="إرسال">
+
                     <i class="fas fa-paper-plane" style="margin: 0;"></i>
+
                 </button>
+
             </form>
 
+
+
         </div>
+
     </div>
 
+
+
     <!-- Scripts -->
+
     
+
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 
-    
-<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
 
     
+
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+
+
+    
+
 <script src="~/js/site.js" asp-append-version="true"></script>
 
 
+
+
+
     <script>
+
         document.addEventListener("DOMContentLoaded", () => {
+
             const toggle = document.getElementById("chatbotToggle");
+
             const panel = document.getElementById("chatbotPanel");
+
             const close = document.getElementById("chatbotClose");
+
             const form = document.getElementById("chatbotForm");
+
             const input = document.getElementById("chatbotInput");
+
             const messages = document.getElementById("chatbotMessages");
+
             const submitBtn = form?.querySelector("button[type='submit']");
 
+
+
             // Chatbot panel toggle
+
             toggle?.addEventListener("click", () => {
+
                 panel.classList.toggle("show");
+
                 if (panel.classList.contains("show")) {
+
                     setTimeout(() => input.focus(), 100);
+
                 }
+
             });
+
+
 
             close?.addEventListener("click", () => {
+
                 panel.classList.remove("show");
+
             });
 
+
+
             function isArabic(text) {
+
                 return /[\u0600-\u06FF]/.test(text);
+
             }
+
+
 
             function formatMarkdown(text) {
+
                 return text
+
                     .replace(/^### (.+)$/gm, '<strong style="font-size:1rem;">$1</strong>')
+
                     .replace(/^## (.+)$/gm,  '<strong style="font-size:1.05rem;">$1</strong>')
+
                     .replace(/^# (.+)$/gm,   '<strong style="font-size:1.1rem;">$1</strong>')
+
                     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+
                     .replace(/__(.+?)__/g,     '<strong>$1</strong>')
+
                     .replace(/\*(.+?)\*/g,     '<em>$1</em>')
+
                     .replace(/^[\*\-] (.+)$/gm, '<li>$1</li>')
+
                     .replace(/^\d+\. (.+)$/gm,  '<li>$1</li>')
+
                     .replace(/(<li>.*<\/li>)/gs, '<ul style="padding-right:1.2rem; margin:6px 0;">$1</ul>')
+
                     .replace(/\n/g, '<br/>');
+
             }
+
+
 
             function addMessage(text, type) {
+
                 const row = document.createElement("div");
+
                 row.className = `chat-msg ${type}`;
 
+
+
                 const bubble = document.createElement("div");
+
                 bubble.className = "chat-bubble";
 
+
+
                 if (isArabic(text)) {
+
                     bubble.setAttribute("dir", "rtl");
+
                     bubble.classList.add("arabic");
+
                 } else {
+
                     bubble.setAttribute("dir", "ltr");
+
                 }
+
+
 
                 if (type === "bot loading") {
+
                     bubble.textContent = text;
+
                 } else if (type === "bot") {
+
                     bubble.innerHTML = formatMarkdown(text);
+
                 } else {
+
                     bubble.textContent = text;
+
                 }
 
+
+
                 row.appendChild(bubble);
+
                 messages.appendChild(row);
+
                 messages.scrollTop = messages.scrollHeight;
+
                 return row;
+
             }
 
+
+
             // AJAX call to bot API
+
             form?.addEventListener("submit", async (e) => {
+
                 e.preventDefault();
 
+
+
                 const message = input.value.trim();
+
                 if (!message) return;
 
+
+
                 addMessage(message, "user");
+
                 input.value = "";
 
+
+
                 const loadingRow = addMessage("جاري الكتابة...", "bot loading");
+
                 submitBtn.disabled = true;
+
                 input.disabled = true;
+
+
 
                 const token = form.querySelector('input[name="__RequestVerificationToken"]')?.value;
 
+
+
                 try {
+
                     const response = await fetch("/api/chatbot/Ask", {
+
                         method: "POST",
+
                         headers: {
+
                             "Content-Type": "application/json",
+
                             "X-CSRF-TOKEN": token
+
                         },
+
                         body: JSON.stringify({ message: message })
+
                     });
 
+
+
                     const data = await response.json();
+
                     loadingRow.remove();
 
+
+
                     if (!response.ok) {
+
                         addMessage(data.reply || "المساعد غير متاح حالياً.", "bot");
+
                         return;
+
                     }
+
+
 
                     addMessage(data.reply || "عذرًا، لم أستطع فهم سؤالك.", "bot");
 
+
+
                 } catch (error) {
+
                     console.error("Fetch Error:", error);
+
                     loadingRow.remove();
+
                     addMessage("حدث خطأ ما، حاول مرة أخرى لاحقاً.", "bot");
+
                 } finally {
+
                     submitBtn.disabled = false;
+
                     input.disabled = false;
+
                     input.focus();
+
                 }
+
             });
+
+
 
             // Sticky Navbar scroll effect
+
             window.addEventListener('scroll', () => {
+
                 document.getElementById('mainNav').classList.toggle('scrolled', window.scrollY > 30);
+
             });
+
+
 
             // FAQ Accordion Toggle
+
             const faqHeaders = document.querySelectorAll('.faq-accordion-header');
+
             faqHeaders.forEach(header => {
+
                 header.addEventListener('click', () => {
+
                     const item = header.parentElement;
+
                     const isActive = item.classList.contains('active');
+
                     
+
                     // Close all
+
                     document.querySelectorAll('.faq-accordion-item').forEach(el => el.classList.remove('active'));
+
                     
+
                     // Toggle current
+
                     if (!isActive) {
+
                         item.classList.add('active');
+
                     }
+
                 });
+
             });
 
+
+
             // Scroll-triggered animations
+
             const observer = new IntersectionObserver((entries) => {
+
                 entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in-view'); });
+
             }, { threshold: 0.12 });
+
+
 
             document.querySelectorAll('[data-animate]').forEach(el => observer.observe(el));
 
+
+
             // Statistics Counter animation
+
             function animateCount(el) {
+
                 const target = parseInt(el.dataset.target, 10);
+
                 const duration = 1800;
+
                 const step = target / (duration / 16);
+
                 let current = 0;
+
                 const timer = setInterval(() => {
+
                     current = Math.min(current + step, target);
+
                     el.textContent = Math.floor(current).toLocaleString('ar-EG');
+
                     if (current >= target) clearInterval(timer);
+
                 }, 16);
+
             }
 
+
+
             const countObserver = new IntersectionObserver((entries) => {
+
                 entries.forEach(e => {
+
                     if (e.isIntersecting) {
+
                         animateCount(e.target);
+
                         countObserver.unobserve(e.target);
+
                     }
+
                 });
+
             }, { threshold: 0.5 });
 
+
+
             document.querySelectorAll('.count-up').forEach(el => countObserver.observe(el));
+
+        });
+
+    </script>
+
+
+
+    <script>
+
+        function toggleMobileNav() {
+
+            var links = document.getElementById('mobileNavLinks');
+
+            var icon = document.getElementById('hamburgerIcon');
+
+            links.classList.toggle('mobile-open');
+
+            icon.className = links.classList.contains('mobile-open') ? 'fas fa-times' : 'fas fa-bars';
+
+        }
+
+        function closeMobileNav() {
+
+            document.getElementById('mobileNavLinks').classList.remove('mobile-open');
+
+            document.getElementById('hamburgerIcon').className = 'fas fa-bars';
+
+        }
+
+    </script>
+
+    <!-- ═══ SUBSCRIPTION & ARTICLE MODALS ═════════════════════ -->
+    <style>
+        .custom-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            animation: fadeInModal 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @@keyframes fadeInModal {
+            from { opacity: 0; transform: scale(0.96); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .custom-modal-content {
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            position: relative;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            direction: rtl;
+            text-align: right;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .subscription-modal-card {
+            max-width: 480px;
+            padding: 2.2rem;
+            text-align: center;
+        }
+
+        .article-modal-card {
+            max-width: 820px;
+            padding: 2.5rem;
+        }
+
+        .modal-close-btn {
+            position: absolute;
+            top: 1.25rem;
+            left: 1.25rem;
+            background: #f1f5f9;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-size: 1.4rem;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close-btn:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+            transform: rotate(90deg);
+        }
+
+        .subscription-badge-icon {
+            font-size: 3.2rem;
+            margin-bottom: 0.5rem;
+            animation: bounceIcon 1.5s infinite alternate ease-in-out;
+        }
+
+        @@keyframes bounceIcon {
+            from { transform: translateY(0); }
+            to { transform: translateY(-8px); }
+        }
+
+        .free-year-highlight {
+            display: inline-block;
+            background: linear-gradient(135deg, #0d9488, #0f766e);
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 1.15rem;
+            padding: 0.55rem 1.4rem;
+            border-radius: 50px;
+            margin-top: 0.75rem;
+            box-shadow: 0 4px 14px rgba(13, 148, 136, 0.3);
+        }
+
+        .subscription-modal-body .modal-desc {
+            color: #475569;
+            font-size: 0.98rem;
+            line-height: 1.7;
+            margin-top: 1.2rem;
+        }
+
+        .subscription-modal-features {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 1.2rem;
+            margin: 1.5rem 0;
+            text-align: right;
+            border: 1px solid #e2e8f0;
+        }
+
+        .feature-item-check {
+            color: #334155;
+            font-size: 0.93rem;
+            margin-bottom: 0.6rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .feature-item-check:last-child {
+            margin-bottom: 0;
+        }
+
+        .article-reader-badge {
+            display: inline-block;
+            background: #ccfbf1;
+            color: #0f766e;
+            font-weight: 700;
+            font-size: 0.85rem;
+            padding: 0.35rem 0.9rem;
+            border-radius: 50px;
+            margin-bottom: 0.8rem;
+        }
+
+        .article-reader-title {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1.4;
+            margin-bottom: 0.8rem;
+        }
+
+        .article-reader-meta {
+            color: #64748b;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .article-divider {
+            margin: 1.5rem 0;
+            border-color: #e2e8f0;
+            opacity: 0.8;
+        }
+
+        .article-reader-body {
+            color: #334155;
+            font-size: 1.05rem;
+            line-height: 1.85;
+        }
+
+        .article-reader-body h4 {
+            color: #0f172a;
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-top: 1.8rem;
+            margin-bottom: 0.8rem;
+            border-right: 4px solid #0d9488;
+            padding-right: 0.75rem;
+        }
+
+        .article-reader-body p {
+            margin-bottom: 1.2rem;
+        }
+
+        .article-callout-box {
+            background: #f0fdf4;
+            border-right: 4px solid #16a34a;
+            padding: 1.2rem;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+            color: #14532d;
+        }
+
+        .article-callout-box h5 {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #15803d;
+        }
+
+        .article-reader-footer {
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: flex-end;
+        }
+    </style>
+
+    <!-- Modal 1: Subscription Free Modal -->
+    <div id="pricingModalOverlay" class="custom-modal-overlay" style="display: none;" onclick="if(event.target===this) closeSubscriptionModal()">
+        <div class="custom-modal-content subscription-modal-card">
+            <button type="button" class="modal-close-btn" onclick="closeSubscriptionModal()">&times;</button>
+            <div class="subscription-modal-header">
+                <div class="subscription-badge-icon">🎉</div>
+                <h3 id="selectedPlanNameTitle" class="modal-title" style="font-weight: 800; color: #0f172a;">الباقة المختارة</h3>
+                <div class="free-year-highlight">التطبيق مجاناً في السنة الأولى!</div>
+            </div>
+            <div class="subscription-modal-body">
+                <p class="modal-desc">
+                    يسعدنا إعلامك أن كافة مميزات وباقات منصة <strong>إطمن</strong> متاحة لك <strong>مجاناً بالكامل 100%</strong> خلال السنة الأولى دون الحاجة لإدخال أية بيانات دفع أو بطاقات ائتمانية!
+                </p>
+                <div class="subscription-modal-features">
+                    <div class="feature-item-check"><i class="fas fa-check-circle text-success"></i> تفعيل فوري ومجاني لكامل خدمات الباقة</div>
+                    <div class="feature-item-check"><i class="fas fa-check-circle text-success"></i> بدون أي رسوم اشتراك أو تكاليف إضافية</div>
+                    <div class="feature-item-check"><i class="fas fa-check-circle text-success"></i> وصول كامل للاستشارات وطوارئ الإسعاف والملف الرقمي</div>
+                </div>
+            </div>
+            <div class="subscription-modal-footer" style="display: flex; flex-direction: column; align-items: center;">
+                <a href="/Account/Register" class="btn btn-primary w-100 py-2 font-weight-bold" style="background: linear-gradient(135deg, #0d9488, #0f766e); border: none; border-radius: 12px; color: white; text-decoration: none; font-size: 1.05rem;">المتابعة للتسجيل المجاني <i class="fas fa-arrow-left ms-2"></i></a>
+                <button type="button" class="btn btn-link text-muted mt-2 text-decoration-none" onclick="closeSubscriptionModal()">إغلاق النافذة</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 2: Article Reader Modal -->
+    <div id="articleModalOverlay" class="custom-modal-overlay" style="display: none;" onclick="if(event.target===this) closeArticleModal()">
+        <div class="custom-modal-content article-modal-card">
+            <button type="button" class="modal-close-btn" onclick="closeArticleModal()">&times;</button>
+            
+            <div class="article-reader-container">
+                <div class="article-reader-header">
+                    <span id="articleCategoryBadge" class="article-reader-badge">الصحة العامة والأوبئة</span>
+                    <h2 id="articleReaderTitle" class="article-reader-title">عنوان المقال</h2>
+                    <div class="article-reader-meta">
+                        <span><i class="far fa-user me-1"></i> بقلم: <strong>الفريق الطبي لمنصة إطمن</strong></span>
+                        <span>•</span>
+                        <span><i class="far fa-clock me-1"></i> <span id="articleReadTime">3 دقائق قراءة</span></span>
+                        <span>•</span>
+                        <span style="color: #0d9488;"><i class="far fa-check-circle me-1"></i> مراجعة طبية معتمدة</span>
+                    </div>
+                </div>
+
+                <hr class="article-divider" />
+
+                <div id="articleReaderBody" class="article-reader-body">
+                    <!-- Dynamic Content -->
+                </div>
+
+                <div class="article-reader-footer">
+                    <button type="button" class="btn btn-secondary py-2 px-4" style="border-radius: 10px; background: #64748b; border: none; color: white;" onclick="closeArticleModal()">إغلاق المقال</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const articlesData = {
+            1: {
+                category: "الصحة العامة والأوبئة",
+                title: "كيف تحميك منصة إطمن في مواجهة الأزمات الوبائية؟",
+                readTime: "3 دقائق قراءة",
+                content: `
+                    <p>تُشكل الأزمات الصحية والأوبئة الفجائية تحدياً كبيراً للمجتمعات، ومن هنا جرى تصميم منصة <strong>إطمن</strong> لتكون الحصن الرقمي الأسرع في حماية المواطنين وإرشادهم بكل يقين وسلاسة.</p>
+                    
+                    <h4>1. تتبع البؤر الوبائية إقليمياً وجغرافياً</h4>
+                    <p>يعتمد نظام إطمن الذكي على خوارزميات رصد دقيقة تحدد مناطق الانتشارات المرضية أو الأوبئة الموسمية في مراحلها الأولى، مما يتيح للجهات الطبية وللمواطنين اتخاذ التدابير الوقائية قبل تفاقم الوضع.</p>
+                    
+                    <h4>2. التنبيهات الجغرافية المباشرة للهاتف</h4>
+                    <p>عند تواجدك أو اقترابك من منطقة تم تسجيل معدلات انتشار أعلى بها، يرسل لك التطبيق تنبيهاً وقائياً هادئاً يتضمن النصائح الطبية المعتمدة للوقاية، مثل الالتزام بالكمامة أو تجنب أماكن الازدحام.</p>
+                    
+                    <div class="article-callout-box">
+                        <h5><i class="fas fa-shield-alt me-2"></i> نصيحة إطمن الوقائية</h5>
+                        <p class="mb-0">التشخيص المبكر والمعرفة الدقيقة تمنع الخوف والشائعات. اتبع دائماً الإرشادات الطبية الموثوقة عبر تطبيق إطمن وتأكد من تحديث بيانات أسرتك الصحية بشكل دوري.</p>
+                    </div>
+
+                    <h4>3. سرعة استدعاء الطوارئ والربط بالخريطة الطبية</h4>
+                    <p>في حالات الأزمات، تتيح المنصة خاصية النداء العاجل واستدعاء سيارات الإسعاف مع تحديد الموقع الجغرافي بالـ GPS تلقائياً، وتوجيه الحالة إلى أقرب مستشفى به أسرة شاغرة متناسبة مع الحالة الطبية.</p>
+                `
+            },
+            2: {
+                category: "التوعية الطبية",
+                title: "أهمية تتبع العلامات الحيوية لكبار السن بشكل دوري",
+                readTime: "4 دقائق قراءة",
+                content: `
+                    <p>مع تقدم العمر، تصبح التغيرات البسيطة في ضغط الدم أو نسبة السكر أو نبضات القلب مؤشرات جوهرية على صحة الإنسان. المتابعة المنتظمة ليست مجرد إجراء شكلي، بل هي المفتاح الحقيقي للحفاظ على جودة الحياة والوقاية المبكرة.</p>
+
+                    <h4>1. لماذا يُعد القياس اليومي أمراً حاسماً؟</h4>
+                    <p>تساعد القراءات المنتظمة في اكتشاف أي خلل في العلامات الحيوية قبل أن يترتب عليه أعراض شديدة أو مضاعفات مفاجئة، مما يتيح للطبيب المعالج تعديل الجرعات والأنظمة الغذائية بأسلوب آمن.</p>
+
+                    <h4>2. العلامات الحيوية الرئيسية الواجب متابعتها</h4>
+                    <ul style="padding-right: 1.5rem; margin-bottom: 1.2rem;">
+                        <li style="margin-bottom: 0.5rem;"><strong>ضغط الدم:</strong> للوقاية من ارتفاع الضغط المفاجئ وحماية القلب والشرايين.</li>
+                        <li style="margin-bottom: 0.5rem;"><strong>مستوى السكر في الدم:</strong> للتأكد من انتظام معدلات السكر وتجنب حالات الهبوط أو الارتفاع الحاد.</li>
+                        <li style="margin-bottom: 0.5rem;"><strong>نبضات القلب ونسبة الأكسجين:</strong> لمتابعة سلامة الجهاز التنفسي والدورة الدموية.</li>
+                    </ul>
+
+                    <div class="article-callout-box">
+                        <h5><i class="fas fa-heartbeat me-2"></i> ميزة الربط العائلي في إطمن</h5>
+                        <p class="mb-0">يمكن للأبناء ربط حسابات كبار السن بحساباتهم الشريكة لتلقي تنبيهات فورية في حال تسجيل أي قراءة غير طبيعية للضغط أو السكر، مما يضمن الاطمئنان الدائم على الوالدين أينما كنت.</p>
+                    </div>
+
+                    <h4>3. كيف يساعدك الملف الطبي الرقمي في إطمن؟</h4>
+                    <p>يقوم تطبيق إطمن برسم بيانات رسم بياني توضيحي لجميع المؤشرات الحيوية المخزنة، حيث يمكنك مشاركتها بضغطة زر مع الطبيب المتابع خلال الاستشارات الفورية أو الزيارات العيادية.</p>
+                `
+            },
+            3: {
+                category: "التكنولوجيا الصحية",
+                title: "دليلك لفهم قراءة تحاليل المختبر عبر تقنية الـ OCR",
+                readTime: "3 دقائق قراءة",
+                content: `
+                    <p>كثيراً ما يستلم المريض ورقة نتائج التحاليل الطبية ويشعر بالحيرة أمام المصطلحات والرموز والأرقام المعقدة. هنا يأتي دور الذكاء الاصطناعي وتقنية التعرف الضوئي (OCR) في منصة <strong>إطمن</strong> لتسهيل الأمر تماماً.</p>
+
+                    <h4>1. كيف تعمل تقنية الـ OCR ببساطة؟</h4>
+                    <p>كل ما عليك فعله هو التقاط صورة واضحة لتقرير التحليل الطبي الخاص بك عبر كاميرا الهاتف داخل تطبيق إطمن. يقدم النظام مسحاً ضوئياً فورياً ويستخرج النصوص والأرقام والنسب المكتوبة بدقة فائقة.</p>
+
+                    <h4>2. تحويل المصطلحات المعقدة إلى لغة بسيطة</h4>
+                    <p>يقوم المحرك الذكي في إطمن بمقارنة نتائجك مع النطاقات المرجعية الطبيعية (Normal Ranges)، ثم يقدم لك شرحاً باللغة العربية الواضحة والمبسطة لما تعنيه كل نسبة (مثل نسبة الهيموجلوبين، وظائف الكلى، الكوليسترول، إلخ).</p>
+
+                    <div class="article-callout-box">
+                        <h5><i class="fas fa-microscope me-2"></i> تنبيه طبي هام</h5>
+                        <p class="mb-0">تقنية الـ OCR وتفسير النتائج تهدف إلى التوعية والتسهيل وتوضيح الصورة العامة للمريض، ولكنها لا تغني عن استشارة الطبيب المختص وتأكيد الخطة العلاجية.</p>
+                    </div>
+
+                    <h4>3. التخزين الآمن والمقارنة التلقائية</h4>
+                    <p>يتم حفظ كافة نتائج التحاليل السابقة في ملفك الصحي الرقمي، مما يتيح لك ولطبيبك مقارنة تطور حالتك الصحية على مدار الأشهر أو السنوات السابقة في مكان واحد آمن ومحمي.</p>
+                `
+            }
+        };
+
+        window.openSubscriptionModal = function(planName) {
+            const titleEl = document.getElementById('selectedPlanNameTitle');
+            const modalEl = document.getElementById('pricingModalOverlay');
+            if (titleEl) titleEl.textContent = planName;
+            if (modalEl) modalEl.style.display = 'flex';
+        };
+
+        window.closeSubscriptionModal = function() {
+            const modalEl = document.getElementById('pricingModalOverlay');
+            if (modalEl) modalEl.style.display = 'none';
+        };
+
+        window.openArticleModal = function(id) {
+            const data = articlesData[id];
+            if (!data) return;
+            
+            const badgeEl = document.getElementById('articleCategoryBadge');
+            const titleEl = document.getElementById('articleReaderTitle');
+            const timeEl = document.getElementById('articleReadTime');
+            const bodyEl = document.getElementById('articleReaderBody');
+            const modalEl = document.getElementById('articleModalOverlay');
+
+            if (badgeEl) badgeEl.textContent = data.category;
+            if (titleEl) titleEl.textContent = data.title;
+            if (timeEl) timeEl.textContent = data.readTime;
+            if (bodyEl) bodyEl.innerHTML = data.content;
+            if (modalEl) modalEl.style.display = 'flex';
+        };
+
+        window.closeArticleModal = function() {
+            const modalEl = document.getElementById('articleModalOverlay');
+            if (modalEl) modalEl.style.display = 'none';
+        };
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                window.closeSubscriptionModal();
+                window.closeArticleModal();
+            }
         });
     </script>
 
-    <script>
-        function toggleMobileNav() {
-            var links = document.getElementById('mobileNavLinks');
-            var icon = document.getElementById('hamburgerIcon');
-            links.classList.toggle('mobile-open');
-            icon.className = links.classList.contains('mobile-open') ? 'fas fa-times' : 'fas fa-bars';
-        }
-        function closeMobileNav() {
-            document.getElementById('mobileNavLinks').classList.remove('mobile-open');
-            document.getElementById('hamburgerIcon').className = 'fas fa-bars';
-        }
-    </script>
-
 </body>
+
 </html>

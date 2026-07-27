@@ -13,7 +13,6 @@ namespace Etmen_PL.Filters
             var controller = context.RouteData.Values["controller"]?.ToString();
             var action = context.RouteData.Values["action"]?.ToString();
 
-            // Skip for Logout and Maintenance actions to avoid infinite loops
             if (controller == "Account" && action == "Logout")
             {
                 await next();

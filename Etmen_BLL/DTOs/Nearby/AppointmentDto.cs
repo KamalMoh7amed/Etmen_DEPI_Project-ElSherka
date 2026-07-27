@@ -5,6 +5,7 @@ namespace Etmen_BLL.DTOs.Nearby
         public int Id { get; set; }
         public int PatientId { get; set; }
         public int DoctorId { get; set; }
+        public string? DoctorUserId { get; set; }
         public DateTime Date { get; set; }
         public TimeSpan StartTime { get; set; }
         public string Status { get; set; } = string.Empty;

@@ -8,7 +8,6 @@ namespace Etmen_PL.Hubs
         public override async Task OnConnectedAsync()
         {
             var userId = Context.UserIdentifier;
-            // Optionally track online users or log connection
             await base.OnConnectedAsync();
         }
 
@@ -22,7 +21,7 @@ namespace Etmen_PL.Hubs
             var senderId = Context.UserIdentifier;
             if (!string.IsNullOrEmpty(senderId) && !string.IsNullOrEmpty(receiverId))
             {
-                await Clients.User(receiverId).SendAsync("ReceiveTyping", senderId, isTyping);
+            await Clients.User(receiverId).SendAsync("ReceiveTyping", senderId, isTyping);
             }
         }
     }
